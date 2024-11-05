@@ -1,0 +1,12 @@
+block_money_transfer: true
+chat_key: DIK_RETURN
+close_chat: false
+current_faction: Loner
+disconnect_when_blowout_or_underground: true
+faction_setting: GameSynced
+news_duration: 3250
+news_sound: true
+nick: Captain_Kennedy
+nick_auto_complete_key: DIK_TAB
+password: ''
+user_list_display: Names in alphabetical order

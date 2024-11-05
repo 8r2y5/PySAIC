@@ -1,0 +1,443 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<root>
+	<string id="crc_name">
+		<eng>Chernobyl Relay Chat Rebirth</eng>
+		<rus>Chernobyl Relay Chat Rebirth</rus>
+	</string>
+	<string id="user_is_blocked">
+		<eng>User "{0}" is blocked.</eng>
+		<rus>Пользователь "{0}" заблокирован.</rus>
+	</string>
+	<string id="welcome_msg">
+		<eng>Welcome to CRCR!
+This addon is currently in beta.
+You can join the official Discord server in the Options menu!</eng>
+		<rus>Добро пожаловать в CRCR!
+Аддон на данный момент находится в стадии бета-тестирования.
+Проверьте «Параметры», если хотите присоединиться к официальному серверу Discord!</rus>
+	</string>
+	<string id="crc_seconds">
+		<eng>seconds</eng>
+		<rus>сек.</rus>
+	</string>
+	<string id="crc_connlost">
+		<eng>[SIGNAL LOST]</eng>
+		<rus>[НЕТ СИГНАЛА]</rus>
+	</string>
+	<string id="crc_error">
+		<eng>Error</eng>
+		<rus>Ошибка</rus>
+	</string>
+	<string id="crc_information">
+		<eng>Information</eng>
+		<rus>Информация</rus>
+	</string>
+	<string id="crc_warning">
+		<eng>Warning</eng>
+		<rus>Предупреждение</rus>
+	</string>
+	<string id="crc_money">
+		<eng> has sent some money to </eng>
+		<rus> отправил денег </rus>
+	</string>
+	<string id="crc_money_recv">
+		<eng> has sent you </eng>
+		<rus> отправил вам </rus>
+	</string>
+	<string id="crc_money_none">
+		<eng>Not enough money!</eng>
+		<rus>Недостаточно средств!</rus>
+	</string>
+	<string id="crc_money_cooldown">
+		<eng>You can't send money that often.</eng>
+		<rus>Нельзя отправлять деньги так часто.</rus>
+	</string>
+	<string id="crc_money_toohigh">
+		<eng>Can't send that much. Maximum amount is 1 000 000 RUB.</eng>
+		<rus>Максимальная сумма перевода - 1 000 000 RUB.</rus>
+	</string>
+		<string id="crc_message_cooldown">
+		<eng>You are typing too fast.</eng>
+		<rus>Вы печатаете слишком быстро.</rus>
+	</string>
+	<string id="crc_debug_check">
+		<eng>You can't do that while in debug mode.</eng>
+		<rus>Это действие недоступно в режиме отладки.</rus>
+	</string>
+	<string id="registry_error">
+		<eng>CRCR was unable to access the registry, which is needed to preserve settings.\nPlease try running the application As Administrator.</eng>
+		<rus>CRCR не смог получить доступ к реестру, который необходим для сохранения настроек.\nПопробуйте запустить приложение с правами администратора.</rus>
+	</string>
+	
+	<string id="client_connection_error">
+		<eng>Could not connect to the IRC server; CRCR will now shut down.\nTry running As Administrator or allowing CRCR in your firewall.</eng>
+		<rus>Не удалось подключиться к IRC-серверу; CRCR теперь будет закрыт.\nПопробуйте запустить с правами администратора или выставить CRCR в исключения в брандмауэре.</rus>
+	</string>
+	<string id="client_failed_to_connect_attempting_another_try">
+		<eng>Could not connect to the IRC server; Attempting another try in 10 seconds...</eng>
+		<rus>Не удалось подключиться к IRC-серверу; Повторная попытка через 10 секунд...</rus>
+	</string>
+	<string id="client_connected">
+		<eng>Connected to </eng>
+		<rus>Вы подключились к </rus>
+	</string>
+	<string id="client_topic">
+		<eng>Channel's topic: </eng>
+		<rus>Тема канала: </rus>
+	</string>
+	<string id="client_topic_change">
+		<eng>Channel's topic update: </eng>
+		<rus>Обновление темы канала: </rus>
+	</string>
+	<string id="client_join">
+		<eng> has logged on</eng>
+		<rus> подключился</rus>
+	</string>
+	<string id="client_quit">
+		<eng> has logged off</eng>
+		<rus> отключился</rus>
+	</string>
+	<string id="client_part">
+		<eng> has lost connection</eng>
+		<rus> потерял соединение</rus>
+	</string>
+	<string id="clinet_part_underground">
+		<eng>{0} went underground</eng>
+		<rus>{0} ушел под землю</rus>
+	</string>
+	<string id="clinet_part_surge">
+		<eng>{0} got caught in emission</eng>
+		<rus>{0} попал в выбросы</rus>
+	</string>
+	<string id="client_own_part">
+		<eng>Disconnected from </eng>
+		<rus>Вы отключены от </rus>
+	</string>
+	<string id="client_nick_change">
+		<eng> is now known as </eng>
+		<rus> теперь известен, как </rus>
+	</string>
+	<string id="client_own_nick_change">
+		<eng>You are now known as </eng>
+		<rus>Теперь Вы известны, как </rus>
+	</string>
+	<string id="client_kicked">
+		<eng> has been kicked for: </eng>
+		<rus> выгнали за: </rus>
+	</string>
+	<string id="client_got_kicked">
+		<eng>You have been kicked for: </eng>
+		<rus>Вас выгнали за: </rus>
+	</string>
+	<string id="client_banned">
+		<eng>Woops, you're banned!</eng>
+		<rus>Вас забанили. Такие дела.</rus>
+	</string>
+	<string id="client_reconnecting">
+		<eng>Reconnecting...</eng>
+		<rus>Повторное подключение...</rus>
+	</string>
+	
+	<string id="game_file_error">
+		<eng>CRCR was unable to read or write files needed to communicate with the game.\nYou may continue using the built-in client for now.\nPlease try running the program As Administrator.</eng>
+		<rus>CRCR не смог прочитать или записать файлы, необходимые для общения с игрой.\nНа данный момент Вы можете продолжать использовать встроенный клиент.\nПопробуйте запустить программу с правами администратора.</rus>
+	</string>
+	<string id="game_script_version_error">
+		<eng>Script version out of date; please exit the game and install the latest CRCR gamedata.</eng>
+		<rus>Версия скрипта устарела; Выйдите из игры и установите последнюю версию gamedata.</rus>
+	</string>
+	
+	<string id="display_send">
+		<eng>Send</eng>
+		<rus>Отправить</rus>
+	</string>
+	<string id="display_options">
+		<eng>Options</eng>
+		<rus>Опции</rus>
+	</string>
+	<string id="display_connecting">
+		<eng>Connecting...</eng>
+		<rus>Подключение...</rus>
+	</string>
+	
+	<string id="options_title">
+		<eng>CRCR Options</eng>
+		<rus>Параметры CRCR</rus>
+	</string>
+	<string id="options_ok">
+		<eng>OK</eng>
+		<rus>ОК</rus>
+	</string>
+	<string id="options_cancel">
+		<eng>Cancel</eng>
+		<rus>Отмена</rus>
+	</string>
+	<string id="options_tab_client">
+		<eng>Client</eng>
+		<rus>Клиент</rus>
+	</string>
+	<string id="options_tab_game">
+		<eng>In-game</eng>
+		<rus>В игре</rus>
+	</string>
+	<string id="options_language">
+		<eng>Language (Язык)</eng>
+		<rus>Язык (Language)</rus>
+	</string>
+	<string id="options_channel">
+		<eng>Channel</eng>
+		<rus>Канал</rus>
+	</string>
+	<string id="options_language_restart">
+		<eng>CRCR must be restarted for language changes to take full effect.</eng>
+		<rus>Перезапустите CRCR, чтобы изменения языка вступили в силу.</rus>
+	</string>
+	<string id="options_auto_faction">
+		<eng>Sync game faction</eng>
+		<rus>Синхронизация группировки</rus>
+	</string>
+	<string id="options_manual_faction">
+		<eng>Static faction</eng>
+		<rus>Постоянная группировка</rus>
+	</string>
+	<string id="options_name">
+		<eng>Name</eng>
+		<rus>Имя</rus>
+	</string>
+	<string id="options_password">
+		<eng>Password</eng>
+		<rus>Пароль</rus>
+	</string>
+	<string id="recover_nick">
+		<eng>Trying to recover nick {0} with provided password.</eng>
+		<rus>Пытаюсь восстановить ник {0} с указанным паролем.</rus>
+	</string>
+	<string id="logged_in_as">
+		<eng>You are logged in as {0}.</eng>
+		<rus>Вы вошли в систему как {0}.</rus>
+	</string>
+	<string id="try_identify_as">
+		<eng>Will authorize with provided password as {0}.</eng>
+		<rus>Авторизуемся с предоставленным паролем как {0}.</rus>
+	</string>
+	<string id="incorrect_password">
+		<eng>Password you provided for {0} is incorrect.</eng>
+		<rus>Пароль, который вы указали для {0}, неверен.</rus>
+	</string>
+	<string id="unregistered_nickname">
+		<eng>You can register this nickname using /msg NickServ REGISTER password email. You can disable this message in settings.</eng>
+		<rus>Вы можете зарегистрировать этот никнейм, используя /msg NickServ REGISTER пароль email. Вы можете отключить это сообщение в настройках.</rus>
+	</string>
+	<string id="options_name_random">
+		<eng>Random</eng>
+		<rus>Случайно</rus>
+	</string>
+	<string id="options_disconnect_when_lost_signal">
+		<eng>Disconnect on blowout or when underground</eng>
+		<rus>Отключение при выбросе или под землей</rus>
+	</string>
+	<string id="payment_blocked">
+		<eng>Command blocked, please check options.</eng>
+		<rus>Команда заблокирована, проверьте параметры.</rus>
+	</string>
+	<string id="options_disable_payment">
+		<eng>Block payment command and from others</eng>
+		<rus>Заблокировать платежную команду и от других</rus>
+	</string>
+	<string id="options_disable_unregistered">
+		<eng>Hide unregistered message</eng>
+		<rus>Скрыть незарегистрированное сообщение</rus>
+	</string>
+	<string id="options_timestamps">
+		<eng>Show timestamps</eng>
+		<rus>Показывать временные метки</rus>
+	</string>
+	<string id="options_send_deaths">
+		<eng>Send death messages</eng>
+		<rus>Отправлять сообщения о смерти</rus>
+	</string>
+	<string id="options_receive_deaths">
+		<eng>Receive death messages</eng>
+		<rus>Получать сообщения о смерти</rus>
+	</string>
+	<string id="options_death_interval">
+		<eng>Minimum time between death messages</eng>
+		<rus>Промежуток между сообщениями о смерти</rus>
+	</string>
+	<string id="options_news_duration">
+		<eng>Duration of news messages</eng>
+		<rus>Длительность сообщений</rus>
+	</string>
+	<string id="options_chat_key">
+		<eng>Chat key</eng>
+		<rus>Клавиша чата</rus>
+	</string>
+	<string id="options_chat_key_change">
+		<eng>Change</eng>
+		<rus>Изменить</rus>
+	</string>
+	<string id="options_nick_autocomplete_key_change">
+		<eng>Change</eng>
+		<rus>Изменить</rus>
+	</string>
+	<string id="options_nick_autocomplete_key_label">
+		<eng>Nick AutoComplete Key</eng>
+		<rus>Ник Ключ автозаполнения</rus>
+	</string>
+	<string id="options_unblocking_money_transfer_warning">
+		<eng>By disabling this you risk getting transfers cheated money.</eng>
+		<rus>Отключив это, вы рискуете получить переводы обманутых денег.</rus>
+	</string>
+	<string id="options_news_sound">
+		<eng>Play message sound</eng>
+		<rus>Воспродить звук при сообщениях</rus>
+	</string>
+	<string id="options_close_chat">
+		<eng>Close chat after sending</eng>
+		<rus>Закрыть чат после отправки</rus>
+	</string>
+	<string id="options_sound_notif">
+		<eng>Sound notifications</eng>
+		<rus>Звуковые уведомления</rus>
+	</string>
+	<string id="options_discord_link">
+		<eng>Join CRCR Discord</eng>
+		<rus>CRCR в Discord</rus>
+	</string>
+	<string id="options_discord_tooltip">
+		<eng>Get the latest news and support</eng>
+		<rus>Поддержка и обновления</rus>
+	</string>
+	<string id="command_commands">
+		<eng>Displays all available commands.</eng>
+		<rus>Отображает все доступные команды.</rus>
+	</string>
+	<string id="command_help_usage">
+		<eng>/help [command] Use /commands to see all available commands.</eng>
+		<rus>/help [комманда] Используйте /commands для отображения всех доступных комманд.</rus>
+	</string>
+	<string id="command_help_help">
+		<eng>Displays information about the given command.</eng>
+		<rus>Отображает информацию о выбранной команде.</rus>
+	</string>
+	<string id="command_msg_usage">
+		<eng>/msg [nick] [message]</eng>
+		<rus>/msg [ник] [сообщение]</rus>
+	</string>
+	<string id="command_msg_help">
+		<eng>Sends a private message to another user.</eng>
+		<rus>Отправляет пользователю приватное сообщение.</rus>
+	</string>
+	<string id="command_nick_usage">
+		<eng>/nick [nick]</eng>
+		<rus>/nick [ник]</rus>
+	</string>
+	<string id="command_nick_help">
+		<eng>Changes your nickname.</eng>
+		<rus>Меняет ваш никнейм</rus>
+	</string>
+	<string id="command_reply_usage">
+		<eng>/reply [message]</eng>
+		<rus>/reply [сообщение]</rus>
+	</string>
+	<string id="command_reply_help">
+		<eng>Sends a private message to the last user who sent you one.</eng>
+		<rus>Ответить приватным сообщением тому, кто вам его написал.</rus>
+	</string>
+	<string id="command_reply_help">
+		<eng>Sends a private message to the last user who sent you one.</eng>
+		<rus>Ответить приватным сообщением тому, кто вам его написал.</rus>
+	</string>
+	<string id="command_pay_usage">
+		<eng>/pay [nick] [amount]</eng>
+		<rus>/pay [ник] [сумма]</rus>
+	</string>
+	<string id="command_pay_help">
+		<eng>Sends a specified amount of in-game money to another user. Must be in-game.</eng>
+		<rus>Отправляет указанное количество игровых денег другому пользователю. Вы и адресат должны находиться в игре.</rus>
+	</string>
+	<string id="command_block_help">
+		<eng>Blocks messages from another user.</eng>
+		<rus>Блокирует сообщения от другого пользователя.</rus>
+	</string>
+	<string id="command_block_usage">
+		<eng>/block [nick]</eng>
+		<rus>/block [ник]</rus>
+	</string>
+	<string id="command_block_user_not_on_list">
+		<eng>"{0}" not on block list.</eng>
+		<rus>"{0}" нет в черном списке.</rus>
+	</string>
+	<string id="command_block_user_removed_from_list">
+		<eng>"{0}" removed from the list.</eng>
+		<rus>"{0}" удален из списка.</rus>
+	</string>
+	<string id="command_block_user_added_to_list">
+		<eng>"{0}" added to the list.</eng>
+		<rus>"{0}" добавлен в список.</rus>
+	</string>
+	<string id="command_block_user_nick_contains_space">
+		<eng>The nickname "{0}" contains a space.</eng>
+		<rus>Псевдоним "{0}" содержит пробел.</rus>
+	</string>
+	<string id="command_block_user_already_on_list">
+		<eng>"{0}" is already on the list.</eng>
+		<rus>"{0}" уже есть в списке.</rus>
+	</string>
+	<string id="command_unblock_help">
+		<eng>Unblocks user that was previously blocked.</eng>
+		<rus>Разблокируйте пользователя, который был ранее заблокирован.</rus>
+	</string>
+	<string id="command_unblock_usage">
+		<eng>/unblock [nick]</eng>
+		<rus>/unblock [ник]</rus>
+	</string>
+	<string id="command_list_help">
+		<eng>Shows list of currently blocked users.</eng>
+		<rus>Показывает ники заблокированных пользователей.</rus>
+	</string>
+	<string id="command_list_usage">
+		<eng>/list</eng>
+		<rus>/list</rus>
+	</string>
+	<string id="block_list_is_empty">
+		<eng>Block list is empty.</eng>
+		<rus>Черный список пуст.</rus>
+	</string>
+	<string id="command_available_commands">
+		<eng>Available commands: </eng>
+		<rus>Доступные команды: </rus>
+	</string>
+	<string id="command_not_recognized_1">
+		<eng>Command "</eng>
+		<rus>Комманда "</rus>
+	</string>
+	<string id="command_not_recognized_2">
+		<eng>" not recognized. Use /commands to see all available commands.</eng>
+		<rus>" не распознана. Используйте /commands для отображения всех доступных комманд.</rus>
+	</string>
+	<string id="command_pay_notingame">
+		<eng>You must be in-game to be able to send money.</eng>
+		<rus>Вы должны находиться в игре чтобы отправлять деньги.</rus>
+	</string>
+	<string id="command_pay_notanumber">
+		<eng>" is not a number. Please, input an amount of money you want to send.</eng>
+		<rus>" не является числом. Пожалуйста, введите сумму денег, которую вы хотите отправить.</rus>
+	</string>
+	<string id="command_pay_usernotingame">
+		<eng>Cannot send money - user in not in the Zone.</eng>
+		<rus>Невозможно отправить деньги - пользователь находится вне Зоны.</rus>
+	</string>
+	<string id="command_reply_error">
+		<eng>You can't reply if you haven't been sent any messages yet.</eng>
+		<rus>Вы не можете ответить если вам ещё никто не писал.</rus>
+	</string>
+	<string id="command_usage">
+		<eng>Usage: </eng>
+		<rus>Использование: </rus>
+	</string>
+	<string id="error_no_such_nickname">
+		<eng>No such nick/channel</eng>
+		<rus>Такого пользователя/канала не существует</rus>
+	</string>
+</root>

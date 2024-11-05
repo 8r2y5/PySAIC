@@ -1,0 +1,12 @@
+block_money_transfer: true
+chat_key: DIK_RETURN
+close_chat: false
+current_faction: Bandit
+disconnect_when_blowout_or_underground: true
+faction_setting: GameSynced
+news_duration: 1250
+news_sound: true
+nick: Vladimir_Kuzyakin
+nick_auto_complete_key: DIK_TAB
+password: ''
+user_list_display: Group by faction with counter

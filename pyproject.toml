@@ -1,0 +1,34 @@
+[tool.poetry]
+name = "pysaic"
+version = "0.2.0"
+description = ""
+authors = ["Krzysztof Kwasniak"]
+license = "MIT"
+readme = "readme.md"
+
+[tool.poetry.scripts]
+app = "pysaic.main:main"
+mock_ui = "pysaic.ui.mock_ui:mock_ui"
+
+[tool.poetry.dependencies]
+python = "^3.11"
+async-irc = "^0.2.0"
+watchdog = "^4.0.1"
+pyyaml = "^6.0.1"
+psutil = "^6.0.0"
+pytest = "^8.3.2"
+inject = "^5.2.1"
+aiohttp = "^3.10.10"
+
+[tool.poetry.group.dev.dependencies]
+black = "^24.4.2"
+isort = "^5.13.2"
+pylint = "^3.2.5"
+mccabe = "^0.7.0"
+ipdb = "^0.13.13"
+ruff = "^0.6.3"
+pillow = "^11.0.0"
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
