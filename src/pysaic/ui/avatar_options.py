@@ -47,8 +47,9 @@ faction_file = {
     FactionsEnum.Military.value: textures_path / "pysaic_icons_army.dds",
     FactionsEnum.Renegade.value: textures_path / "pysaic_icons_renegade.dds",
     FactionsEnum.Mercenary.value: textures_path / "pysaic_icons_killer.dds",
-    FactionsEnum.UNISG.value: textures_path / "pysaic_icons_isg.dds",
+    FactionsEnum.UNISG.value: textures_path / "pysaic_icons_unisg.dds",
     FactionsEnum.SIN.value: textures_path / "pysaic_icons_greh.dds",
+    FactionsEnum.Zombie.value: textures_path / "crc_icons.dds",
 }
 
 
@@ -292,7 +293,11 @@ class AvatarOptions:
         )
         options = list(
             sorted(
-                [faction.name.replace("_", " ") for faction in FactionsEnum]
+                [
+                    faction.name.replace("_", " ")
+                    for faction in FactionsEnum
+                    if faction != FactionsEnum.Anonymous
+                ]
             )
         )
         faction_options_menu = OptionMenu(

@@ -59,6 +59,7 @@ FACTION_AVATARS = {
     + pysaic_factions[FactionsEnum.Renegade.value],
     "Loner": crcr_factions[FactionsEnum.Loner.value]
     + pysaic_factions[FactionsEnum.Loner.value],
-    "Zombies": crcr_factions[FactionsEnum.Zombie.value]
+    "Zombie": crcr_factions[FactionsEnum.Zombie.value]
     + pysaic_factions[FactionsEnum.Zombie.value],
+    "Anonymous": 0,
 }
