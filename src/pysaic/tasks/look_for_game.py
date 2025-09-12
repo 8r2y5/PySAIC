@@ -6,7 +6,7 @@ from pathlib import Path
 
 import psutil
 
-from pysaic.entities import IncomingEvent, AppEvent
+from pysaic.entities import AppEvent, IncomingEvent
 from pysaic.enums import AppEventEnum
 
 logger = logging.getLogger(__name__)
@@ -28,7 +28,6 @@ async def look_for_game_process(loop, incoming_queue, config, state):
     logger.debug("Starting look for game process")
     pid = None
     while True:
-        await asyncio.sleep(5)
         is_game_running = False
         game_path = None
         if pid:
@@ -36,11 +35,6 @@ async def look_for_game_process(loop, incoming_queue, config, state):
                 is_game_running = True
             else:
                 logger.info("Game process is not running anymore")
-                incoming_queue.put_nowait(
-                    IncomingEvent.create_information_event(
-                        "Lost game process. Unbinding game and chat."
-                    )
-                )
                 pid = None
         else:
             logger.debug("Looking for game process in the system via pool")
@@ -51,17 +45,11 @@ async def look_for_game_process(loop, incoming_queue, config, state):
                 try:
                     game_path = (
                         Path(os.path.dirname(psutil.Process(pid).exe())) / ".."
-                    )
+                    ).resolve()
                 except psutil.NoSuchProcess:
                     logger.error("Game process not found")
                     pid = None
                     continue
-
-                incoming_queue.put_nowait(
-                    IncomingEvent.create_information_event(
-                        "Found game process, binding game and chat."
-                    )
-                )
 
         if last_status != is_game_running:
             last_status = is_game_running
@@ -75,3 +63,4 @@ async def look_for_game_process(loop, incoming_queue, config, state):
                     ),
                 )
             )
+        await asyncio.sleep(5)

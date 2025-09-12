@@ -1,14 +1,40 @@
 import os
+from pathlib import Path
 
 START_OF_ACTOR_CHARACTER = "☻"
 END_OF_ACTOR_CHARACTER = "☺"
-VERSION = "0.2.0"
-SUPPORTED_SCRIPT_VERSION = 9
+VERSION = "0.3.0b2"
+SUPPORTED_SCRIPT_VERSION = (11,)
 APP_IDENTITY = f"PySAIC {VERSION}"
 
 # logs
 MAX_BYTES = 2 * 1024 * 1024  # 2 mb
 NUMBER_OF_BACKUPS = 5
+
+# paths
+avatar_images_path = (
+    Path(os.path.abspath(os.path.dirname(__file__))) / "avatar"
+)
+WORKDIR = Path(os.getcwd())
+
+# If running from src/pysaic directory, this only happens during development
+if WORKDIR.parts[-2:] == ("src", "pysaic"):
+    WORKDIR = (WORKDIR / ".." / "..").resolve()
+    GAMEDATA_PATH = (WORKDIR / "gamedata").resolve()
+
+elif (WORKDIR / "gamedata").exists():
+    GAMEDATA_PATH = (WORKDIR / "gamedata").resolve()
+
+else:
+    # this happens during exe runtime
+    GAMEDATA_PATH = (WORKDIR / ".." / "gamedata").resolve()
+
+RES_PATH = (GAMEDATA_PATH / ".." / "res").resolve()
+LOCATIONS_FOR_ENUM_PATH = RES_PATH / "locations.yml"
+
+ANOMALY_DIR_PATH = (os.environ.get("ANOMALY_DIR_PATH") or "").strip()
+if ANOMALY_DIR_PATH:
+    ANOMALY_DIR_PATH = Path(ANOMALY_DIR_PATH)
 
 
 def get_log_config():
@@ -66,6 +92,11 @@ def get_log_config():
                 "level": "INFO",
                 "propagate": True,
             },
+            "pysaic.tasks.outgoing_queue": {
+                "handlers": ["default", "app", "error"],
+                "level": "DEBUG",
+                "propagate": False,
+            },
             "pysaic.script_reader": {
                 "handlers": ["default", "reader_log"],
                 "level": "DEBUG",
@@ -76,12 +107,27 @@ def get_log_config():
                 "level": "DEBUG",
                 "propagate": False,
             },
+            "pysaic.ui.hyper_links": {
+                "handlers": ["default"],
+                "level": "DEBUG",
+                "propagate": False,
+            },
             "pysaic.controllers.game": {
                 "handlers": ["default"],
                 "level": "DEBUG",
                 "propagate": False,
             },
-            "pysaicr.irc_protocol": {
+            "pysaic.irc_protocol": {
+                "handlers": ["default", "app", "error"],
+                "level": "INFO",
+                "propagate": False,
+            },
+            "pysaic.router": {
+                "handlers": ["default", "app", "error"],
+                "level": "DEBUG",
+                "propagate": False,
+            },
+            "pysaic.use_cases": {
                 "handlers": ["default", "app", "error"],
                 "level": "INFO",
                 "propagate": False,

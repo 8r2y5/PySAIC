@@ -1,24 +1,33 @@
 import logging
 from asyncio import Queue
+from dataclasses import asdict
 from functools import partial
+from pprint import pprint
 from random import choice
 
 import inject
 
 from pysaic.config import Config
+from pysaic.crc_strings.use_case import (
+    DeathMessageUseCase,
+    TravelMessageUseCase,
+)
 from pysaic.entities import (
     ChatUser,
     ErrorEvent,
     IncomingEvent,
     IncomingMessage,
-    InformationEvent,
     IncomingQueue,
+    InformationEvent,
+    IrcUser,
     OutgoingQueue,
 )
 from pysaic.enums import FactionsEnum
+from pysaic.router.incoming_router import IncomingRouter
+from pysaic.script_reader.entities import Death
+from pysaic.settings import APP_IDENTITY
 from pysaic.state import State
 from pysaic.ui.app import App
-from pysaic.use_cases.ui.incoming_event import IncomingNewEventUseCase
 from pysaic.use_cases.ui.update_users import UpdateUsersUseCase
 
 
@@ -28,6 +37,7 @@ def gen_chat_users():
             name=f"user_{x}",
             faction=choice(list(FactionsEnum)),
             in_game=choice([True, False]),
+            afk=choice([True, False, False]),
         )
         for x in range(30)
     }
@@ -35,7 +45,7 @@ def gen_chat_users():
 
 def get_priv_msg(users):
     return IncomingMessage(
-        author=choice(users).name,
+        author=IrcUser(choice(users).name),
         target=choice(users).name,
         content="".join(
             [choice("qwertyuiopasdfghjklzxcvbnm") for _ in range(10)]
@@ -71,7 +81,7 @@ def gen_error(users):
 
 def gen_channel_msg(users):
     return IncomingMessage(
-        author=choice(users).name,
+        author=IrcUser(choice(users).name),
         target="#channel",
         content="".join(
             [choice("qwertyuiopasdfghjklzxcvbnm") for _ in range(10)]
@@ -95,7 +105,7 @@ def gen_messages(state, config, app):
     users = list(state.chat_users.values())
     for x in range(10):
         event = get_random_event(users)
-        IncomingNewEventUseCase.handle_event(state, config, app, event)
+        IncomingRouter.handle_event(state, config, app, event)
 
 
 def setup_inject(binder, app, state, incoming_queue, outgoing_queue, config):
@@ -106,13 +116,59 @@ def setup_inject(binder, app, state, incoming_queue, outgoing_queue, config):
     binder.bind(Config, config)
 
 
+def gen_death_message(state, config, app):
+    death = Death(
+        user_actor="actor_bandit",
+        location="l10_limansk",
+        death_by="MONOLITH",
+        meta="sim_default_monolith_1",
+    )
+    use_case = DeathMessageUseCase(state, config, "Mock_Death", death)
+    IncomingRouter.handle_event(
+        state,
+        config,
+        app,
+        IncomingMessage(
+            author=IrcUser("Mock_Death"),
+            target="#channel",
+            content=use_case.execute(),
+        ),
+    )
+
+
+def get_travel_message(state, config, app):
+    travel_use_case = TravelMessageUseCase(
+        state, config, "Mock_Travel", "l10_limansk"
+    )
+    IncomingRouter.handle_event(
+        state,
+        config,
+        app,
+        IncomingMessage(
+            author=IrcUser("Mock_Death"),
+            target="#channel",
+            content=travel_use_case.execute(),
+        ),
+    )
+
+
 def mock_ui():
-    logging.basicConfig(level=logging.DEBUG)
+    logger = logging.getLogger("pysaic")
+    logger.setLevel(logging.DEBUG)
+    handler = logging.StreamHandler()
+    handler.setLevel(logging.DEBUG)
+    formatter = logging.Formatter(
+        "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
+    )
+    handler.setFormatter(formatter)
+    logger.addHandler(handler)
+
     incoming_queue = Queue()
     outgoing_queue = Queue()
     config = Config.load_config()
     state = State(config)
     app = App(state, config, incoming_queue, outgoing_queue)
+    app.title(f"Mock {APP_IDENTITY}")
     inject.configure(
         partial(
             setup_inject,
@@ -128,7 +184,10 @@ def mock_ui():
         name=config.nick, faction=config.current_faction, in_game=True
     )
     gen_messages(state, config, app)
+    gen_death_message(state, config, app)
+    get_travel_message(state, config, app)
     UpdateUsersUseCase(state, app).execute()
+    pprint(asdict(config))
     app.enable_input()
     app.mainloop()
     while incoming_queue.qsize():

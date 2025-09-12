@@ -1,0 +1,62 @@
+<?xml version='1.0' encoding='windows-1251'?>
+<w>
+    <file name="ui\pysaic_icons_stalker">
+        <texture id="pysaic_icon_actor_stalker_1" x="0" y="0" width="126" height="56"/>
+        <texture id="pysaic_icon_actor_stalker_2" x="126" y="0" width="126" height="56"/>
+        <texture id="pysaic_icon_actor_stalker_3" x="252" y="0" width="126" height="56"/>
+        <texture id="pysaic_icon_actor_stalker_4" x="378" y="0" width="126" height="56"/>
+        <texture id="pysaic_icon_actor_stalker_5" x="504" y="0" width="126" height="56"/>
+        <texture id="pysaic_icon_actor_stalker_6" x="630" y="0" width="126" height="56"/>
+        <texture id="pysaic_icon_actor_stalker_7" x="756" y="0" width="126" height="56"/>
+        <texture id="pysaic_icon_actor_stalker_8" x="882" y="0" width="126" height="56"/>
+        <texture id="pysaic_icon_actor_stalker_9" x="1008" y="0" width="126" height="56"/>
+        <texture id="pysaic_icon_actor_stalker_10" x="1134" y="0" width="126" height="56"/>
+        <texture id="pysaic_icon_actor_stalker_11" x="1260" y="0" width="126" height="56"/>
+        <texture id="pysaic_icon_actor_stalker_12" x="1386" y="0" width="126" height="56"/>
+        <texture id="pysaic_icon_actor_stalker_13" x="0" y="56" width="126" height="56"/>
+        <texture id="pysaic_icon_actor_stalker_14" x="126" y="56" width="126" height="56"/>
+        <texture id="pysaic_icon_actor_stalker_15" x="252" y="56" width="126" height="56"/>
+        <texture id="pysaic_icon_actor_stalker_16" x="378" y="56" width="126" height="56"/>
+        <texture id="pysaic_icon_actor_stalker_17" x="504" y="56" width="126" height="56"/>
+        <texture id="pysaic_icon_actor_stalker_18" x="630" y="56" width="126" height="56"/>
+        <texture id="pysaic_icon_actor_stalker_19" x="756" y="56" width="126" height="56"/>
+        <texture id="pysaic_icon_actor_stalker_20" x="882" y="56" width="126" height="56"/>
+        <texture id="pysaic_icon_actor_stalker_21" x="1008" y="56" width="126" height="56"/>
+        <texture id="pysaic_icon_actor_stalker_22" x="1134" y="56" width="126" height="56"/>
+        <texture id="pysaic_icon_actor_stalker_23" x="1260" y="56" width="126" height="56"/>
+        <texture id="pysaic_icon_actor_stalker_24" x="1386" y="56" width="126" height="56"/>
+        <texture id="pysaic_icon_actor_stalker_25" x="0" y="112" width="126" height="56"/>
+        <texture id="pysaic_icon_actor_stalker_26" x="126" y="112" width="126" height="56"/>
+        <texture id="pysaic_icon_actor_stalker_27" x="252" y="112" width="126" height="56"/>
+        <texture id="pysaic_icon_actor_stalker_28" x="378" y="112" width="126" height="56"/>
+        <texture id="pysaic_icon_actor_stalker_29" x="504" y="112" width="126" height="56"/>
+        <texture id="pysaic_icon_actor_stalker_30" x="630" y="112" width="126" height="56"/>
+        <texture id="pysaic_icon_actor_stalker_31" x="756" y="112" width="126" height="56"/>
+        <texture id="pysaic_icon_actor_stalker_32" x="882" y="112" width="126" height="56"/>
+        <texture id="pysaic_icon_actor_stalker_33" x="1008" y="112" width="126" height="56"/>
+        <texture id="pysaic_icon_actor_stalker_34" x="1134" y="112" width="126" height="56"/>
+        <texture id="pysaic_icon_actor_stalker_35" x="1260" y="112" width="126" height="56"/>
+        <texture id="pysaic_icon_actor_stalker_36" x="1386" y="112" width="126" height="56"/>
+        <texture id="pysaic_icon_actor_stalker_37" x="0" y="168" width="126" height="56"/>
+        <texture id="pysaic_icon_actor_stalker_38" x="126" y="168" width="126" height="56"/>
+        <texture id="pysaic_icon_actor_stalker_39" x="252" y="168" width="126" height="56"/>
+        <texture id="pysaic_icon_actor_stalker_40" x="378" y="168" width="126" height="56"/>
+        <texture id="pysaic_icon_actor_stalker_41" x="504" y="168" width="126" height="56"/>
+        <texture id="pysaic_icon_actor_stalker_42" x="630" y="168" width="126" height="56"/>
+        <texture id="pysaic_icon_actor_stalker_43" x="756" y="168" width="126" height="56"/>
+        <texture id="pysaic_icon_actor_stalker_44" x="882" y="168" width="126" height="56"/>
+        <texture id="pysaic_icon_actor_stalker_45" x="1008" y="168" width="126" height="56"/>
+        <texture id="pysaic_icon_actor_stalker_46" x="1134" y="168" width="126" height="56"/>
+        <texture id="pysaic_icon_actor_stalker_47" x="1260" y="168" width="126" height="56"/>
+        <texture id="pysaic_icon_actor_stalker_48" x="1386" y="168" width="126" height="56"/>
+        <texture id="pysaic_icon_actor_stalker_49" x="0" y="224" width="126" height="56"/>
+        <texture id="pysaic_icon_actor_stalker_50" x="126" y="224" width="126" height="56"/>
+        <texture id="pysaic_icon_actor_stalker_51" x="252" y="224" width="126" height="56"/>
+        <texture id="pysaic_icon_actor_stalker_52" x="378" y="224" width="126" height="56"/>
+        <texture id="pysaic_icon_actor_stalker_53" x="504" y="224" width="126" height="56"/>
+        <texture id="pysaic_icon_actor_stalker_54" x="630" y="224" width="126" height="56"/>
+        <texture id="pysaic_icon_actor_stalker_55" x="756" y="224" width="126" height="56"/>
+        <texture id="pysaic_icon_actor_stalker_56" x="882" y="224" width="126" height="56"/>
+        <texture id="pysaic_icon_actor_stalker_57" x="1008" y="224" width="126" height="56"/>
+    </file>
+</w>

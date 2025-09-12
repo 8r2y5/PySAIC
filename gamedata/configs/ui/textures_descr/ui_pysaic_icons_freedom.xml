@@ -1,0 +1,50 @@
+<?xml version='1.0' encoding='windows-1251'?>
+<w>
+    <file name="ui\pysaic_icons_freedom">
+        <texture id="pysaic_icon_actor_freedom_1" x="0" y="0" width="126" height="56"/>
+        <texture id="pysaic_icon_actor_freedom_2" x="126" y="0" width="126" height="56"/>
+        <texture id="pysaic_icon_actor_freedom_3" x="252" y="0" width="126" height="56"/>
+        <texture id="pysaic_icon_actor_freedom_4" x="378" y="0" width="126" height="56"/>
+        <texture id="pysaic_icon_actor_freedom_5" x="504" y="0" width="126" height="56"/>
+        <texture id="pysaic_icon_actor_freedom_6" x="630" y="0" width="126" height="56"/>
+        <texture id="pysaic_icon_actor_freedom_7" x="756" y="0" width="126" height="56"/>
+        <texture id="pysaic_icon_actor_freedom_8" x="882" y="0" width="126" height="56"/>
+        <texture id="pysaic_icon_actor_freedom_9" x="1008" y="0" width="126" height="56"/>
+        <texture id="pysaic_icon_actor_freedom_10" x="1134" y="0" width="126" height="56"/>
+        <texture id="pysaic_icon_actor_freedom_11" x="1260" y="0" width="126" height="56"/>
+        <texture id="pysaic_icon_actor_freedom_12" x="1386" y="0" width="126" height="56"/>
+        <texture id="pysaic_icon_actor_freedom_13" x="0" y="56" width="126" height="56"/>
+        <texture id="pysaic_icon_actor_freedom_14" x="126" y="56" width="126" height="56"/>
+        <texture id="pysaic_icon_actor_freedom_15" x="252" y="56" width="126" height="56"/>
+        <texture id="pysaic_icon_actor_freedom_16" x="378" y="56" width="126" height="56"/>
+        <texture id="pysaic_icon_actor_freedom_17" x="504" y="56" width="126" height="56"/>
+        <texture id="pysaic_icon_actor_freedom_18" x="630" y="56" width="126" height="56"/>
+        <texture id="pysaic_icon_actor_freedom_19" x="756" y="56" width="126" height="56"/>
+        <texture id="pysaic_icon_actor_freedom_20" x="882" y="56" width="126" height="56"/>
+        <texture id="pysaic_icon_actor_freedom_21" x="1008" y="56" width="126" height="56"/>
+        <texture id="pysaic_icon_actor_freedom_22" x="1134" y="56" width="126" height="56"/>
+        <texture id="pysaic_icon_actor_freedom_23" x="1260" y="56" width="126" height="56"/>
+        <texture id="pysaic_icon_actor_freedom_24" x="1386" y="56" width="126" height="56"/>
+        <texture id="pysaic_icon_actor_freedom_25" x="0" y="112" width="126" height="56"/>
+        <texture id="pysaic_icon_actor_freedom_26" x="126" y="112" width="126" height="56"/>
+        <texture id="pysaic_icon_actor_freedom_27" x="252" y="112" width="126" height="56"/>
+        <texture id="pysaic_icon_actor_freedom_28" x="378" y="112" width="126" height="56"/>
+        <texture id="pysaic_icon_actor_freedom_29" x="504" y="112" width="126" height="56"/>
+        <texture id="pysaic_icon_actor_freedom_30" x="630" y="112" width="126" height="56"/>
+        <texture id="pysaic_icon_actor_freedom_31" x="756" y="112" width="126" height="56"/>
+        <texture id="pysaic_icon_actor_freedom_32" x="882" y="112" width="126" height="56"/>
+        <texture id="pysaic_icon_actor_freedom_33" x="1008" y="112" width="126" height="56"/>
+        <texture id="pysaic_icon_actor_freedom_34" x="1134" y="112" width="126" height="56"/>
+        <texture id="pysaic_icon_actor_freedom_35" x="1260" y="112" width="126" height="56"/>
+        <texture id="pysaic_icon_actor_freedom_36" x="1386" y="112" width="126" height="56"/>
+        <texture id="pysaic_icon_actor_freedom_37" x="0" y="168" width="126" height="56"/>
+        <texture id="pysaic_icon_actor_freedom_38" x="126" y="168" width="126" height="56"/>
+        <texture id="pysaic_icon_actor_freedom_39" x="252" y="168" width="126" height="56"/>
+        <texture id="pysaic_icon_actor_freedom_40" x="378" y="168" width="126" height="56"/>
+        <texture id="pysaic_icon_actor_freedom_41" x="504" y="168" width="126" height="56"/>
+        <texture id="pysaic_icon_actor_freedom_42" x="630" y="168" width="126" height="56"/>
+        <texture id="pysaic_icon_actor_freedom_43" x="756" y="168" width="126" height="56"/>
+        <texture id="pysaic_icon_actor_freedom_44" x="882" y="168" width="126" height="56"/>
+        <texture id="pysaic_icon_actor_freedom_45" x="1008" y="168" width="126" height="56"/>
+    </file>
+</w>

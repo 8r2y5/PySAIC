@@ -18,6 +18,9 @@
 	<string id="crc_notingame">
 		<text>Not in the Zone</text>
 	</string>
+	<string id="crc_afk">
+		<text>AFK</text>
+	</string>
 	<string id="crc_ccon">
 		<text>C-Consciousness</text>
 	</string>
@@ -97,5 +100,104 @@
 	</string>
 	<string id="#crcr_tech_support">
 		<text>Tech Support</text>
+	</string>
+    <string id="k00_marsh">
+		<text>Great Swamp</text>
+	</string>
+    <string id="k01_darkscape">
+		<text>Darkscape</text>
+	</string>
+    <string id="k02_trucks_cemetery">
+		<text>Truck Cemetery</text>
+	</string>
+    <string id="l01_escape">
+		<text>Cordon</text>
+	</string>
+    <string id="l02_garbage">
+		<text>Garbage</text>
+	</string>
+	<string id="y04_pole">
+		<text>Meadow</text>
+	</string>
+    <string id="l03_agroprom">
+		<text>Agroprom</text>
+	</string>
+    <string id="l03u_agr_underground">
+		<text>Agroprom Underground</text>
+	</string>
+    <string id="l04_darkvalley">
+		<text>Dark Valley</text>
+	</string>
+    <string id="l04u_labx18">
+		<text>Lab X-18</text>
+	</string>
+    <string id="l05_bar">
+		<text>Rostok</text>
+	</string>
+    <string id="l06_rostok">
+		<text>Wild Territory</text>
+	</string>
+    <string id="l07_military">
+		<text>Army Warehouses</text>
+	</string>
+    <string id="l08_yantar">
+		<text>Yantar</text>
+	</string>
+    <string id="l08u_brainlab">
+		<text>Lab X-16</text>
+	</string>
+    <string id="l09_deadcity">
+		<text>Dead City</text>
+	</string>
+    <string id="l10_limansk">
+		<text>Limansk</text>
+	</string>
+    <string id="l10_radar">
+		<text>Radar</text>
+	</string>
+    <string id="l10_red_forest">
+		<text>Red Forest</text>
+	</string>
+    <string id="l10u_bunker">
+		<text>Brain Scorcher</text>
+	</string>
+    <string id="l11_hospital">
+		<text>Deserted Hospital</text>
+	</string>
+    <string id="l11_pripyat">
+		<text>Outskirts</text>
+	</string>
+    <string id="l12_stancia">
+		<text>South of the CNPP</text>
+	</string>
+    <string id="l12_stancia_2">
+		<text>North of the CNPP</text>
+	</string>
+    <string id="l12u_control_monolith">
+		<text>Mono Control Center</text>
+	</string>
+    <string id="l12u_sarcofag">
+		<text>CNPP</text>
+	</string>
+    <string id="l13_generators">
+		<text>Generators</text>
+	</string>
+    <string id="l13u_warlab">
+		<text>Warlab</text>
+	</string>
+    <string id="jupiter">
+		<text>Jupiter</text>
+	</string>
+    <string id="jupiter_underground">
+		<text>Jupiter Underground</text>
+	</string>
+    <string id="labx8">
+		<text>Lab X-8</text>
+	</string>
+    <string id="pripyat">
+		<text>Pripyat</text>
+	</string>
+    <string id="zaton">
+		<text>Zaton</text>
 	</string>
 </string_table>

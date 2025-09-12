@@ -1,16 +1,28 @@
 import logging
 import os
 import re
-from pathlib import Path
 from asyncio import Queue
 from functools import partial
-from tkinter import Button, Entry, Frame, OptionMenu, StringVar, Text, Tk
+from pathlib import Path
+from tkinter import (
+    INSERT,
+    Button,
+    Entry,
+    Frame,
+    OptionMenu,
+    StringVar,
+    Text,
+    Tk,
+)
 from tkinter.font import Font
 from tkinter.ttk import Scrollbar, Style
 
-from pysaic.entities import IncomingEvent, AppEvent
-from pysaic.enums import FactionsEnum, AppEventEnum
+from winotify import Notification, audio
+
+from pysaic.entities import AppEvent, IncomingEvent
+from pysaic.enums import AppEventEnum, FactionsEnum
 from pysaic.settings import APP_IDENTITY
+from pysaic.ui.hyper_links import HyperlinkManager
 from pysaic.ui.options import Options
 
 logger = logging.getLogger(__name__)
@@ -25,9 +37,22 @@ BACKGROUND_COLOR = "gray30"
 TK_BREAK = "break"
 
 PATH = Path(os.path.abspath(os.path.dirname(__file__)))
+AUTO_COMPLETE_REGEXP = re.compile(r"[@]?\w+$")
 
 
 class App(Tk):
+    @property
+    def is_focused(self) -> bool:
+        return bool(self.focus_get())
+
+    @property
+    def should_show_popups(self) -> bool:
+        return (
+            self.pysaic_config.pop_up_on_ping
+            and not self.is_focused
+            and self.pysaic_state.is_game_running is not True
+        )
+
     def __init__(
         self,
         state,
@@ -79,6 +104,7 @@ class App(Tk):
         self.protocol("WM_DELETE_WINDOW", self.on_close)
         self.incoming_queue = incoming_queue
         self.outgoing_queue = outgoing_queue
+        self.hyperlinks = None
         self.create_widgets()
         # self.after(250, self.process_incoming_events)
         self.iconbitmap(PATH / "crcr_icon_new.ico")
@@ -104,14 +130,10 @@ class App(Tk):
         self.set_color_tags()
 
     def disable_input(self):
-        self.channels_dropbox.config(state="disabled")
-        self.input_message.config(state="disabled")
-        self.send_button.config(state="disabled")
+        self._set_input_state("disabled")
 
     def enable_input(self):
-        self.channels_dropbox.config(state="normal")
-        self.input_message.config(state="normal")
-        self.send_button.config(state="normal")
+        self._set_input_state("normal")
 
     def _prepare_left_frame(self):
         left_frame = Frame(
@@ -124,11 +146,15 @@ class App(Tk):
 
         chat_scroll = Scrollbar(left_frame)
         self.messages_list = Text(
-            left_frame, yscrollcommand=chat_scroll.set, background="gray40"
+            left_frame,
+            yscrollcommand=chat_scroll.set,
+            background="gray40",
+            wrap="word",
         )
         self.messages_list.grid(row=0, column=0, sticky="nsew")
         chat_scroll.config(command=self.messages_list.yview)
         chat_scroll.grid(row=0, column=1, sticky="ns")
+        self.hyperlinks = HyperlinkManager(self.messages_list)
 
     def _prepare_right_frame(self):
         right_frame = Frame(
@@ -197,7 +223,7 @@ class App(Tk):
         )
         self.channels_dropbox.grid(row=0, column=0, sticky="ew")
 
-        options_button = Button(
+        self.options_button = Button(
             channels_and_option_section,
             text="Options",
             command=lambda: Options(self.pysaic_config, self).main(),
@@ -205,7 +231,7 @@ class App(Tk):
             foreground="ghost white",
             width=10,
         )
-        options_button.grid(row=0, column=1, sticky="ew")
+        self.options_button.grid(row=0, column=1, sticky="ew")
 
         channels_and_option_section.pack(side="left", fill="x")
 
@@ -256,11 +282,31 @@ class App(Tk):
 
         self.send_button.pack(side="left", padx=3, pady=3)
 
+    def show_popup(self, title: str, message: str):
+        logger.info("Showing popup: %r: %r", title, message)
+        toast = Notification(
+            app_id="PySAIC",
+            title=title,
+            msg=message,
+            duration="long",
+            icon=str(PATH / "crcr_icon_new.ico"),
+        )
+        logger.debug(
+            "Popup sound is set to %r", self.pysaic_config.pop_up_sound
+        )
+        if self.pysaic_config.pop_up_sound:
+            logger.debug("Playing popup sound")
+            toast.set_audio(audio.Default, loop=False)
+        else:
+            logger.debug("Silent popup")
+            toast.set_audio(audio.Silent, loop=False)
+        toast.show()
+
     def _nick_auto_complete(self, _event):
         self.input_message.focus_set()
-        cursor_position = self.input_message.index("insert")
+        cursor_position = self.input_message.index(INSERT)
         text = self.input_message.get()
-        result = re.search("[@]\w+", text[:cursor_position])
+        result = AUTO_COMPLETE_REGEXP.search(text[:cursor_position])
         start = 0 if not result else result.start()
 
         if start == -1:
@@ -280,12 +326,18 @@ class App(Tk):
         if len(characters) < 2:
             return TK_BREAK
 
-        users = self.pysaic_state.chat_users.keys()
+        users = sorted(self.pysaic_state.chat_users.keys())
         if characters in users:
             found_user = self._cycle_through_users(users, characters)
         else:
+            characters = characters.lower()
             found_user = next(
-                (user for user in users if user.startswith(characters)), []
+                (
+                    user
+                    for user in users
+                    if user.lower().startswith(characters)
+                ),
+                [],
             )
 
         if found_user:
@@ -306,36 +358,27 @@ class App(Tk):
         # self.columnconfigure(1, minsize=10, weight=0)
 
     def _send_message(self, *_args, input_entry):
-        content = input_entry.get()
+        content = input_entry.get().replace("\n", "").strip(" ")
         if not content:
             return
 
         if content.startswith("/"):
-            self.incoming_queue.put_nowait(
-                IncomingEvent(
-                    author="",
-                    target="",
-                    event=AppEvent(
-                        what=AppEventEnum.COMMAND, payload=content[1:]
-                    ),
-                )
+            app_event = AppEvent(
+                what=AppEventEnum.COMMAND, payload=content[1:]
             )
         else:
-            self.incoming_queue.put_nowait(
-                IncomingEvent(
-                    author="",
-                    target="",
-                    event=AppEvent(
-                        what=AppEventEnum.OUR_MESSAGE, payload=content
-                    ),
-                )
+            app_event = AppEvent(
+                what=AppEventEnum.OUR_MESSAGE, payload=content
             )
+        self.incoming_queue.put_nowait(
+            IncomingEvent(
+                author="",
+                target="",
+                event=app_event,
+            )
+        )
 
         input_entry.delete(0, "end")
-
-    def update(self):
-        # UpdateUsersUseCase(self).execute()
-        return super().update()
 
     def set_color_tags(self):
         # TODO: Load values from config
@@ -345,6 +388,8 @@ class App(Tk):
             widget.tag_config("Time", foreground="floral white")
             widget.tag_config("Text", foreground="ghost white")
             widget.tag_config("Highlight", background="gray50")
+            widget.tag_config("hyper", foreground="#3B8ED0", underline=1)
+            widget.tag_raise("sel", aboveThis="Highlight")
             widget.tag_config("Information", foreground="lightblue")
             widget.tag_config("Error", foreground="red3")
             widget.tag_config(
@@ -408,6 +453,7 @@ class App(Tk):
             widget.tag_config("DM", foreground="hot pink", font=bold_font)
             widget.tag_config("online", foreground="green", font=bold_font)
             widget.tag_config("offline", foreground="red", font=bold_font)
+            widget.tag_config("afk", foreground="yellow", font=bold_font)
 
     def _cycle_through_users(self, users, characters) -> str:
         users_gen = iter(users)
@@ -434,3 +480,8 @@ class App(Tk):
 
         self.input_message.delete(cursor_position, "insert")
         return TK_BREAK
+
+    def _set_input_state(self, value: str):
+        self.channels_dropbox.config(state=value)
+        self.input_message.config(state=value)
+        self.send_button.config(state=value)

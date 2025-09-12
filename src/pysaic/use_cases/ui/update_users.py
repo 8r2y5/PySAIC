@@ -27,12 +27,11 @@ class UpdateUsersUseCase:
     def __init__(self, state, ui: App):
         self.state = state
         self.ui = ui
-        # self.config = ui.config
 
     @inject.autoparams()
     def execute(self, config: Config):
         self.ui.position = self.scroll_bar.get()
-        logger.info("Updating users list")
+        logger.debug("Updating users list")
         with enable_disable(self.users_list, tail=False):
             self.users_list.delete("0.0", END)
 

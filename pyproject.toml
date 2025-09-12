@@ -1,10 +1,11 @@
 [tool.poetry]
 name = "pysaic"
-version = "0.2.0"
+version = "0.3.0"
 description = ""
 authors = ["Krzysztof Kwasniak"]
 license = "MIT"
 readme = "readme.md"
+package-mode = false
 
 [tool.poetry.scripts]
 app = "pysaic.main:main"
@@ -19,6 +20,8 @@ psutil = "^6.0.0"
 pytest = "^8.3.2"
 inject = "^5.2.1"
 aiohttp = "^3.10.10"
+win10toast = "^0.9"
+winotify = "^1.1.0"
 
 [tool.poetry.group.dev.dependencies]
 black = "^24.4.2"

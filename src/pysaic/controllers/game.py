@@ -3,7 +3,7 @@ from typing import Iterable, Optional
 
 import inject
 
-from pysaic.entities import ChatUser
+from pysaic.entities import ChatUser, IncomingEvent, IncomingQueue
 from pysaic.enums import FactionsEnum
 from pysaic.state import State
 
@@ -24,25 +24,66 @@ def ensure_game_is_running(func):
 
 @ensure_game_is_running
 def add_channel_message_to_game(
-    faction_actor: str, author: str, highlight: str, content: str
+    faction_actor: str,
+    author: str,
+    icon_id: str,
+    reputation_author: str,
+    rank_author: str,
+    highlight: str,
+    content: str,
 ):
     add_to_crc_input_file(
-        f"Message/{faction_actor}/{author}/{highlight}/{content}"
+        "/".join(
+            (
+                "Message",
+                faction_actor,
+                author,
+                icon_id,
+                reputation_author,
+                rank_author,
+                highlight,
+                content,
+            )
+        )
     )
 
 
 @ensure_game_is_running
 def add_dm_message_to_game(
-    author_faction_actor: str, author: str, receiver: str, content: str
+    author_faction_actor: str,
+    author: str,
+    icon_id: str,
+    reputation_author: str,
+    rank_author: str,
+    receiver: str,
+    content: str,
 ):
     add_to_crc_input_file(
-        f"Query/{author_faction_actor}/{author}/{receiver}/{content}"
+        "/".join(
+            (
+                "Query",
+                author_faction_actor,
+                author,
+                icon_id,
+                reputation_author,
+                rank_author,
+                receiver,
+                content,
+            )
+        )
     )
 
 
-@ensure_game_is_running
 def ask_for_actor_status():
-    add_to_crc_input_file("Setting/ActorStatus")
+    add_setting_to_game("ActorStatus", "Query")
+
+
+def ask_for_handshake(state_id):
+    add_setting_to_game("Handshake", state_id)
+
+
+def set_ingame_display_setting(value: str):
+    add_setting_to_game("UserDisplayStyle", value)
 
 
 @ensure_game_is_running
@@ -56,15 +97,32 @@ def add_error_message_to_game(content: str):
 
 
 @ensure_game_is_running
+def add_signal_state(content: str):
+    logger.debug("Adding signal state: %s", content)
+    add_to_crc_input_file(f"SignalState/{content}")
+
+
 def _get_chat_user_faction(faction: Optional[FactionsEnum]):
     return faction or FactionsEnum.Anonymous
 
 
+def _get_chat_user_data(chat_user: ChatUser):
+    return ",".join(
+        (
+            chat_user.name.lstrip("@%+"),
+            str(_get_chat_user_faction(chat_user.faction)),
+            str(chat_user.rank),
+            chat_user.reputation.value.title(),
+            str(int(chat_user.afk)),
+            str(chat_user.avatar),
+        )
+    )
+
+
 def serialize_chat_user(chat_user: ChatUser):
     return (
-        f"{chat_user.name.lstrip('@%+')},"
-        f"{_get_chat_user_faction(chat_user.faction)} = "
-        f"{chat_user.in_game}"
+        f"{_get_chat_user_data(chat_user)} = "
+        f"{chat_user.location.name if chat_user.in_game else chat_user.in_game}"
     )
 
 
@@ -80,13 +138,15 @@ def add_users_list_to_game(users: Iterable[ChatUser]):
 
 
 @ensure_game_is_running
-def add_money_to_user(author: str, amount: str):
-    add_to_crc_input_file(f"MoneyRecv/{author}/{amount}")
+def add_money_to_user(author: str, reputation: str, rank: str, amount: str):
+    add_to_crc_input_file(f"MoneyRecv/{author}/{reputation}/{rank}/{amount}")
 
 
 @ensure_game_is_running
-def remove_money_from_player(author: str, receiver: str, amount: str):
-    add_to_crc_input_file(f"Money/{author}/{receiver}/{amount}")
+def remove_money_from_player(player: ChatUser, receiver: str, amount: str):
+    add_to_crc_input_file(
+        f"Money/{player.name}/{player.reputation}/{player.rank}/{receiver}/{amount}"
+    )
 
 
 @ensure_game_is_running
@@ -95,9 +155,40 @@ def add_setting_to_game(setting: str, value: str):
 
 
 @inject.autoparams()
-def add_to_crc_input_file(content: str, state: State):
-    logger.debug("Adding to crc_input.txt: %r", content)
-    with open(
-        state.game_location / "gamedata" / "configs" / "crc_input.txt", "a"
-    ) as f:
-        f.write(content + "\n")
+def add_to_crc_input_file(
+    content: str, state: State, incoming_queue: IncomingQueue
+):
+    content = (
+        content.encode("utf-8", errors="replace")
+        .decode("utf-8")
+        .replace("\n", "")
+        .replace("\r", "")
+    )
+    logger.debug("Adding to %s: %r", state.crc_input_path, content)
+    try:
+        with open(state.crc_input_path, "a") as f:
+            f.write(content + "\n")
+    except FileNotFoundError:
+        logger.exception(
+            "Game location %s does not exist, cannot write to crc_input.txt",
+            state.game_location,
+        )
+        incoming_queue.put_nowait(
+            IncomingEvent.create_error_event(
+                f"File {state.crc_input_path} does not exist"
+            )
+        )
+        raise
+    except OSError as e:
+        logger.exception(
+            "Failed to write to crc_input.txt: %s. Game location: %s",
+            e,
+            state.game_location,
+        )
+        incoming_queue.put_nowait(
+            IncomingEvent.create_error_event(
+                f"Cannot write into {state.crc_input_path}. "
+                f"Please check permissions or disk space."
+            )
+        )
+        raise

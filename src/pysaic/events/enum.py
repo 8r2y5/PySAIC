@@ -2,6 +2,11 @@ from enum import Enum, auto
 
 
 class GameEvents(Enum):
+    AFK = auto()
+    RANK = auto()
+    REPUTATION = auto()
+    ACHIEVEMENT = auto()
+    PLAYER_LOCATION = auto()
     MONEY_CHANGE = auto()
     DEATH = auto()
     HANDSHAKE = auto()

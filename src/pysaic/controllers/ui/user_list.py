@@ -1,3 +1,4 @@
+import logging
 from collections import Counter
 from tkinter import END
 
@@ -6,6 +7,9 @@ from pysaic.enums import FactionsEnum
 
 ONLINE_ICON = "⦿"
 OFFLINE_ICON = "⦾"
+AFK_ICON = "☽"
+
+logger = logging.getLogger(__name__)
 
 
 def get_faction_tag(faction):
@@ -13,9 +17,20 @@ def get_faction_tag(faction):
 
 
 class SortedMixin:
+    def __init__(self, users_list, users):
+        self.users_list = users_list
+        self.users = users
+
     def _add_user(self, chat_user):
-        icon = ONLINE_ICON if chat_user.in_game else OFFLINE_ICON
-        tag = "online" if chat_user.in_game else "offline"
+        tag, icon = (
+            ("online", ONLINE_ICON)
+            if chat_user.in_game
+            else ("offline", OFFLINE_ICON)
+        )
+        if chat_user.afk:
+            tag = "afk"
+            icon = AFK_ICON
+        # logger.debug("Adding user: %r (%r)", chat_user, tag)
         faction_tag = get_faction_tag(chat_user.faction)
         self.users_list.insert(END, f" {icon} ", tag)
         self.users_list.insert(
@@ -31,10 +46,6 @@ class NamesInAlphabeticalOrder(SortedMixin):
         return sorted(
             self.users.values(), key=lambda chat_user: chat_user.name
         )
-
-    def __init__(self, users_list, users):
-        self.users_list = users_list
-        self.users = users
 
     def write(self):
         for chat_user in self.sorted_users:
@@ -67,10 +78,6 @@ class NamesInReverseAlphabeticalOrder(NamesInAlphabeticalOrder):
 class GroupByFactionAndName(SortedMixin):
     name = "Group by faction and name"
 
-    def __init__(self, users_list, users):
-        self.users_list = users_list
-        self.users = users
-
     def sort_by(self, chat_user: ChatUser):
         return get_faction_tag(chat_user.faction), chat_user.name
 
@@ -83,8 +90,7 @@ class GroupByFactionWithCounter(SortedMixin):
     name = "Group by faction with counter"
 
     def __init__(self, users_list, users):
-        self.users_list = users_list
-        self.users = users
+        super().__init__(users_list, users)
         self.counter = Counter(
             [chat_user.faction for chat_user in self.users.values()]
         )
@@ -106,7 +112,8 @@ class GroupByFactionWithCounter(SortedMixin):
             faction_tag = get_faction_tag(chat_user.faction)
             # logger.info("Adding user: %r (%r)", chat_user, faction_tag)
             if last_group != faction_tag:
-                self.users_list.insert(END, f"{faction_tag}", faction_tag)
+                display_tag = faction_tag.replace("_", " ")
+                self.users_list.insert(END, f"{display_tag}", faction_tag)
                 self.users_list.insert(
                     END, f" ({self.counter[chat_user.faction]})\n"
                 )

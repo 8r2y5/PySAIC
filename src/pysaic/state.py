@@ -1,101 +1,70 @@
 import asyncio
 import logging
 from asyncio import Task
+from collections import deque
 from datetime import datetime
 from pathlib import Path
 from typing import Optional
 
-from pysaic.entities import ChatUser
-from pysaic.enums import FactionsEnum
-
+from pysaic.entities import ChatUser, ChatUsers, Player
 
 logger = logging.getLogger(__name__)
 
 
-class ChatUsers(dict):
-    def __init__(self, data):
-        super().__init__(data)
-        self.needs_update = False
-        self.logger = logger.getChild("chat_users")
-
-    def update_user_faction(self, user_id, faction):
-        self.logger.info(
-            'Updating user "%s" faction to "%s"', user_id, faction
-        )
-        user = self[user_id]
-        if user.faction == faction:
-            return
-        user.faction = faction
-        self[user_id] = user
-        self.needs_update = True
-
-    def update_user_name(self, old_name, name):
-        self.logger.info('Renaming user "%s" to "%s"', old_name, name)
-        user = self.pop(old_name)
-        user.name = name
-        self[name] = user
-        self.needs_update = True
-
-    def remove_user(self, user_id):
-        self.logger.info('Removing user "%s"', user_id)
-        self.pop(user_id, None)
-        self.needs_update = True
-
-    def add_user(self, user_id, user: ChatUser):
-        self.logger.info('Adding user "%s"', user_id)
-        self[user_id] = user
-        self.needs_update = True
-
-    def get_user(self, user_id):
-        return self.get(user_id)
-
-    def update_or_create(self, name, actor) -> ChatUser:
-        if self.get(name):
-            self.logger.info('User "%s" already exists', name)
-            self.update_user_faction(name, FactionsEnum(actor))
-            # self.update_user_ingame(name, True)
-        else:
-            self.logger.info('User "%s" does not exist', name)
-            self.add_user(
-                name,
-                ChatUser(name=name, faction=FactionsEnum(actor)),
-            )
-
-        self.needs_update = True
-        return self[name]
-
-    def update_user_ingame(self, name, in_game):
-        self.logger.info('Updating user "%s" in_game to "%s"', name, in_game)
-        user = self[name]
-        if user.in_game == in_game:
-            return
-        user.in_game = in_game
-        self.needs_update = True
-
-    def set_user(self, author, user):
-        self.logger.info('Setting user "%s"', author)
-        self[author] = user
-        self.needs_update = True
-
-
 class State:
+    @property
+    def nick(self):
+        return self.player.name
+
+    @nick.setter
+    def nick(self, value):
+        self.logger.debug(
+            'Changing nick from "%s" to "%s"', self.player.name, value
+        )
+        self.player.name = value
+
+    @property
+    def is_game_running(self):
+        return self._is_game_running
+
+    @is_game_running.setter
+    def is_game_running(self, value):
+        self.player.in_game = self._is_game_running = value
+
+    @property
+    def game_location(self) -> Optional[Path]:
+        return self._game_location
+
+    @game_location.setter
+    def game_location(self, value):
+        if isinstance(value, Path):
+            self.crc_input_path = (
+                value / "gamedata" / "configs" / "crc_input.txt"
+            ).resolve()
+        else:
+            self.crc_input_path = None
+        self._game_location = value
+
     def __init__(self, config):
-        self.logger = logger.getChild("state")
+        self.id = str(id(self))
+        self.got_first_handshake = asyncio.Event()
+        self.logger = logger.getChild("instance").getChild(self.id)
         self.config = config
         self.got_welcome_message = asyncio.Event()
         self.fake_disconnect: bool = False
-        self.game_location: Optional[Path] = None
-        self.is_game_running: bool = False
+        self._game_location: Optional[Path] = None
+        self.crc_input_path: Optional[Path] = None
+        self._is_game_running: bool = False
         self.is_author_authorized = asyncio.Event()
         self.is_in_channel = asyncio.Event()
         self.chat_users: ChatUsers[str, ChatUser] = ChatUsers({})
-        self.player_money: int = 0
         self.game_related_tasks: list[Task] = []
-        self.nick: str = config.nick
+        self.player = Player.create_from_config(config)
         self.last_death: Optional[datetime] = None
+        self.last_messages = deque(maxlen=20)
 
     def money_enough(self, amount) -> bool:
-        return self.player_money >= amount
+        return self.player.money >= amount
 
     def set_not_in_channel(self):
         self.logger.info("Setting not in channel")
@@ -105,6 +74,8 @@ class State:
     def set_in_channel(self):
         self.logger.info("Setting in channel")
         self.chat_users.update_or_create(
-            self.config.nick, self.config.current_faction
+            self.nick, self.config.current_faction
         )
+        self.player.faction = self.config.current_faction
+        self.chat_users.update_user_location(self.nick, self.player.location)
         self.is_in_channel.set()

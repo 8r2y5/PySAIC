@@ -1,10 +1,23 @@
+import logging
 from asyncio import Queue
 from dataclasses import dataclass, field
 from datetime import datetime
-from typing import Any, Optional, Union
+from typing import Any, Iterable, Optional, Union
 
-from pysaic.enums import AppEventEnum, FactionsEnum, IrcEvents
+from irclib.parser import Prefix
+
+from pysaic.enums import (
+    AppEventEnum,
+    AvatarEnum,
+    FactionsEnum,
+    IrcEvents,
+    LocationEnum,
+    RankEnum,
+    ReputationEnum,
+)
 from pysaic.events.enum import GameEvents
+
+logger = logging.getLogger(__name__)
 
 
 class IncomingQueue(Queue):
@@ -23,22 +36,20 @@ class OutgoingMessage:
 
 
 @dataclass
+class OutgoingCTCP:
+    target: str
+    content: str
+    created_at: datetime = field(default_factory=datetime.now)
+    send_as: IrcEvents = IrcEvents.NOTICE
+
+    def __post_init__(self):
+        self.content = f"\x01{self.content}\x01".replace("\n", "")
+
+
+@dataclass
 class OutgoingQuery:
     target: str
     content: str
-    created_at: datetime = field(default_factory=datetime.now)
-
-
-@dataclass
-class OutgoingNotice:
-    target: str
-    content: str
-    created_at: datetime = field(default_factory=datetime.now)
-
-
-@dataclass
-class OutgoingNick:
-    nick: str
     created_at: datetime = field(default_factory=datetime.now)
 
 
@@ -56,8 +67,38 @@ class OutgoingPart:
 
 
 @dataclass
+class OutgoingCommand:
+    command: IrcEvents
+    args: Iterable[str] = field(default_factory=list)
+    created_at: datetime = field(default_factory=datetime.now)
+
+    @classmethod
+    def create_nick_command(cls, nick: str):
+        return cls(command=IrcEvents.NICK, args=[nick])
+
+    def __str__(self):
+        args_str = " ".join(self.args)
+        return f"{self.command} {args_str}" if args_str else self.command
+
+
+@dataclass
+class IrcUser:
+    nick: str
+    user: Optional[str] = None
+    host: Optional[str] = None
+
+    @classmethod
+    def from_prefix(cls, prefix: Prefix):
+        return cls(nick=prefix.nick, user=prefix.user, host=prefix.host)
+
+    @property
+    def mask(self):
+        return f"{self.nick}!{self.user}@{self.host}"
+
+
+@dataclass
 class IncomingMessage:
-    author: str
+    author: IrcUser
     target: str
     content: str
     created_at: datetime = field(default_factory=datetime.now)
@@ -94,35 +135,51 @@ class GameEvent:
 
 
 @dataclass
+class EventRegister:
+    name: str
+    handler: callable
+    on: Any
+
+
+@dataclass
 class IncomingAppEvent:
     author: str
     target: str
-    event: [AppEventEnum, GameEvents, IrcEvent, InformationEvent, ErrorEvent]
+    event: Union[
+        AppEventEnum, GameEvents, IrcEvent, InformationEvent, ErrorEvent
+    ]
     payload: Optional[Any] = None
     created_at: datetime = field(default_factory=datetime.now)
 
 
 @dataclass
 class IncomingEvent:
-    author: str
+    author: Union[str, IrcUser]
     target: str
-    event: Union[IrcEvent, InformationEvent, AppEvent, ErrorEvent, GameEvent]
+    event: Union[
+        IrcEvent,
+        InformationEvent,
+        AppEvent,
+        ErrorEvent,
+        GameEvent,
+        EventRegister,
+    ]
     created_at: datetime = field(default_factory=datetime.now)
 
     @classmethod
-    def create_information_event(cls, content: str):
+    def create_information_event(cls, content: str, target: str = ""):
         return cls(
             author="",
-            target="",
+            target=target,
             event=InformationEvent(content),
         )
 
     @classmethod
-    def create_irc_event(cls, NICK, param):
+    def create_irc_event(cls, what, payload):
         return cls(
             author="",
             target="",
-            event=IrcEvent(NICK, {"nick": param}),
+            event=IrcEvent(what, payload),
         )
 
     @classmethod
@@ -142,11 +199,11 @@ class IncomingEvent:
         )
 
     @classmethod
-    def create_game_event(cls, param):
+    def create_game_event(cls, what, payload):
         return cls(
             author="",
             target="",
-            event=GameEvent(param),
+            event=GameEvent(what, payload),
         )
 
 
@@ -154,11 +211,69 @@ class IncomingEvent:
 class ChatUser:
     name: str
     in_game: bool = False
+    location: LocationEnum = field(default=LocationEnum.unknown)
     faction: FactionsEnum = field(default=FactionsEnum.Anonymous)
+    rank: RankEnum = field(default=RankEnum.unknown)
+    reputation: ReputationEnum = field(default=ReputationEnum.unknown)
+    # location: LocationEnum = field(
+    #     default_factory=lambda: choice(tuple(LocationEnum))
+    # )
+    # faction: FactionsEnum = field(
+    #     default_factory=lambda: choice(tuple(FactionsEnum))
+    # )
+    # rank: RankEnum = field(default_factory=lambda: choice(tuple(RankEnum)))
+    # reputation: ReputationEnum = field(
+    #     default_factory=lambda: choice(tuple(ReputationEnum))
+    # )
+    afk: bool = False
+    last_ask_update: Optional[datetime] = None
     irc_mode: str = ""
+    avatar: str = "random"
+    irc_user: Optional[IrcUser] = None
 
 
-# Unknown type: Death/actor_killer/l04_darkvalley/ARMY/sim_default_military_1
+@dataclass()
+class Player(ChatUser):
+    money: int = 0
+    config: Optional["Config"] = None
+    logger = logger.getChild("player")
+
+    def reset(self):
+        self.location = LocationEnum.unknown
+        self.in_game = False
+        self.rank = RankEnum.unknown
+        self.reputation = ReputationEnum.unknown
+        self.money = 0
+        self.last_ask_update = None
+        self.afk = False
+
+    def create_chat_user(self) -> ChatUser:
+        return ChatUser(
+            name=self.name,
+            faction=self.faction,
+            location=self.location,
+            in_game=self.in_game,
+            rank=self.rank,
+            reputation=self.reputation,
+            irc_mode=self.irc_mode,
+            avatar=self.get_avatar(),
+        )
+
+    def get_avatar(self) -> str:
+        return (
+            self.config.current_avatar
+            if self.config.avatar != AvatarEnum.player
+            else "random"
+        )
+
+    @classmethod
+    def create_from_config(cls, config):
+        return cls(
+            name=config.nick,
+            faction=config.current_faction,
+            avatar=config.current_avatar,
+            config=config,
+        )
 
 
 @dataclass
@@ -168,3 +283,90 @@ class DeathTimestamped:
     death_by: str
     meta: str
     created_at: datetime = field(default_factory=datetime.now)
+
+
+class ChatUsers(dict):
+    def __init__(self, data):
+        super().__init__(data)
+        self.needs_update = False
+        self.logger = logger.getChild("chat_users")
+
+    def _update_user_field_if_different(self, user_id, field, value):
+        self.logger.debug(
+            'Updating user "%s" %s to "%s"', user_id, value, field
+        )
+        user = self[user_id]
+        if getattr(user, field) == value:
+            return
+        setattr(user, field, value)
+        self[user_id] = user
+        self.needs_update = True
+
+    def update_user_faction(self, user_id, faction):
+        self._update_user_field_if_different(user_id, "faction", faction)
+
+    def update_user_location(self, user_id, location):
+        self._update_user_field_if_different(user_id, "location", location)
+
+    def update_user_name(self, old_name, name):
+        self.logger.debug('Renaming user "%s" to "%s"', old_name, name)
+        user = self.pop(old_name)
+        user.name = name
+        self[name] = user
+        self.needs_update = True
+
+    def remove_user(self, user_id):
+        self.logger.debug('Removing user "%s"', user_id)
+        self.pop(user_id, None)
+        self.needs_update = True
+
+    def add_user(self, user_id, user: ChatUser):
+        self.logger.debug('Adding user "%s"', user_id)
+        self[user_id] = user
+        self.needs_update = True
+
+    def get_user(self, user_id):
+        self.logger.debug('Getting user "%s"', user_id)
+        return self.get(user_id)
+
+    def update_or_create(self, name, actor) -> ChatUser:
+        if self.get(name):
+            self.logger.debug('User "%s" already exists', name)
+            self.update_user_faction(name, FactionsEnum(actor))
+            # self.update_user_ingame(name, True)
+        else:
+            self.logger.debug('User "%s" does not exist', name)
+            self.add_user(
+                name,
+                ChatUser(name=name, faction=FactionsEnum(actor)),
+            )
+
+        self.needs_update = True
+        return self[name]
+
+    def update_user_ingame(self, name, in_game):
+        self.logger.debug('Updating user "%s" in_game to "%s"', name, in_game)
+        user = self[name]
+        if user.in_game == in_game:
+            return
+        user.in_game = in_game
+        self.needs_update = True
+
+    def set_user(self, author, user):
+        self.logger.debug('Setting user "%s"', author)
+        self[author] = user
+        self.needs_update = True
+
+    def __getitem__(self, item):
+        self.logger.debug('Getting key "%s"', item)
+        return super().__getitem__(item)
+
+    def __setitem__(self, key, value):
+        self.logger.debug('Setting key "%s" with value "%s"', key, value)
+        super().__setitem__(key, value)
+        self.needs_update = True
+
+    def __delitem__(self, key):
+        self.logger.debug('Deleting key "%s"', key)
+        super().__delitem__(key)
+        self.needs_update = True

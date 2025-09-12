@@ -4,7 +4,7 @@
 		<texture>ui\crc_log_background</texture>
 	</background>
 	
-	<background_userlist x="764" y="53" width="242" height="632" stretch="1">
+	<background_userlist x="754" y="53" width="252" height="632" stretch="1">
 		<texture>ui\crc_log_background</texture>
 	</background_userlist>
 	
@@ -42,33 +42,72 @@
 			<text font="letterica16" color="ui_5" vert_align="t"/>
 		</title>
 
+		<rank x="22" y="-10" width="5" height="12" stretch="1"/>
+
+		<reputation x="24" y="-12" width="4" height="8" stretch="1"/>
+
 		<message_text x="66" y="-14" width="958" height="29" complex_mode="1">
 			<text font="letterica16" color="ui_1" vert_align="b"/>
 		</message_text>
 	</message>
 	
 	<!-- Channel Select Droplist -->
-	<list_channel x="852" y="12" width="160" height="21" can_select="1">
+	<list_channel x="830" y="12" width="180" height="21" can_select="1">
 		<list_font r="170" g="170" b="170" font="letterica16"/>
-            <text_color>
-	            <e r="170" g="170" b="170"/>
-	            <d r="70" g="70" b="70"/>
-            </text_color>
+		<text_color>
+			<e r="170" g="170" b="170"/>
+			<d r="70" g="70" b="70"/>
+		</text_color>
     </list_channel>
 	
 	<!-- Users List -->
 	<scroll x="764" y="62" width="240" height="610" right_ident="60" left_ident="0" top_indent="0" bottom_indent="0" vert_interval="0" always_show_scroll="1"/>
-	
+
 	<user x="0" y="0" width="180" height="39">
 		<icon x="120" y="5" width="41" height="29" stretch="1"/>
-		
+
 		<name x="0" y="0" width="114" height="29">
 			<text font="letterica16" align="r" vert_align="c"/>
 		</name>
-		
+
 		<status x="0" y="15" width="114" height="29">
 			<text font="letterica16" align="r" vert_align="c"/>
 		</status>
 	</user>
-	
+
+	<pysaic_compact x="0" y="0" width="220" height="39">
+		<icon x="120" y="5" width="41" height="29" stretch="1"/>
+
+		<name x="0" y="0" width="114" height="29">
+			<text font="letterica16" align="r" vert_align="c"/>
+		</name>
+
+		<rank x="-60" y="5" width="9" height="15">
+			<text font="letterica16" align="l" vert_align="c"/>
+		</rank>
+
+		<reputation x="-60" y="22" width="13" height="13">
+			<text font="letterica16" align="l" vert_align="c"/>
+		</reputation>
+
+		<status x="0" y="15" width="114" height="29">
+			<text font="letterica16" align="r" vert_align="c"/>
+		</status>
+	</pysaic_compact>
+
+	<pysaic_card x="0" y="0" width="180" height="66">
+		<icon x="80" y="5" width="79" height="56" stretch="1"/>
+
+		<name x="-40" y="0" width="114" height="56">
+			<text font="letterica16" align="r" vert_align="c"/>
+		</name>
+
+		<rank x="83" y="12" width="9" height="30" stretch="1"/>
+
+		<reputation x="87" y="9" width="9" height="16" stretch="1"/>
+
+		<status x="-40" y="15" width="114" height="56">
+			<text font="letterica16" align="r" vert_align="c"/>
+		</status>
+	</pysaic_card>
 </window>

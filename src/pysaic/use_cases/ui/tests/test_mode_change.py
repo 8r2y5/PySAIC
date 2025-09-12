@@ -1,64 +1,15 @@
-from unittest.mock import Mock, patch, call
+from unittest.mock import call, patch
 
-import inject
 import pytest
 
-from pysaic.config import Config
-from pysaic.entities import (
-    IncomingEvent,
-    IrcEvent,
-    ChatUser,
-    OutgoingQueue,
-    IncomingQueue,
-)
+from pysaic.entities import IncomingEvent, IrcEvent
 from pysaic.enums import IrcEvents
-from pysaic.state import ChatUsers, State
-from pysaic.ui.app import App
 from pysaic.use_cases.ui.mode_change import ModeChangeUseCase
 
 
 @pytest.fixture()
-def mock_state(chat_users):
-    mock_state = Mock()
-    mock_state.chat_users = chat_users
-    return mock_state
-
-
-@pytest.fixture()
-def mock_ui():
-    mock_ui = Mock()
-    mock_ui.users_list_scroll.get.return_value = (0.0, 0.0)
-    return mock_ui
-
-
-@pytest.fixture(scope="function", autouse=True)
-def setup_injector(mock_ui, mock_state):
-    def binder(binder):
-        binder.bind(App, mock_ui)
-        binder.bind(State, mock_state)
-        binder.bind(IncomingQueue, Mock())
-        binder.bind(OutgoingQueue, Mock())
-        binder.bind(Config, Mock())
-
-    if inject.is_configured():
-        inject.clear()
-
-    return inject.configure(binder)
-
-
-@pytest.fixture()
-def user():
-    return ChatUser("brzys")
-
-
-@pytest.fixture()
-def chat_users(user):
-    return ChatUsers({"brzys": user})
-
-
-@pytest.fixture()
 def payload():
-    return {"mode": "", "nick": "brzys"}
+    return {"mode": "", "nick": "test nick"}
 
 
 @pytest.fixture

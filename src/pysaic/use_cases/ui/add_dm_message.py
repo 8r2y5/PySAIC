@@ -25,7 +25,9 @@ class AddDmMessage(UiUseCase):
             self._add_user_and_faction_color()
             self.messages_list.insert(END, " -> ", "DM")
             self._add_target_and_faction_color()
-            self._add_content_to_message(self.event)
+            self._add_content_to_message(
+                self.event, show_popup=self.ui.should_show_popups
+            )
             self.messages_list.see(END)
 
     def _add_dm_message_to_game(self):
@@ -33,13 +35,19 @@ class AddDmMessage(UiUseCase):
             content = self.event.content.split(END_OF_ACTOR_CHARACTER, 1)[1]
         except IndexError:
             content = self.event.content
+        try:
+            user = self.chat_users.get(
+                self.event.author.nick, self.chat_users[self.state.nick]
+            )
+        except KeyError:
+            user = self.state.player.create_chat_user()
         add_dm_message_to_game(
-            author_faction_actor=get_faction_actor(
-                self.chat_users.get(
-                    self.event.author, self.chat_users[self.config.nick]
-                )
-            ),
-            author=self.event.author,
+            author_faction_actor=get_faction_actor(user),
+            # self.event.author.nick is already cleared out of irc mode
+            author=self.event.author.nick,
+            icon_id=user.avatar,
+            reputation_author=user.rank,
+            rank_author=user.reputation,
             receiver=self.event.target,
             content=normalize_content(content),
         )

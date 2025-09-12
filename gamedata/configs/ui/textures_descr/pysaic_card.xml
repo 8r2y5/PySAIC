@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="windows-1251"?>
+<w>
+	<file name="ui\pysaic_card">
+        <texture id="pysaic_rank_novice" x="0" y="0" width="9" height="15" stretch="1"/>
+        <texture id="pysaic_rank_trainee" x="9" y="0" width="9" height="15" stretch="1"/>
+        <texture id="pysaic_rank_experienced" x="18" y="0" width="9" height="15" stretch="1"/>
+        <texture id="pysaic_rank_professional" x="27" y="0" width="9" height="15" stretch="1"/>
+        <texture id="pysaic_rank_veteran" x="36" y="0" width="9" height="15" stretch="1"/>
+        <texture id="pysaic_rank_expert" x="45" y="0" width="9" height="15" stretch="1"/>
+        <texture id="pysaic_rank_master" x="54" y="0" width="9" height="15" stretch="1"/>
+        <texture id="pysaic_rank_legend" x="62" y="0" width="9" height="15" stretch="1"/>
+        <texture id="pysaic_reputation_good" x="73" y="0" width="9" height="15" stretch="1"/>
+        <texture id="pysaic_reputation_bad" x="83" y="0" width="9" height="15" stretch="1"/>
+    </file>
+</w>

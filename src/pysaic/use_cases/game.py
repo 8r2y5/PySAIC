@@ -1,3 +1,6 @@
+# effectively this is scripts router and should be refactored so all logic
+# is handled in the same way
+
 import asyncio
 import logging
 from datetime import datetime
@@ -6,37 +9,49 @@ from random import randint
 import inject
 
 from pysaic.config import Config
-from pysaic.controllers.game import add_setting_to_game
+from pysaic.controllers.game import (
+    add_setting_to_game,
+    add_signal_state,
+    ask_for_actor_status,
+    set_ingame_display_setting,
+)
 from pysaic.crc_strings.use_case import DeathMessageUseCase
 from pysaic.entities import (
     AppEvent,
+    GameEvent,
     IncomingEvent,
     IncomingMessage,
+    IncomingQueue,
+    IrcUser,
     OutgoingMessage,
     OutgoingPart,
-    GameEvent,
+    OutgoingQueue,
 )
 from pysaic.enums import AppEventEnum
 from pysaic.events.enum import GameEvents
 from pysaic.handlers import join_previous_channel
 from pysaic.script_reader.entities import (
+    Achievement,
     ConnectionLost,
     Death,
     Handshake,
     Money,
+    Rank,
+    Reputation,
 )
 from pysaic.state import State
+from pysaic.use_cases.text import make_content_malformed
 
 logger = logging.getLogger(__name__)
 
 SECONDS_BETWEEN_DEATHS = 30
 
+# by trail and error, game shows "Connection lost" message after 10 seconds
+# even that signal is sent immediately after disconnect.
+SLEEP_TIME_BEFORE_DISCONNECT = 10
+
 
 class PlayerDiedUseCase:
-    @property
-    def nick(self):
-        return self.config.nick
-
     @property
     def channel(self):
         return self.config.server.previous_channel
@@ -45,8 +60,8 @@ class PlayerDiedUseCase:
         self,
         config,
         death: Death,
-        incoming_queue,
-        outgoing_queue,
+        incoming_queue: IncomingQueue,
+        outgoing_queue: OutgoingQueue,
     ):
         self.death = death
         self.config = config
@@ -55,19 +70,25 @@ class PlayerDiedUseCase:
 
     @inject.autoparams()
     async def execute(self, state: State):
+        if self.config.death_reports is False:
+            logger.info("Death reporting is disabled, ignoring death message")
+            return
+
         now = datetime.now()
         if (
             state.last_death is not None
             and (now - state.last_death).total_seconds()
             < SECONDS_BETWEEN_DEATHS
         ):
-            logger.debug("Ignoring death message because of cooldown")
+            logger.info("Ignoring death message because of cooldown")
             return
         else:
             state.last_death = now
 
         try:
-            message = DeathMessageUseCase(self.nick, self.death).execute()
+            message = DeathMessageUseCase(
+                state, self.config, state.nick, self.death
+            ).execute()
         except Exception:
             logger.exception("Could not generate death message")
             return
@@ -78,7 +99,7 @@ class PlayerDiedUseCase:
             await asyncio.sleep(randint(3, SECONDS_BETWEEN_DEATHS))
             await self.incoming_queue.put(
                 IncomingMessage(
-                    author=self.nick,
+                    author=IrcUser(state.nick, None, None),
                     target=self.channel,
                     content=message,
                 )
@@ -90,21 +111,40 @@ class PlayerDiedUseCase:
                 )
             )
 
+        await self.incoming_queue.put(
+            IncomingEvent.create_game_event(GameEvents.AFK, "death message")
+        )
         await send_later()
 
 
 class GameHandshakeUseCase:
     def __init__(
         self,
+        state: State,
         config: Config,
         handshake: Handshake,
-        incoming_queue,
+        incoming_queue: IncomingQueue,
     ):
+        self.state = state
         self.handshake = handshake
         self.config = config
         self.incoming_queue = incoming_queue
 
     async def execute(self):
+        logger.info("Game handshake: %r", self.handshake)
+
+        if self.state.id == self.handshake.handshake_id:
+            if not self.state.got_first_handshake.is_set():
+                self.state.got_first_handshake.set()
+                self.incoming_queue.put_nowait(
+                    IncomingEvent.create_information_event(
+                        "Got response from game. Chat is now synced with game.",
+                    )
+                )
+        # if else then messages are not sent during this "session"
+        # meaning it they would be from previous gaming session or
+        # after restarting up or perhaps game just asking for information.
+
         await self.incoming_queue.put(
             IncomingEvent(
                 author="pysaic",
@@ -115,7 +155,7 @@ class GameHandshakeUseCase:
             )
         )
         self._send_settings_to_game()
-        self._ask_for_actor_status()
+        ask_for_actor_status()
         await self.incoming_queue.put(
             IncomingEvent(
                 author="pysaic",
@@ -147,9 +187,8 @@ class GameHandshakeUseCase:
                 for channel in self.config.server.channels
             ),
         )
-
-    def _ask_for_actor_status(self):
-        add_setting_to_game("ActorStatus", "")
+        set_ingame_display_setting(self.config.in_game_users_display.name)
+        add_signal_state(str(self.state.fake_disconnect))
 
 
 class GameChannelMessageUseCase:
@@ -157,20 +196,25 @@ class GameChannelMessageUseCase:
         self,
         config,
         channel_message,
-        incoming_queue,
-        outgoing_queue,
+        incoming_queue: IncomingQueue,
+        outgoing_queue: OutgoingQueue,
     ):
         self.config = config
         self.channel_message = channel_message
         self.incoming_queue = incoming_queue
         self.outgoing_queue = outgoing_queue
+        self.logger = logger.getChild("channel_message")
 
     @inject.autoparams()
     async def execute(self, state: State):
-        logger.info("Channel message: %r", self.channel_message)
+        self.logger.info("Channel message: %r", self.channel_message)
+
+        await self.incoming_queue.put(
+            IncomingEvent.create_game_event(GameEvents.AFK, "game message")
+        )
 
         if state.is_in_channel is False:
-            logger.debug("Not in channel, ignoring message")
+            self.logger.debug("Not in channel, ignoring message")
             await self.incoming_queue.put(
                 IncomingEvent.create_error_event(
                     "Not connected to network yet."
@@ -192,18 +236,29 @@ class GameChannelMessageUseCase:
         # this has to be last because previous ones will update player faction.
         # if order will be different then player will send message as
         # "previous" faction.
+        original_content = content = self.channel_message.message.strip(" ")
+        if state.fake_disconnect:
+            self.logger.info(
+                "Fake disconnect is set, making content malformed: %r", content
+            )
+            content = make_content_malformed(content)
         await self.incoming_queue.put(
             IncomingMessage(
-                author=self.channel_message.sender.name,
+                author=IrcUser(self.channel_message.sender.name),
                 target=self.config.server.previous_channel,
-                content=self.channel_message.message,
+                content=content,
             )
         )
-        if not self.channel_message.message.startswith("/"):
+        # we should only send message if it wasn't a command because it could
+        # be private message or some other command that should not be sent
+        if (
+            not original_content.startswith("/")
+            and original_content == content
+        ):
             await self.outgoing_queue.put(
                 OutgoingMessage(
                     target=self.config.server.previous_channel,
-                    content=self.channel_message.message,
+                    content=content,
                 )
             )
 
@@ -212,8 +267,8 @@ class MoneyChangeUseCase:
     def __init__(
         self,
         money: Money,
-        incoming_queue,
-        outgoing_queue,
+        incoming_queue: IncomingQueue,
+        outgoing_queue: OutgoingQueue,
     ):
         self.money = money
         self.incoming_queue = incoming_queue
@@ -222,13 +277,9 @@ class MoneyChangeUseCase:
     async def execute(self):
         logger.info("Money change: %r", self.money)
         await self.incoming_queue.put(
-            IncomingEvent(
-                author="",
-                target="",
-                event=GameEvent(
-                    what=GameEvents.MONEY_CHANGE,
-                    payload=self.money.amount,
-                ),
+            IncomingEvent.create_game_event(
+                what=GameEvents.MONEY_CHANGE,
+                payload=self.money.amount,
             )
         )
 
@@ -238,8 +289,8 @@ class ConnectionLostUseCase:
         self,
         config: Config,
         entity: ConnectionLost,
-        incoming_queue,
-        outgoing_queue,
+        incoming_queue: IncomingQueue,
+        outgoing_queue: OutgoingQueue,
     ):
         self.entity = entity
         self.config = config
@@ -248,53 +299,120 @@ class ConnectionLostUseCase:
 
     @inject.autoparams()
     async def execute(self, state: State):
+        logger.debug("Connection lost: %r", self.entity)
         if (
             self.entity.lost is True
             and self.config.disconnect_when_blowout_or_underground
         ):
-            if state.fake_disconnect:
+            if state.fake_disconnect and not state.is_in_channel.is_set():
+                logger.debug("Already faking disconnect, ignoring")
                 return
 
             state.fake_disconnect = True
-            outgoing_message = OutgoingPart(
-                channel=self.config.server.previous_channel,
-                content=self.entity.reason,
+
+            async def _task():
+                if self.entity.reason == "Surge":
+                    logger.debug(
+                        "Waiting for %d seconds before disconnecting",
+                        SLEEP_TIME_BEFORE_DISCONNECT,
+                    )
+                    await asyncio.sleep(SLEEP_TIME_BEFORE_DISCONNECT)
+
+                add_signal_state(str(state.fake_disconnect))
+                await self.outgoing_queue.put(
+                    OutgoingPart(
+                        channel=self.config.server.previous_channel,
+                        content=self.entity.reason,
+                    )
+                )
+
+            logger.debug(
+                "Faking disconnect with reason: %r", self.entity.reason
             )
+            asyncio.create_task(_task(), name="fake_disconnect")
         elif self.entity is False or self.entity.lost is False:
+            logger.debug("Connection lost is False, not faking disconnect")
             if not state.fake_disconnect:
+                logger.debug("Not faking disconnect, ignoring")
                 return
 
             state.fake_disconnect = False
+            add_signal_state(str(state.fake_disconnect))
             join_previous_channel()
-        else:
-            return
-
-        await self.outgoing_queue.put(outgoing_message)
 
 
-async def actor_status_use_case(
-    actor_status,
-    incoming_queue,
-):
+async def actor_status_use_case(actor_status, incoming_queue: IncomingQueue):
     await incoming_queue.put(
-        IncomingEvent(
-            author="",
-            target="",
-            event=GameEvent(
-                what=GameEvents.ACTOR_UPDATE,
-                payload=(True, actor_status.value),
-            ),
+        IncomingEvent.create_game_event(
+            what=GameEvents.ACTOR_UPDATE,
+            payload=(True, actor_status.value),
         )
     )
 
 
 async def channel_change_use_case(
-    channel_change,
-    incoming_queue,
+    channel_change, incoming_queue: IncomingQueue
 ):
     await incoming_queue.put(
         IncomingEvent.create_app_event(
             AppEventEnum.GAME_CHANNEL_CHANGE,
             channel_change.channel_description,
+        )
+    )
+
+
+async def location_use_case(location, incoming_queue: IncomingQueue):
+    await incoming_queue.put(
+        IncomingEvent.create_game_event(
+            GameEvents.PLAYER_LOCATION,
+            location.name,
+        )
+    )
+
+
+async def achievement_use_case(
+    achievement: Achievement,
+    incoming_queue: IncomingQueue,
+):
+    await incoming_queue.put(
+        IncomingEvent.create_game_event(
+            GameEvents.ACHIEVEMENT,
+            achievement,
+        )
+    )
+
+
+async def reputation_use_case(
+    reputation: Reputation,
+    incoming_queue: IncomingQueue,
+):
+    await incoming_queue.put(
+        IncomingEvent.create_game_event(
+            GameEvents.REPUTATION,
+            reputation.value,
+        )
+    )
+
+
+async def rank_use_case(
+    rank: Rank,
+    incoming_queue: IncomingQueue,
+):
+    await incoming_queue.put(
+        IncomingEvent.create_game_event(
+            GameEvents.RANK,
+            rank.value,
+        )
+    )
+
+
+async def afk_use_case(
+    afk: str,
+    incoming_queue: IncomingQueue,
+):
+    await incoming_queue.put(
+        IncomingEvent.create_game_event(
+            GameEvents.AFK,
+            afk,
         )
     )

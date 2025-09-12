@@ -1,0 +1,6 @@
+<?xml version='1.0' encoding='windows-1251'?>
+<w>
+	<file name="ui\pysaic_player">
+		<texture id="pysaic_icon_player" x="0" y="0" width="126" height="56" />
+	</file>
+</w>

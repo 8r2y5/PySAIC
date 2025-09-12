@@ -1,15 +1,28 @@
 import logging
-from dataclasses import dataclass, asdict
+from dataclasses import asdict, dataclass, field
 from enum import StrEnum
-from typing import Union
+from typing import Optional, Union
 
 import yaml
 
 from pysaic.controllers.ui.user_list import NamesInAlphabeticalOrder
 from pysaic.crc_strings.use_case import random_name
-from pysaic.enums import FactionsEnum
+from pysaic.enums import AvatarEnum, DeathReportTypeEnum, FactionsEnum
+from pysaic.use_cases.avatar import (
+    calculate_icon_based_on_faction_and_name,
+    is_icon_valid,
+)
+from pysaic.use_cases.nick import sanitize_nick
 
 logger = logging.getLogger(__name__)
+
+DEFAULT_STATIC_AVATAR = f"crc_icon_{FactionsEnum.Loner.value}_1"
+
+
+class InGameUserDisplayEnum(StrEnum):
+    CRCR = "CRCR"
+    PySAIC_Compact = "PySAIC Compact"
+    PySAIC_Card = "PySAIC Card"
 
 
 class FactionSetting(StrEnum):
@@ -19,47 +32,50 @@ class FactionSetting(StrEnum):
 
 @dataclass
 class Channel:
-    name: str
-    description: str
+    name: str = "#crcr_english"
+    description: str = "CRCR English Moderated"
 
 
 @dataclass
 class Server:
-    host: str
-    port: int
-    channels: list[Channel]
-    previous_channel: str
+    host: str = "irc.slashnet.org"
+    port: int = 6667
+    channels: list[Channel] = field(default_factory=lambda: [Channel()])
+    previous_channel: str = Channel.name
+    password: str = ""
+    commands: list[str] = field(default_factory=lambda: ["MODE +x {nick}"])
 
     @classmethod
     def create_default(cls):
-        return {
-            "host": "irc.slashnet.org",
-            "port": 6667,
-            "channels": [
-                {
-                    "name": "#crcr_english",
-                    "description": "CRCR English Moderated",
-                },
-            ],
-            "previous_channel": "#crcr_english",
-        }
+        return asdict(cls())
 
     @classmethod
     def load_config(cls):
-        exception = False
+        should_save = False
         try:
             with open("server.yml") as f:
                 config = yaml.safe_load(f)
         except Exception:
             logger.exception("Error loading config file")
             config = cls.create_default()
-            exception = True
+            should_save = True
         else:
             if not config:
                 config = cls.create_default()
-                exception = True
+                should_save = True
 
-        instance = cls(
+        instance = cls._create_instance_from_config(config)
+        if should_save is True:
+            instance.save_config()
+        return instance
+
+    def save_config(self):
+        with open("server.yml", "w") as f:
+            yaml.dump(asdict(self), f)
+
+    @classmethod
+    def _create_instance_from_config(cls, config: dict):
+        return cls(
             host=config["host"],
             port=config["port"],
             channels=[
@@ -69,14 +85,9 @@ class Server:
                 for channel in config["channels"]
             ],
             previous_channel=config["previous_channel"],
+            password=config.get("password", ""),
+            commands=config.get("commands", []),
         )
-        if exception:
-            instance.save_config()
-        return instance
-
-    def save_config(self):
-        with open("server.yml", "w") as f:
-            yaml.dump(asdict(self), f)
 
 
 @dataclass
@@ -84,55 +95,47 @@ class Config:
     nick: str
     server: Server
     password: str
-    faction_setting: Union[FactionSetting]
-    current_faction: FactionsEnum
+    faction_setting: FactionSetting = FactionSetting.GameSynced
+    current_faction: FactionsEnum = FactionsEnum.Loner
     news_duration: int = 3250
     chat_key: str = "DIK_RETURN"
     nick_auto_complete_key: str = "DIK_TAB"
     news_sound: bool = True
-    close_chat: bool = False
+    close_chat: bool = True
     disconnect_when_blowout_or_underground: bool = False
     block_money_transfer: bool = True
     user_list_display: str = NamesInAlphabeticalOrder.name
+    accept_dms_from_not_in_the_channel: bool = False
+    avatar: str = AvatarEnum.faction_and_name_based.value
+    current_avatar: str = f"{FactionsEnum.Loner.value}_1"
+    blocked_users: dict[str, set[str]] = field(default_factory=dict)
+    blocked_words: list[str] = field(default_factory=list)
+    in_game_users_display: InGameUserDisplayEnum = InGameUserDisplayEnum.CRCR
+    death_report_type: DeathReportTypeEnum = DeathReportTypeEnum.OnlineFactions
+    death_reports: bool = True
+    pop_up_on_ping: bool = False
+    pop_up_sound: bool = True
 
     @classmethod
     def load_config(cls):
-        exception = False
+        should_save = False
         try:
             with open("config.yml") as f:
                 config = yaml.safe_load(f)
         except Exception:
             logger.exception("Error loading config file")
             config = cls._default_config()
-            exception = True
+            should_save = True
         else:
             if not config:
                 config = cls._default_config()
-                exception = True
-        server = Server.load_config()
+                should_save = True
 
-        instance = cls(
-            nick=config["nick"],
-            server=server,
-            password=config["password"],
-            faction_setting=FactionSetting(config["faction_setting"]),
-            current_faction=FactionsEnum[
-                (config.get("current_faction") or FactionsEnum.Loner.name)
-            ],
-            news_duration=int(config["news_duration"]),
-            chat_key=config["chat_key"],
-            nick_auto_complete_key=config["nick_auto_complete_key"],
-            news_sound=cls._to_bool(config["news_sound"]),
-            close_chat=cls._to_bool(config["close_chat"]),
-            disconnect_when_blowout_or_underground=cls._to_bool(
-                config["disconnect_when_blowout_or_underground"]
-            ),
-            block_money_transfer=cls._to_bool(config["block_money_transfer"]),
-            user_list_display=config.get("user_list_display")
-            or NamesInAlphabeticalOrder.name,
-        )
-        if exception:
+        instance = cls._create_instance_from_config(config)
+        changed_avatar = instance.recalculate_avatar()
+        if any((should_save, changed_avatar)):
             instance.save_config()
+
         return instance
 
     def save_config(self):
@@ -153,12 +156,23 @@ class Config:
                     "disconnect_when_blowout_or_underground": self.disconnect_when_blowout_or_underground,
                     "block_money_transfer": self.block_money_transfer,
                     "user_list_display": self.user_list_display,
+                    "avatar": self.avatar,
+                    "current_avatar": self.current_avatar,
+                    "accept_dms_from_not_in_the_channel": self.accept_dms_from_not_in_the_channel,
+                    "blocked_users": self.blocked_users,
+                    "blocked_words": self.blocked_words,
+                    "in_game_users_display": self.in_game_users_display.name,
+                    "death_report_type": self.death_report_type.name,
+                    "death_reports": self.death_reports,
+                    "pop_up_on_ping": self.pop_up_on_ping,
+                    "pop_up_sound": self.pop_up_sound,
                 },
                 f,
             )
+            self.server.save_config()
 
     @staticmethod
-    def _parse_to_yaml_faction(faction):
+    def _parse_to_yaml_faction(faction: Union[FactionsEnum, str]) -> str:
         try:
             return faction.name
         except AttributeError:
@@ -169,24 +183,202 @@ class Config:
         return {
             "nick": random_name().replace(" ", "_"),
             "password": "",
-            "faction_setting": FactionSetting.GameSynced,
-            "current_faction": "Loner",
-            "news_duration": 3250,
-            "chat_key": "DIK_RETURN",
-            "nick_auto_complete_key": "DIK_TAB",
-            "news_sound": True,
-            "close_chat": False,
-            "disconnect_when_blowout_or_underground": True,
-            "block_money_transfer": True,
+            "faction_setting": cls.faction_setting.value,
+            "current_faction": cls.current_faction.name,
+            "news_duration": cls.news_duration,
+            "chat_key": cls.chat_key,
+            "nick_auto_complete_key": cls.nick_auto_complete_key,
+            "news_sound": cls.news_sound,
+            "close_chat": cls.close_chat,
+            "disconnect_when_blowout_or_underground": cls.disconnect_when_blowout_or_underground,
+            "block_money_transfer": cls.block_money_transfer,
             "user_list_display": NamesInAlphabeticalOrder.name,
+            "avatar": cls.avatar,
+            "current_avatar": cls.current_avatar,
+            "accept_dms_from_not_in_the_channel": cls.accept_dms_from_not_in_the_channel,
+            "blocked_users": {},
+            "blocked_words": [],
+            "in_game_users_display": cls.in_game_users_display.name,
+            "death_report_type": cls.death_report_type.name,
+            "death_reports": cls.death_reports,
+            "pop_up_on_ping": cls.pop_up_on_ping,
+            "pop_up_sound": cls.pop_up_sound,
         }
 
     @classmethod
-    def _to_bool(cls, param):
+    def _to_bool(cls, param: str | bool, default: bool = True) -> bool:
+        if isinstance(param, bool):
+            return param
         try:
             return param.lower() == "true"
         except AttributeError:
-            return param
+            return default
+
+    @classmethod
+    def _create_instance_from_config(cls, config: dict):
+        current_faction = FactionsEnum[
+            config.get("current_faction") or FactionsEnum.Loner.name
+        ]
+        return cls(
+            nick=sanitize_nick(config["nick"]),
+            server=Server.load_config(),
+            password=config["password"],
+            faction_setting=FactionSetting(config["faction_setting"]),
+            current_faction=current_faction,
+            news_duration=int(config["news_duration"]),
+            chat_key=config["chat_key"],
+            nick_auto_complete_key=config["nick_auto_complete_key"],
+            news_sound=cls._to_bool(
+                config["news_sound"], default=cls.news_sound
+            ),
+            close_chat=cls._to_bool(
+                config["close_chat"], default=cls.close_chat
+            ),
+            disconnect_when_blowout_or_underground=cls._to_bool(
+                config["disconnect_when_blowout_or_underground"],
+                default=cls.disconnect_when_blowout_or_underground,
+            ),
+            block_money_transfer=cls._to_bool(
+                config["block_money_transfer"],
+                default=cls.block_money_transfer,
+            ),
+            user_list_display=config.get("user_list_display")
+            or NamesInAlphabeticalOrder.name,
+            accept_dms_from_not_in_the_channel=cls._to_bool(
+                config.get("accept_dms_from_not_in_the_channel"),
+                default=cls.accept_dms_from_not_in_the_channel,
+            ),
+            avatar=cls._parse_avatar(
+                config.get("avatar") or AvatarEnum.faction_and_name_based.value
+            ),
+            current_avatar=cls._parse_static_avatar(
+                config.get("current_avatar") or cls.current_avatar,
+            ),
+            blocked_users=config.get("blocked_users") or {},
+            blocked_words=config.get("blocked_words") or {},
+            in_game_users_display=InGameUserDisplayEnum[
+                config.get("in_game_users_display")
+                or InGameUserDisplayEnum.CRCR.value
+            ],
+            death_report_type=DeathReportTypeEnum[
+                config.get("death_report_type")
+                or DeathReportTypeEnum.OnlineFactions.name
+            ],
+            death_reports=cls._to_bool(
+                config.get("death_reports"), default=cls.death_reports
+            ),
+            pop_up_on_ping=cls._to_bool(
+                config.get("pop_up_on_ping"), default=cls.pop_up_on_ping
+            ),
+            pop_up_sound=cls._to_bool(
+                config.get("pop_up_sound"), default=cls.pop_up_sound
+            ),
+        )
+
+    @classmethod
+    def _parse_static_avatar(cls, value: Optional[str]) -> str:
+        if not value:
+            return cls.current_avatar
+
+        if is_icon_valid(value):
+            logger.debug("Using provided static avatar: %s", value)
+            return value
+        else:
+            logger.warning(
+                "Invalid static avatar: %s, defaulting to default",
+                value,
+            )
+            return cls.current_avatar
+        # value = value.rsplit("_", 1)
+        # if len(value) != 3 or not value[1].isdigit():
+        #     logger.warning(
+        #         "Invalid static avatar format: %s, defaulting to default",
+        #         value,
+        #     )
+        #     return cls.current_avatar
+        #
+        # faction_name = value[0]
+        # avatar_number = value[1]
+        # try:
+        #     faction = FactionsEnum[value]
+        # except KeyError:
+        #     logger.warning(
+        #         "Invalid faction name in static avatar: %s, defaulting to default",
+        #         faction_name,
+        #     )
+        #     faction = current_faction
+        # if not avatar_number.isdigit() or int(avatar_number) < 1:
+        #     logger.warning(
+        #         "Invalid avatar number in static avatar: %s, defaulting to default",
+        #         avatar_number,
+        #     )
+        #     avatar_number = "1"
+        #
+        # return f"{faction.value}_{avatar_number}"
+
+    @classmethod
+    def _parse_avatar(cls, value: Optional[str]) -> str:
+        if not value:
+            return AvatarEnum.faction_and_name_based.value
+
+        try:
+            return AvatarEnum(value).value
+        except ValueError:
+            logger.warning(
+                "Invalid avatar type: %s, defaulting to faction_and_name_based",
+                value,
+            )
+            return AvatarEnum.faction_and_name_based.value
+
+    def recalculate_avatar(self) -> bool:
+        if self.avatar == AvatarEnum.static.value:
+            logger.debug(
+                "Validating static_avatar value: %r",
+                self.current_avatar,
+            )
+            if not is_icon_valid(self.current_avatar):
+                logger.warning(
+                    "Invalid static avatar: %s, defaulting to faction_and_name_based",
+                    self.current_avatar,
+                )
+                self.current_avatar = calculate_icon_based_on_faction_and_name(
+                    self.current_faction.value, self.nick
+                )
+                return True
+            logger.debug("Static avatar is valid: %s", self.current_avatar)
+            return False
+        elif self.avatar == AvatarEnum.faction_and_name_based.value:
+            logger.debug(
+                "Recalculating faction and name based avatar for faction: %s",
+                self.current_faction,
+            )
+            value = calculate_icon_based_on_faction_and_name(
+                self.current_faction.value, self.nick
+            )
+            if value != self.current_avatar:
+                logger.debug(
+                    "Avatar changed from %s to %s",
+                    self.current_avatar,
+                    value,
+                )
+                self.current_avatar = value
+                self.save_config()
+                return True
+            return False
+        elif self.avatar == AvatarEnum.player.value:
+            logger.debug("Setting static_avatar to player avatar")
+            if self.current_avatar != "pysaic_icon_player":
+                self.current_avatar = "pysaic_icon_player"
+                return True
+            return False
+        else:
+            logger.warning(
+                "Unknown avatar type: %s, defaulting to faction_and_name_based",
+                self.avatar,
+            )
+            self.avatar = AvatarEnum.faction_and_name_based.value
+            self.current_avatar = f"crc_icon_{self.current_faction.value}_1"
+            return True
 
 
 if __name__ == "__main__":

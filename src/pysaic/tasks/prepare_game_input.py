@@ -7,10 +7,10 @@ from pysaic.state import State
 logger = logging.getLogger(__name__)
 
 
-async def prepare_game_input_watcher(loop, config, state: State):
+async def prepare_game_input_watcher(loop, state: State):
     logger.debug("Starting game input watcher")
     while state.game_location is None:
-        await asyncio.sleep(1)
+        await asyncio.sleep(0.1)
 
     if state.game_related_tasks:
         logger.warning(

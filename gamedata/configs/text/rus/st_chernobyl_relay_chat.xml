@@ -17,7 +17,10 @@
 	</string>
 	<string id="crc_notingame">
 		<text>Вне Зоны</text>
-	</string>	
+	</string>
+	<string id="crc_afk">
+		<text>АКФ</text>
+	</string>
 	<string id="crc_ccon">
 		<text>«О-Сознание»</text>
 	</string>

@@ -31,6 +31,7 @@ class ColorsEnum(StrEnum):
     DM = "DM"
     online = "online"
     offline = "offline"
+    afk = "afk"
     app_background = "app_background"
     element_background = "element_background"
 
@@ -59,6 +60,7 @@ class Colors:
     DM: str
     online: str
     offline: str
+    afk: str
     app_background: str
     element_background: str
 

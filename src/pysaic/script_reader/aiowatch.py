@@ -2,10 +2,12 @@ import asyncio
 import logging
 from pathlib import Path
 
+import inject
 from watchdog.events import FileSystemEvent, FileSystemEventHandler
 from watchdog.observers import Observer
 
-from pysaic.script_reader.parser import parse_line
+from pysaic.entities import IncomingQueue, IncomingEvent
+from pysaic.script_reader.router import parse_line
 
 logger = logging.getLogger(__name__)
 
@@ -22,7 +24,10 @@ class _EventHandler(FileSystemEventHandler):
         self._loop = loop
         super(*args, **kwargs)
 
-    def on_modified(self, event: FileSystemEvent) -> None:
+    @inject.autoparams()
+    def on_modified(
+        self, event: FileSystemEvent, incoming_queue: IncomingQueue
+    ) -> None:
         if not event.src_path.endswith("crc_output.txt"):
             return
 
@@ -32,7 +37,15 @@ class _EventHandler(FileSystemEventHandler):
                 if not line:
                     continue
 
-                self._loop.create_task(parse_line(line))
+                try:
+                    self._loop.create_task(parse_line(line, incoming_queue))
+                except Exception:
+                    logger.exception("Error parsing line: %r", line)
+                    incoming_queue.put_nowait(
+                        IncomingEvent.create_error_event(
+                            f"Error parsing line: {line}"
+                        )
+                    )
 
             f.seek(0)
             f.truncate()

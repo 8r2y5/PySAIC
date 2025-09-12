@@ -1,15 +1,21 @@
 import logging
 from tkinter import END
 
-
 from pysaic.controllers.game import add_dm_message_to_game
 from pysaic.enums import FactionsEnum
-from pysaic.use_cases.ui.utils import enable_disable
+from pysaic.use_cases.ui.utils import (
+    add_content_of_message_to_messages_list,
+    enable_disable,
+)
 
 logger = logging.getLogger(__name__)
 
 
 class OurPrivMessageUseCase:
+    @property
+    def hyperlinks(self):
+        return self.ui.hyperlinks
+
     @property
     def messages_list(self):
         return self.ui.messages_list
@@ -25,6 +31,9 @@ class OurPrivMessageUseCase:
         add_dm_message_to_game(
             self.chat_user.faction.value,
             self.chat_user.name,
+            self.chat_user.avatar,
+            self.chat_user.reputation,
+            self.chat_user.rank,
             self.outgoing_message.target,
             self.outgoing_message.content,
         )
@@ -43,13 +52,11 @@ class OurPrivMessageUseCase:
             self.messages_list.insert(
                 END, f"{target}", self._get_target_faction_name(target)
             )
-            content = self.outgoing_message.content + (
-                "" if self.outgoing_message.content.endswith("\n") else "\n"
-            )
-            self.messages_list.insert(
-                END,
-                f": {content}",
-                "Text",
+            add_content_of_message_to_messages_list(
+                self.messages_list,
+                self.hyperlinks,
+                f": {self.outgoing_message.content}",
+                ["Text"],
             )
 
     def _add_message_date(self):

@@ -5,7 +5,7 @@
 		<texture id="crc_icon_info" x="126" y="0" width="83" height="47"/>
 		<texture id="crc_icon_error" x="252" y="0" width="83" height="47"/>
 		<texture id="crc_icon_unknown" x="378" y="0" width="126" height="56"/>
-		
+
 		<texture id="crc_icon_actor_bandit_1" x="0" y="56" width="126" height="56"/>
 		<texture id="crc_icon_actor_bandit_2" x="126" y="56" width="126" height="56"/>
 		<texture id="crc_icon_actor_bandit_3" x="252" y="56" width="126" height="56"/>

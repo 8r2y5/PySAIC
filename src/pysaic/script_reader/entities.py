@@ -4,8 +4,6 @@ from datetime import datetime
 from functools import partial, wraps
 from typing import List, Optional
 
-from irclib.parser import Prefix
-
 from pysaic.enums import FactionsEnum
 
 main_logger = logging.getLogger(__name__)
@@ -121,64 +119,22 @@ class Information:
 
 
 @dataclass
-class IrcUser:
-    nick: str
-    user: str
-    host: str
-
-    @classmethod
-    def from_prefix(cls, prefix: Prefix):
-        return cls(nick=prefix.nick, user=prefix.user, host=prefix.host)
-
-    @property
-    def mask(self):
-        return f"{self.nick}!{self.user}@{self.host}"
-
-    def __str__(self):
-        return self.mask
-
-    def __hash__(self):
-        return hash(self.mask)
-
-    def __repr__(self):
-        return (
-            f"{self.__class__.__name__}"
-            f"({self.nick}, {self.user}, {self.host}"
-            f")"
-        )
-
-
-@dataclass
-class PrivMSG:
-    author: IrcUser
-    target: str
-    content: str
-    created_at: datetime = field(default_factory=timezone.utcnow)
-
-
-@dataclass
-class IrcUserEvent:
-    user: IrcUser
-    event: str
-    created_at: datetime = field(default_factory=timezone.utcnow)
-
-
-@dataclass
-class AmogusUser:
-    user: IrcUser
-    faction: FactionsEnum
-    in_game: bool
-    created_at: datetime = field(default_factory=timezone.utcnow)
-
-
-@dataclass
 class Handshake:
     version: int
+    handshake_id: str
     in_file_id = "Handshake"
 
     @classmethod
     def from_line(cls, value):
-        return cls(version=int(value))
+        try:
+            version, handshake_id = value.split("/", 2)
+        except ValueError:
+            version = value
+            handshake_id = "None"
+        return cls(
+            version=int(version),
+            handshake_id=handshake_id,
+        )
 
 
 @dataclass
@@ -243,3 +199,57 @@ class ChannelChange:
     @classmethod
     def from_line(cls, value):
         return cls(channel_description=value)
+
+
+@dataclass()
+class Location:
+    name: str
+    in_file_id = "Location"
+
+    @classmethod
+    def from_line(cls, line):
+        return cls(name=line)
+
+
+@dataclass()
+class Achievement:
+    name: str
+    game_enum: str
+    in_file_id = "Achievement"
+
+    @classmethod
+    def from_line(cls, line):
+        # Achievement/mechanized_warfare/st_achievement_7_unlock
+        # Achievement/rag_and_bone/st_achievement_9_unlock
+        name, game_enum = line.split("/", 1)
+        return cls(name=name.replace("_", " ").title(), game_enum=game_enum)
+
+
+@dataclass()
+class Reputation:
+    value: str
+    in_file_id = "Reputation"
+
+    @classmethod
+    def from_line(cls, line):
+        return cls(value=line)
+
+
+@dataclass()
+class Rank:
+    value: str
+    in_file_id = "Rank"
+
+    @classmethod
+    def from_line(cls, line):
+        return cls(value=line)
+
+
+@dataclass
+class AFK:
+    value: str
+    in_file_id = "AFK"
+
+    @classmethod
+    def from_line(cls, line):
+        return cls(value=line)

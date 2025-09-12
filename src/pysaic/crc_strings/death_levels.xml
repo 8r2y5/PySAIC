@@ -15,6 +15,11 @@
 			<string>at Darkscape</string>
 			<string>in Darkscape</string>
 		</k01_darkscape>
+		<y04_pole>
+			<string>around Meadow</string>
+			<string>at Meadow</string>
+			<string>in Meadow</string>
+		</y04_pole>
 		<k02_trucks_cemetery>
 			<string>around the Truck Cemetery</string>
 			<string>at the Truck Cemetery</string>
@@ -39,6 +44,7 @@
 		<l03u_agr_underground>
 			<string>under Agroprom</string>
 			<string>in Agroprom Underground</string>
+			<string>inside Agroprom Underground</string>
 		</l03u_agr_underground>
 		<l04_darkvalley>
 			<string>around the Dark Valley</string>
@@ -48,6 +54,7 @@
 		</l04_darkvalley>
 		<l04u_labx18>
 			<string>in Lab X-18</string>
+			<string>inside Lab X-18</string>
 		</l04u_labx18>
 		<l05_bar>
 			<string>around Rostok</string>
@@ -76,6 +83,7 @@
 		</l08_yantar>
 		<l08u_brainlab>
 			<string>in Lab X-16</string>
+			<string>inside Lab X-16</string>
 		</l08u_brainlab>
 		<l09_deadcity>
 			<string>near Dead City</string>
@@ -149,6 +157,7 @@
 		</l13_generators>
 		<l13u_warlab>
 			<string>in Warlab</string>
+			<string>inside Warlab</string>
 		</l13u_warlab>
 		<jupiter>
 			<string>near Jupiter</string>
@@ -158,9 +167,11 @@
 		</jupiter>
 		<jupiter_underground>
 			<string>in the Pripyat Underpass</string>
+			<string>inside the Pripyat Underpass</string>
 		</jupiter_underground>
 		<labx8>
 			<string>in Lab X-8</string>
+			<string>inside Lab X-8</string>
 		</labx8>
 		<pripyat>
 			<string>in Pripyat Outskirts</string>

@@ -3,6 +3,7 @@ import re
 from collections import defaultdict
 
 from pysaic.entities import IncomingEvent
+from pysaic.state import State
 from pysaic.use_cases.ui.update_users import UpdateUsersUseCase
 
 mode_regex = re.compile(r"([+-]\w+)")
@@ -34,7 +35,7 @@ def get_rank(modes):
 
 
 class ModeChangeUseCase:
-    def __init__(self, state, ui, chat_users, event: IncomingEvent):
+    def __init__(self, state: State, ui, chat_users, event: IncomingEvent):
         self.state = state
         self.ui = ui
         self.chat_users = chat_users
@@ -65,25 +66,35 @@ class ModeChangeUseCase:
             [TRANSLATOR_TO_MODE.get(self.chat_users[nick].irc_mode)]
         )
 
-        if current_rank == highest_rank_remove:
-            highest_mode = RANK_TO_MODE[highest_rank_add]
-            type_of_mode = SET
-
-        elif current_rank > highest_rank_remove:
-            highest_mode = self.chat_users[nick].irc_mode
-            type_of_mode = SET
-
-        elif highest_rank_add > highest_rank_remove:
-            highest_mode = RANK_TO_MODE[highest_rank_add]
-            type_of_mode = SET
-
-        else:
-            highest_mode = None
-            type_of_mode = None
+        highest_mode, type_of_mode = self._get_highest_mode_and_type(
+            current_rank, highest_rank_remove, highest_rank_add, nick
+        )
 
         if type_of_mode is SET:
             self.chat_users[nick].irc_mode = highest_mode
         else:
             self.chat_users[nick].irc_mode = ""
 
+        if nick == self.state.nick:
+            self.state.player.irc_mode = self.chat_users[nick].irc_mode
+
         UpdateUsersUseCase(self.state, self.ui).execute()
+
+    def _get_highest_mode_and_type(
+        self, current_rank, highest_rank_remove, highest_rank_add, nick
+    ):
+        type_of_mode = SET
+        if current_rank == highest_rank_remove:
+            highest_mode = RANK_TO_MODE[highest_rank_add]
+
+        elif current_rank > highest_rank_remove:
+            highest_mode = self.chat_users[nick].irc_mode
+
+        elif highest_rank_add > highest_rank_remove:
+            highest_mode = RANK_TO_MODE[highest_rank_add]
+
+        else:
+            highest_mode = None
+            type_of_mode = None
+
+        return highest_mode, type_of_mode

@@ -1,0 +1,38 @@
+<?xml version='1.0' encoding='windows-1251'?>
+<w>
+    <file name="ui\pysaic_icons_isg">
+        <texture id="pysaic_icon_actor_isg_1" x="0" y="0" width="126" height="56"/>
+        <texture id="pysaic_icon_actor_isg_2" x="126" y="0" width="126" height="56"/>
+        <texture id="pysaic_icon_actor_isg_3" x="252" y="0" width="126" height="56"/>
+        <texture id="pysaic_icon_actor_isg_4" x="378" y="0" width="126" height="56"/>
+        <texture id="pysaic_icon_actor_isg_5" x="504" y="0" width="126" height="56"/>
+        <texture id="pysaic_icon_actor_isg_6" x="630" y="0" width="126" height="56"/>
+        <texture id="pysaic_icon_actor_isg_7" x="756" y="0" width="126" height="56"/>
+        <texture id="pysaic_icon_actor_isg_8" x="882" y="0" width="126" height="56"/>
+        <texture id="pysaic_icon_actor_isg_9" x="1008" y="0" width="126" height="56"/>
+        <texture id="pysaic_icon_actor_isg_10" x="1134" y="0" width="126" height="56"/>
+        <texture id="pysaic_icon_actor_isg_11" x="1260" y="0" width="126" height="56"/>
+        <texture id="pysaic_icon_actor_isg_12" x="1386" y="0" width="126" height="56"/>
+        <texture id="pysaic_icon_actor_isg_13" x="0" y="56" width="126" height="56"/>
+        <texture id="pysaic_icon_actor_isg_14" x="126" y="56" width="126" height="56"/>
+        <texture id="pysaic_icon_actor_isg_15" x="252" y="56" width="126" height="56"/>
+        <texture id="pysaic_icon_actor_isg_16" x="378" y="56" width="126" height="56"/>
+        <texture id="pysaic_icon_actor_isg_17" x="504" y="56" width="126" height="56"/>
+        <texture id="pysaic_icon_actor_isg_18" x="630" y="56" width="126" height="56"/>
+        <texture id="pysaic_icon_actor_isg_19" x="756" y="56" width="126" height="56"/>
+        <texture id="pysaic_icon_actor_isg_20" x="882" y="56" width="126" height="56"/>
+        <texture id="pysaic_icon_actor_isg_21" x="1008" y="56" width="126" height="56"/>
+        <texture id="pysaic_icon_actor_isg_22" x="1134" y="56" width="126" height="56"/>
+        <texture id="pysaic_icon_actor_isg_23" x="1260" y="56" width="126" height="56"/>
+        <texture id="pysaic_icon_actor_isg_24" x="1386" y="56" width="126" height="56"/>
+        <texture id="pysaic_icon_actor_isg_25" x="0" y="112" width="126" height="56"/>
+        <texture id="pysaic_icon_actor_isg_26" x="126" y="112" width="126" height="56"/>
+        <texture id="pysaic_icon_actor_isg_27" x="252" y="112" width="126" height="56"/>
+        <texture id="pysaic_icon_actor_isg_28" x="378" y="112" width="126" height="56"/>
+        <texture id="pysaic_icon_actor_isg_29" x="504" y="112" width="126" height="56"/>
+        <texture id="pysaic_icon_actor_isg_30" x="630" y="112" width="126" height="56"/>
+        <texture id="pysaic_icon_actor_isg_31" x="756" y="112" width="126" height="56"/>
+        <texture id="pysaic_icon_actor_isg_32" x="882" y="112" width="126" height="56"/>
+        <texture id="pysaic_icon_actor_isg_33" x="1008" y="112" width="126" height="56"/>
+    </file>
+</w>

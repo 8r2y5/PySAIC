@@ -1,19 +1,16 @@
 import logging
 import re
-from asyncio import Queue
 from tkinter import END
 
 import inject
 
 from pysaic.config import Config
-from pysaic.controllers.game import (
-    add_money_to_user,
-    remove_money_from_player,
-)
+from pysaic.controllers.game import add_money_to_user, remove_money_from_player
 from pysaic.entities import (
-    OutgoingMessage,
-    IncomingQueue,
     IncomingEvent,
+    IncomingQueue,
+    OutgoingMessage,
+    OutgoingQueue,
 )
 from pysaic.enums import FactionsEnum
 from pysaic.settings import END_OF_ACTOR_CHARACTER
@@ -22,7 +19,7 @@ from pysaic.use_cases.ui.use_case import UiUseCase
 from pysaic.use_cases.ui.utils import enable_disable, normalize_content
 
 incoming_money_transfer_regexp = re.compile(
-    rf"actor_\w+ pay {END_OF_ACTOR_CHARACTER} (\d+)"
+    rf"actor_\w+ pay {END_OF_ACTOR_CHARACTER}[ ]?(\d+)"
 )
 
 logger = logging.getLogger(__name__)
@@ -58,7 +55,13 @@ class IncomingMoneyTransferUseCase(UiUseCase):
         with enable_disable(self.messages_list):
             self._add_message_to_ui(amount)
 
-        add_money_to_user(self.event.author, amount)
+        user = self.chat_users.get(
+            self.event.author.nick, self.chat_users[self.state.nick]
+        )
+
+        add_money_to_user(
+            self.event.author.nick, user.reputation, user.rank, amount
+        )
 
     def _add_content_to_message(self, content: str):
         self.messages_list.insert(
@@ -78,11 +81,11 @@ class IncomingMoneyTransferUseCase(UiUseCase):
 def send_money_use_case(
     target,
     amount,
-    outgoing_queue: Queue,
+    outgoing_queue: OutgoingQueue,
     config: Config,
     state: State,
     incoming_queue: IncomingQueue,
-):
+) -> bool:
     if not state.is_game_running:
         logger.debug("Game is not running in order to send money.")
         incoming_queue.put_nowait(
@@ -90,7 +93,7 @@ def send_money_use_case(
                 "You need to be in game to send money."
             )
         )
-        return
+        return False
 
     if config.block_money_transfer:
         logger.debug("Money transfer is blocked.")
@@ -99,7 +102,7 @@ def send_money_use_case(
                 "Money transfer is blocked. Change it in the settings."
             )
         )
-        return
+        return False
 
     if not state.money_enough(amount):
         logger.debug("Not enough money to send.")
@@ -108,14 +111,21 @@ def send_money_use_case(
                 "You don't have enough money to send."
             )
         )
-        return
+        return False
 
+    if target.startswith("@"):
+        target = target[1:]
+
+    logger.debug("Sending money %r to %r", amount, target)
     outgoing_queue.put_nowait(
         OutgoingMessage(
             target=target,
-            content=f"{FactionsEnum(config.current_faction).value} pay {END_OF_ACTOR_CHARACTER} {amount}",
+            content=(
+                f"{FactionsEnum(config.current_faction).value} pay "
+                f"{END_OF_ACTOR_CHARACTER} "
+                f"{amount}"
+            ),
         )
     )
-    remove_money_from_player(
-        config.nick, target, amount  # replace with state.nick
-    )
+    remove_money_from_player(state.player, target, amount)
+    return True

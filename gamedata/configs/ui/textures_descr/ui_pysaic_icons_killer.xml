@@ -1,0 +1,49 @@
+<?xml version='1.0' encoding='windows-1251'?>
+<w>
+    <file name="ui\pysaic_icons_killer">
+        <texture id="pysaic_icon_actor_killer_1" x="0" y="0" width="126" height="56"/>
+        <texture id="pysaic_icon_actor_killer_2" x="126" y="0" width="126" height="56"/>
+        <texture id="pysaic_icon_actor_killer_3" x="252" y="0" width="126" height="56"/>
+        <texture id="pysaic_icon_actor_killer_4" x="378" y="0" width="126" height="56"/>
+        <texture id="pysaic_icon_actor_killer_5" x="504" y="0" width="126" height="56"/>
+        <texture id="pysaic_icon_actor_killer_6" x="630" y="0" width="126" height="56"/>
+        <texture id="pysaic_icon_actor_killer_7" x="756" y="0" width="126" height="56"/>
+        <texture id="pysaic_icon_actor_killer_8" x="882" y="0" width="126" height="56"/>
+        <texture id="pysaic_icon_actor_killer_9" x="1008" y="0" width="126" height="56"/>
+        <texture id="pysaic_icon_actor_killer_10" x="1134" y="0" width="126" height="56"/>
+        <texture id="pysaic_icon_actor_killer_11" x="1260" y="0" width="126" height="56"/>
+        <texture id="pysaic_icon_actor_killer_12" x="1386" y="0" width="126" height="56"/>
+        <texture id="pysaic_icon_actor_killer_13" x="0" y="56" width="126" height="56"/>
+        <texture id="pysaic_icon_actor_killer_14" x="126" y="56" width="126" height="56"/>
+        <texture id="pysaic_icon_actor_killer_15" x="252" y="56" width="126" height="56"/>
+        <texture id="pysaic_icon_actor_killer_16" x="378" y="56" width="126" height="56"/>
+        <texture id="pysaic_icon_actor_killer_17" x="504" y="56" width="126" height="56"/>
+        <texture id="pysaic_icon_actor_killer_18" x="630" y="56" width="126" height="56"/>
+        <texture id="pysaic_icon_actor_killer_19" x="756" y="56" width="126" height="56"/>
+        <texture id="pysaic_icon_actor_killer_20" x="882" y="56" width="126" height="56"/>
+        <texture id="pysaic_icon_actor_killer_21" x="1008" y="56" width="126" height="56"/>
+        <texture id="pysaic_icon_actor_killer_22" x="1134" y="56" width="126" height="56"/>
+        <texture id="pysaic_icon_actor_killer_23" x="1260" y="56" width="126" height="56"/>
+        <texture id="pysaic_icon_actor_killer_24" x="1386" y="56" width="126" height="56"/>
+        <texture id="pysaic_icon_actor_killer_25" x="0" y="112" width="126" height="56"/>
+        <texture id="pysaic_icon_actor_killer_26" x="126" y="112" width="126" height="56"/>
+        <texture id="pysaic_icon_actor_killer_27" x="252" y="112" width="126" height="56"/>
+        <texture id="pysaic_icon_actor_killer_28" x="378" y="112" width="126" height="56"/>
+        <texture id="pysaic_icon_actor_killer_29" x="504" y="112" width="126" height="56"/>
+        <texture id="pysaic_icon_actor_killer_30" x="630" y="112" width="126" height="56"/>
+        <texture id="pysaic_icon_actor_killer_31" x="756" y="112" width="126" height="56"/>
+        <texture id="pysaic_icon_actor_killer_32" x="882" y="112" width="126" height="56"/>
+        <texture id="pysaic_icon_actor_killer_33" x="1008" y="112" width="126" height="56"/>
+        <texture id="pysaic_icon_actor_killer_34" x="1134" y="112" width="126" height="56"/>
+        <texture id="pysaic_icon_actor_killer_35" x="1260" y="112" width="126" height="56"/>
+        <texture id="pysaic_icon_actor_killer_36" x="1386" y="112" width="126" height="56"/>
+        <texture id="pysaic_icon_actor_killer_37" x="0" y="168" width="126" height="56"/>
+        <texture id="pysaic_icon_actor_killer_38" x="126" y="168" width="126" height="56"/>
+        <texture id="pysaic_icon_actor_killer_39" x="252" y="168" width="126" height="56"/>
+        <texture id="pysaic_icon_actor_killer_40" x="378" y="168" width="126" height="56"/>
+        <texture id="pysaic_icon_actor_killer_41" x="504" y="168" width="126" height="56"/>
+        <texture id="pysaic_icon_actor_killer_42" x="630" y="168" width="126" height="56"/>
+        <texture id="pysaic_icon_actor_killer_43" x="756" y="168" width="126" height="56"/>
+        <texture id="pysaic_icon_actor_killer_44" x="882" y="168" width="126" height="56"/>
+    </file>
+</w>

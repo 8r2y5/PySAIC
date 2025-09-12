@@ -1,7 +1,6 @@
 import asyncio
 import logging
 
-from pysaic.entities import IncomingMessage
 from pysaic.handlers import handle_incoming_event
 from pysaic.state import State
 
@@ -14,15 +13,20 @@ async def incoming_queue_processing(
     # Gateway/Router for incoming events
 
     logger.debug("Starting incoming queue processing")
-    while True:
+    stop = False
+    while not stop:
         await asyncio.sleep(0.25)
         while not incoming_queue.empty():
             event = incoming_queue.get_nowait()
-            if isinstance(event, IncomingMessage):
-                await state.is_in_channel.wait()
+            if event is None:
+                stop = True
+                break
+
             try:
                 handle_incoming_event(state, event, ui, pysaic_config)
             except Exception:
                 logger.exception("Could not handle event %r", event)
                 raise
             incoming_queue.task_done()
+
+    logger.debug("Stopping incoming queue processing")
