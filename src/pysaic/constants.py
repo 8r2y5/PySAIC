@@ -17,7 +17,7 @@ crcr_factions = {
 }
 
 pysaic_factions = {
-    FactionsEnum.Military.value: 35,
+    FactionsEnum.Military.value: 34,
     FactionsEnum.Bandit.value: 42,
     FactionsEnum.Clear_Sky.value: 43,
     FactionsEnum.Duty.value: 43,
