@@ -3,7 +3,7 @@ or PySAIC for short.
 Based on [CRCR / Chernobyl Relay Chat Rebirth](https://github.com/8r2y5/Chernobyl-Relay-Chat-Rebirth), rewritten in Python with additional features and improvements.  
 Compatible with any Stalker Anomaly version and modpack that uses Stalker Anomaly.
 
-# ![Download](https://img.shields.io/badge/Download-something?style=for-the-badge&link=https://github.com/8r2y5/PySAIC/releases/latest)
+# <a href="https://github.com/8r2y5/PySAIC/releases/latest"><img src="https://img.shields.io/badge/Download-something?style=for-the-badge&link=https://github.com/8r2y5/PySAIC/releases/latest" alt="Download"></a>
 ![Version](https://img.shields.io/github/v/release/8r2y5/PySAIC?style=flat-square) ![License](https://img.shields.io/github/license/8r2y5/PySAIC?style=flat-square) ![Downloads](https://img.shields.io/github/downloads/8r2y5/PySAIC/total?style=flat-square)
 
 # Features
@@ -14,6 +14,7 @@ Compatible with any Stalker Anomaly version and modpack that uses Stalker Anomal
   - Want to use your own server? You can do that! Just edit the `server.yml` file.
   - You can connect to any IRC server that supports the protocol, not only the one that Chernobyl Relay Chat uses. Just change it in `server.yml` file.
   - Twitch IRC is supported too, you can use it to chat with your viewers while streaming Stalker Anomaly.
+    - Check [Twitch Connection Guide here](#Twitch-Connection-Guide).  
 - **Custom channels**
   - Want to create your own channel? You can do that! Just add it to the `server.yml` file.
 - **Customizable**
@@ -119,6 +120,69 @@ PySAIC upon starting (or missing) creates `server.yml` file in the same director
 You can edit this file to change the server, port, and other connection settings. You can also add/remove/modify channels too.
 You can share this file with other players to connect to the same server and channels.
 
+## **Twitch Connection Guide**
+
+⚠️ **Note:** Integration with Twitch IRC is not fully supported, and some PySAIC features may not work as expected.
+
+This guide will walk you through the process of connecting your application to Twitch's IRC servers.
+
+### **Example Configuration**
+
+First, here's a complete example of the `server.yml` file for a Twitch connection. You will modify this file with your own account details.
+
+```yaml
+server: 'irc.chat.twitch.tv'
+port: 6667
+nick: 'your_twitch_username'
+password: 'oauth:your_oauth_token'
+channels:
+  - description: 'Your Channel'
+    name: '#your_twitch_username'
+commands:
+  - "CAP REQ :twitch.tv/membership twitch.tv/tags twitch.tv/commands"
+```
+
+-----
+
+### **Steps to Connect**
+
+1.  **Create a Twitch Account:** If you don't already have one, create a free Twitch account.
+2.  **Generate an OAuth Token:** Go to [Twitch Token Generator](https://twitchtokengenerator.com/) to generate a password for your account. This is a special OAuth token that is required for IRC connections.
+3.  **Configure `server.yml`:** Open the `server.yml` file and update the following settings:
+      * `server`: Set to `irc.chat.twitch.tv`
+      * `port`: Set to `6667`
+      * `nick`: Set to your **Twitch username** (all lowercase)
+      * `password`: Set to the **OAuth token** you generated. Be sure to include the `oauth:` prefix.
+      * `channels`: Set to the channels you want to join. A channel name must be prefixed with a `#`, for example, `#your_twitch_username`.
+4.  **Request IRC Capabilities:** To receive additional information like user badges and message metadata, add the following line to the `commands` section in your `server.yml` file.
+    ```
+    commands:
+      - "CAP REQ :twitch.tv/membership twitch.tv/tags twitch.tv/commands"
+    ```
+
+      * `twitch.tv/membership`: Allows you to see user joins and parts.
+      * `twitch.tv/tags`: Provides message metadata like user badges, color, and `display-name`.
+      * `twitch.tv/commands`: Enables you to receive information about host, raid, and other commands.
+5.  **Restart PySAIC:** Save the `server.yml` file and restart your application. You should now be connected to Twitch IRC and ready to chat.
+
 # Custom Avatar / Profile Picture
 In options, you can set your own avatar, uploading/creating new one will require restarting the game.
 Custom avatars are displayed only locally, other players will see the default avatar based on your nickname and current faction.
+
+# Custom IRC commands on connect
+You can add custom IRC commands to be executed upon connecting to the server.
+This can be useful for requesting additional capabilities or setting user modes.
+To add custom commands, edit the `server.yml` file and add your commands under the `commands` section.
+Each command should be a separate entry in the list.
+By default, the following commands are included:
+```yaml
+commands:
+  - MODE {nick} +x
+```
+
+Example:
+```yaml
+commands:
+  - "CAP REQ :twitch.tv/membership twitch.tv/tags twitch.tv/commands"
+  - "MODE {nick} +B"
+```
