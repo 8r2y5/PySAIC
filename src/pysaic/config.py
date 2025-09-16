@@ -289,32 +289,6 @@ class Config:
                 value,
             )
             return cls.current_avatar
-        # value = value.rsplit("_", 1)
-        # if len(value) != 3 or not value[1].isdigit():
-        #     logger.warning(
-        #         "Invalid static avatar format: %s, defaulting to default",
-        #         value,
-        #     )
-        #     return cls.current_avatar
-        #
-        # faction_name = value[0]
-        # avatar_number = value[1]
-        # try:
-        #     faction = FactionsEnum[value]
-        # except KeyError:
-        #     logger.warning(
-        #         "Invalid faction name in static avatar: %s, defaulting to default",
-        #         faction_name,
-        #     )
-        #     faction = current_faction
-        # if not avatar_number.isdigit() or int(avatar_number) < 1:
-        #     logger.warning(
-        #         "Invalid avatar number in static avatar: %s, defaulting to default",
-        #         avatar_number,
-        #     )
-        #     avatar_number = "1"
-        #
-        # return f"{faction.value}_{avatar_number}"
 
     @classmethod
     def _parse_avatar(cls, value: Optional[str]) -> str:

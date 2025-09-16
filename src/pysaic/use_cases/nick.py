@@ -5,7 +5,7 @@ from pysaic.crc_strings.use_case import random_name
 
 logger = logging.getLogger(__name__)
 
-NICK_PATTERN = re.compile(r"^([a-zA-Z0-9_{}\[\]\\|^-]{3,26})$")
+NICK_PATTERN = re.compile(r"^([a-zA-Z0-9_{}\\|^-]{3,26})$")
 
 
 def sanitize_nick(value: str) -> str:

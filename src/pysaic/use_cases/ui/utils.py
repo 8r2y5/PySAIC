@@ -7,6 +7,9 @@ from unicodedata import normalize
 from pysaic.ui.hyper_links import HyperlinkManager
 
 color_regex = re.compile(r"(%c\[[\w,]+\])")
+URL_REGEXP = re.compile(
+    "(?:https?://)[-a-zA-Z0-9@:%._\\+~#=]{1,256}\\.[a-zA-Z0-9()]{1,6}\\b(?:[-a-zA-Z0-9()@:%_\\+.~#?&\\/=]*)"
+)
 logger = logging.getLogger(__name__)
 
 
@@ -40,19 +43,21 @@ def add_content_of_message_to_messages_list(
     content: str,
     tags: list[str],
 ):
-    content = content.rstrip("\n").split(" ")
-    segments = len(content) - 1
-
-    for index, value in enumerate(content):
-        if value.startswith("http"):
-            logger.debug("Adding hyperlink: %s", value)
+    if not content.endswith("\n"):
+        content += "\n"
+    split_content = content.split(" ")
+    count = len(split_content)
+    for index, part in enumerate(split_content, start=1):
+        url = URL_REGEXP.search(part)
+        if url:
+            before, after = URL_REGEXP.split(part, maxsplit=1)
+            messages_list.insert(END, f"{before}", tags)
             messages_list.insert(
-                END, value, tags + hyperlinks.prepare_tags(value)
+                END, url[0], tags + hyperlinks.prepare_tags(url[0])
             )
+            messages_list.insert(END, f"{after}", tags)
         else:
-            messages_list.insert(END, value, tags)
+            messages_list.insert(END, part, tags)
 
-        if index < segments:
+        if index < count:
             messages_list.insert(END, " ", tags)
-
-    messages_list.insert(END, "\n", tags)

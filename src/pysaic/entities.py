@@ -256,14 +256,17 @@ class Player(ChatUser):
             rank=self.rank,
             reputation=self.reputation,
             irc_mode=self.irc_mode,
-            avatar=self.get_avatar(),
+            avatar=self.get_avatar(myself=True),
         )
 
-    def get_avatar(self) -> str:
+    def get_avatar(self, myself: bool = False) -> str:
+        if myself is True:
+            return self.config.current_avatar
+
         return (
-            self.config.current_avatar
-            if self.config.avatar != AvatarEnum.player
-            else "random"
+            "random"
+            if self.config.avatar == AvatarEnum.player
+            else self.config.current_avatar
         )
 
     @classmethod
