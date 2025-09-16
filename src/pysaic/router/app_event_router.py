@@ -93,7 +93,7 @@ class AppEventRouter(Router):
             self._handle_in_game_true(payload[1])
             self._add_information_text(
                 f"Found game process, {self.state.game_location}. "
-                f"Trying to sync chat with game..."
+                f"Waiting for game to respond..."
             )
 
         else:
@@ -185,7 +185,7 @@ class AppEventRouter(Router):
         else:
             if user.avatar != self.config.current_avatar:
                 self.chat_users[self.state.nick].avatar = (
-                    self.state.player.get_avatar()
+                    self.state.player.get_avatar(myself=True)
                 )
                 send_saic_avatar(self.state, self.outgoing_queue, self.config)
 

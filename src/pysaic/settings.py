@@ -1,9 +1,12 @@
 import os
 from pathlib import Path
 
+from packaging.version import Version
+
 START_OF_ACTOR_CHARACTER = "☻"
 END_OF_ACTOR_CHARACTER = "☺"
-VERSION = "0.3.0b2"
+VERSION = "0.3.0b3"
+CURRENT_VERSION = Version(VERSION)
 SUPPORTED_SCRIPT_VERSION = (11,)
 APP_IDENTITY = f"PySAIC {VERSION}"
 

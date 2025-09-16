@@ -1,3 +1,5 @@
+from packaging.version import Version
+
 from pysaic.enums import AppEventEnum
 from pysaic.tasks.update_checker import _check_for_update
 from unittest.mock import Mock, patch, PropertyMock
@@ -42,7 +44,7 @@ def test__check_for_update(
     with patch(
         "pysaic.tasks.update_checker.settings", new_callable=PropertyMock
     ) as mock_settings:
-        mock_settings.VERSION = our_version
+        mock_settings.CURRENT_VERSION = Version(our_version)
         _check_for_update(
             incoming_queue=mock_incoming_queue,
             url=mock_url,

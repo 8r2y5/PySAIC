@@ -527,7 +527,7 @@ class Options:
         if new_nick != self.name_entry.get():
             inject.instance(IncomingQueue).put_nowait(
                 IncomingEvent.create_error_event(
-                    'Invalid nickname. Using old one: "%s". '
+                    f'Invalid nickname. Using old one: "{self.name_entry.get()}". '
                     "Available characters are a-zA-Z0-9_{}[]\\|^-"
                 )
             )
