@@ -1,5 +1,6 @@
 import logging
 from datetime import UTC, datetime, timedelta
+from tkinter import END
 
 from pysaic.controllers.game import (
     ask_for_actor_status,
@@ -20,6 +21,7 @@ from pysaic.tasks.afk import ensure_afk_tasks_are_running, stop_afk_tasks
 from pysaic.use_cases.command import CommandUseCase
 from pysaic.use_cases.common import join_previous_channel
 from pysaic.use_cases.ui.our_message import OurMessageUseCase
+from pysaic.use_cases.ui.utils import enable_disable
 
 logger = logging.getLogger(__name__)
 
@@ -82,6 +84,9 @@ class AppEventRouter(Router):
 
         elif self.event.event.what == AppEventEnum.TOGGLE_AFK:
             self._handle_toggle_afk()
+
+        elif self.event.event.what == AppEventEnum.RAW_IRC_MESSAGE:
+            self._handle_raw_irc_message()
 
         else:
             logger.warning("Unknown AppEvent: %r", self.event)
@@ -404,3 +409,12 @@ class AppEventRouter(Router):
                 },
             )
         )
+
+    def _handle_raw_irc_message(self):
+        if self.config.irc_window is not True:
+            return
+
+        with enable_disable(self.ui.irc_messages_list):
+            self.ui.irc_messages_list.insert(
+                END, self.event.event.payload, ["Text"]
+            )

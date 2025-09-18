@@ -13,6 +13,7 @@ from tkinter import (
     StringVar,
     Text,
     Tk,
+    Toplevel,
 )
 from tkinter.font import Font
 from tkinter.ttk import Scrollbar, Style
@@ -128,6 +129,8 @@ class App(Tk):
         self.users_list.config(font=("Microsoft Sans Serif", 11))
         self.messages_list.config(font=("Microsoft Sans Serif", 11))
         self.set_color_tags()
+        if self.pysaic_config.irc_window:
+            self._create_irc_window()
 
     def disable_input(self):
         self._set_input_state("disabled")
@@ -485,3 +488,21 @@ class App(Tk):
         self.channels_dropbox.config(state=value)
         self.input_message.config(state=value)
         self.send_button.config(state=value)
+
+    def _create_irc_window(self):
+        self.irc_window = Toplevel(self)
+        self.irc_window.title("IRC Window")
+        self.irc_window.geometry(f"{WIDTH}x{HEIGHT}")
+        self.irc_window.minsize(MIN_WIDTH, MIN_HEIGHT)
+        self.irc_window.protocol("WM_DELETE_WINDOW", self.on_close)
+        self.irc_window.iconbitmap(PATH / "crcr_icon_new.ico")
+        self.irc_window.configure(background=BACKGROUND_COLOR)
+        self.irc_messages_list = Text(
+            self.irc_window,
+            background="gray40",
+            wrap="word",
+        )
+        self.irc_messages_list.pack(expand=True, fill="both", padx=3, pady=3)
+        self.irc_messages_list.tag_config("Text", foreground="ghost white")
+        self.irc_messages_list.config(font=("Microsoft Sans Serif", 11))
+        self.irc_messages_list.config(state="disabled")
