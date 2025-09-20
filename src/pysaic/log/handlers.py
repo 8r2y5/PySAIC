@@ -1,5 +1,4 @@
-from datetime import datetime
-from logging import Handler, LogRecord
+from logging import Handler
 from logging.handlers import RotatingFileHandler
 
 from pysaic.entities import IncomingEvent
@@ -14,24 +13,14 @@ class PySAICRotatingFileHandler(RotatingFileHandler):
 
 
 class PySAICIRCLoggingHandler(Handler):
-    def __init__(self, incoming_queue, config):
+    def __init__(self, incoming_queue):
         super().__init__()
         self.incoming_queue = incoming_queue
-        self.config = config
-
-    def format(self, record: LogRecord):
-        content = normalize_content(
-            escape_stand_and_end(super().format(record))
-        ).replace(self.config.password, "********")
-        return (
-            f'[{datetime.fromtimestamp(record.created).strftime("%H:%M:%S")}] '
-            f"{content}\n"
-        )
 
     def emit(self, record):
         self.incoming_queue.put_nowait(
             IncomingEvent.create_app_event(
                 what=AppEventEnum.RAW_IRC_MESSAGE,
-                payload=self.format(record),
+                payload=record,
             )
         )

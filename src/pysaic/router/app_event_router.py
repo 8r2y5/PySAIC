@@ -1,5 +1,6 @@
 import logging
 from datetime import UTC, datetime, timedelta
+from logging import LogRecord
 from tkinter import END
 
 from pysaic.controllers.game import (
@@ -14,6 +15,7 @@ from pysaic.entities import (
     OutgoingPart,
 )
 from pysaic.enums import AppEventEnum
+from pysaic.log import escape_stand_and_end
 from pysaic.router.router import Router
 from pysaic.router.utils import send_saic_afk, send_saic_avatar
 from pysaic.settings import ANOMALY_DIR_PATH, GAMEDATA_PATH, WORKDIR
@@ -21,7 +23,7 @@ from pysaic.tasks.afk import ensure_afk_tasks_are_running, stop_afk_tasks
 from pysaic.use_cases.command import CommandUseCase
 from pysaic.use_cases.common import join_previous_channel
 from pysaic.use_cases.ui.our_message import OurMessageUseCase
-from pysaic.use_cases.ui.utils import enable_disable
+from pysaic.use_cases.ui.utils import enable_disable, normalize_content
 
 logger = logging.getLogger(__name__)
 
@@ -414,7 +416,12 @@ class AppEventRouter(Router):
         if self.config.irc_window is not True:
             return
 
+        record: LogRecord = self.event.event.payload
+        content = normalize_content(
+            escape_stand_and_end(record.message)
+        ).replace(self.config.password, "********")
+        date_time = datetime.fromtimestamp(record.created).strftime("%H:%M:%S")
         with enable_disable(self.ui.irc_messages_list):
             self.ui.irc_messages_list.insert(
-                END, self.event.event.payload, ["Text"]
+                END, f"[{date_time}] {content}\n", ["Text"]
             )

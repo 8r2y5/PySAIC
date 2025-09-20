@@ -165,6 +165,7 @@ class GameEventRouter(Router):
                     content=content,
                 )
             )
+
         loop.create_task(_post_achievement_to_chat())
 
     def _handle_rank(self):

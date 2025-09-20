@@ -239,9 +239,7 @@ def main():
     loop = asyncio.new_event_loop()
     incoming_queue = Queue()
     if config.irc_window:
-        pysaic_irc_logger_handler = PySAICIRCLoggingHandler(
-            incoming_queue, config
-        )
+        pysaic_irc_logger_handler = PySAICIRCLoggingHandler(incoming_queue)
         irc_protocol = logging.getLogger("pysaic.irc_protocol")
         irc_protocol.addHandler(pysaic_irc_logger_handler)
         irc_protocol.setLevel(logging.DEBUG)
