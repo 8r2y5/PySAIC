@@ -29,6 +29,7 @@ from pysaic.state import State
 from pysaic.ui.app import App
 from pysaic.use_cases.avatar import is_icon_valid
 from pysaic.use_cases.command import CommandUseCase
+from pysaic.use_cases.irc_mode_to_user_type import USER_TYPE_MAP
 from pysaic.use_cases.money_transfer import IncomingMoneyTransferUseCase
 from pysaic.use_cases.text import make_content_malformed
 from pysaic.use_cases.ui.add_dm_message import AddDmMessage
@@ -305,6 +306,7 @@ class IncomingRouter(Router):
             reputation_author=user.reputation,
             rank_author=user.rank,
             highlight=str(self.nick in event.content),
+            user_type=USER_TYPE_MAP[""],
             content=content,
         )
 

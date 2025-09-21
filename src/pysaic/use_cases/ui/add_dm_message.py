@@ -3,6 +3,7 @@ from tkinter import END
 
 from pysaic.controllers.game import add_dm_message_to_game
 from pysaic.settings import END_OF_ACTOR_CHARACTER
+from pysaic.use_cases import irc_mode_to_user_type
 from pysaic.use_cases.ui.use_case import UiUseCase
 from pysaic.use_cases.ui.utils import (
     enable_disable,
@@ -43,6 +44,7 @@ class AddDmMessage(UiUseCase):
             user = self.state.player.create_chat_user()
         add_dm_message_to_game(
             author_faction_actor=get_faction_actor(user),
+            user_type=irc_mode_to_user_type.get(user.irc_mode),
             # self.event.author.nick is already cleared out of irc mode
             author=self.event.author.nick,
             icon_id=user.avatar,

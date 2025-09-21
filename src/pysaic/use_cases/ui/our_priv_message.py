@@ -3,6 +3,7 @@ from tkinter import END
 
 from pysaic.controllers.game import add_dm_message_to_game
 from pysaic.enums import FactionsEnum
+from pysaic.use_cases import irc_mode_to_user_type
 from pysaic.use_cases.ui.utils import (
     add_content_of_message_to_messages_list,
     enable_disable,
@@ -29,13 +30,14 @@ class OurPrivMessageUseCase:
     def execute(self):
         self._add_our_priv_message()
         add_dm_message_to_game(
-            self.chat_user.faction.value,
-            self.chat_user.name,
-            self.chat_user.avatar,
-            self.chat_user.reputation,
-            self.chat_user.rank,
-            self.outgoing_message.target,
-            self.outgoing_message.content,
+            author_faction_actor=self.chat_user.faction.value,
+            user_type=irc_mode_to_user_type.get(self.chat_user.irc_mode),
+            author=self.chat_user.name,
+            icon_id=self.chat_user.avatar,
+            reputation_author=self.chat_user.reputation,
+            rank_author=self.chat_user.rank,
+            receiver=self.outgoing_message.target,
+            content=self.outgoing_message.content,
         )
 
     def _add_our_priv_message(self):
