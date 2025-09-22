@@ -389,14 +389,19 @@ class AppEventRouter(Router):
         ask_for_actor_status()
 
     def _handle_nickname_changed_collision(self, new_nick):
+        nick_with_underscore = f"{new_nick}_"
         logger.warning(
-            "Nick %r is already in use, changing to %r_ instead",
+            "Nick %r is already in use, changing to %r instead",
             new_nick,
-            new_nick,
+            nick_with_underscore,
         )
         self._add_information_text(
-            f'Nick "{new_nick}" is already in use, changing to "{new_nick}_" instead.'
+            f'Nick "{new_nick}" is already in use, changing to "{nick_with_underscore}" instead.'
         )
+        if self.state.nick in self.chat_users:
+            if user := self.chat_users.pop(self.state.nick, None):
+                user.name = nick_with_underscore
+                self.chat_users[nick_with_underscore] = user
         self.incoming_queue.put_nowait(
             OutgoingCommand.create_nick_command(self.state.nick)
         )
@@ -404,7 +409,7 @@ class AppEventRouter(Router):
             IncomingEvent.create_app_event(
                 AppEventEnum.NICKNAME_CHANGED,
                 {
-                    "nick": f"{new_nick}_",
+                    "nick": nick_with_underscore,
                     "got_password": self.event.event.payload.get(
                         "got_password"
                     ),
