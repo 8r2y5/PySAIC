@@ -154,17 +154,26 @@ function handle_icon(name, faction, icon_id)
 end
 
 local function _get_title_value(faction, user_type)
-    local title_value
+    local title_value = ''
+    local faction_value = ''
     if user_type == 'admin' then
         title_value = gt("crc_admin")
-    elseif faction then
-        title_value = gt("crc_"..faction)
-    elseif gt("crc_actor_anonymous") then
-        title_value = gt("crc_actor_anonymous")
-    else
-        title_value = gt("crc_unknown")
+    elseif user_type == 'halfop' then
+        title_value = gt("crc_halfop")
+    elseif user_type == 'voice' then
+        title_value = gt("crc_moderator")
     end
-    return title_value
+    if title_value ~= '' then
+        title_value = title_value .. ', '
+    end
+    if faction then
+        faction_value = gt("crc_"..faction)
+    elseif gt("crc_actor_anonymous") then
+        faction_value = gt("crc_actor_anonymous")
+    else
+        faction_value = gt("crc_unknown")
+    end
+    return title_value .. faction_value
 end
 
 function parseChannelMessage (body)

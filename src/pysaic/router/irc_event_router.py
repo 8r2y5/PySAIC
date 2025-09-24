@@ -226,17 +226,19 @@ class IrcEventRouter(Router):
 
     def _add_names(self, names, single=False):
         for name in names:
-            key_name = name.lstrip("%@+")
+            user_mode, key_name = re.match(r"^([%&@*+]?)(.+)$", name).groups()
             if key_name in self.chat_users:
                 continue
 
-            logger.debug("Adding name: %r", name)
+            logger.debug("Adding name: %r, %r, %r", name, user_mode, key_name)
             if name == self.state.nick:
+                self.state.player.irc_mode = user_mode
                 chat_user = self.state.player.create_chat_user()
                 chat_user.faction = self.config.current_faction
                 self.state.player.faction = self.config.current_faction
             else:
-                chat_user = ChatUser(name=name)
+                chat_user = ChatUser(name=key_name, irc_mode=user_mode)
+
             if single is True and isinstance(self.event.author, IrcUser):
                 chat_user.irc_user = self.event.author
 

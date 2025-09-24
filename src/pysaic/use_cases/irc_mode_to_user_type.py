@@ -1,12 +1,22 @@
+from enum import StrEnum
+
+
+class ModeNames(StrEnum):
+    ADMIN = "admin"
+    HALFOP = "halfop"
+    VOICE = "voice"
+    NORMAL = "normal"
+
+
 USER_TYPE_MAP = {
-    "q": "admin",
-    "a": "admin",
-    "o": "admin",
-    "h": "halfop",
-    "v": "voice",
-    "": "normal",
+    "*": ModeNames.ADMIN,
+    "&": ModeNames.ADMIN,
+    "@": ModeNames.ADMIN,
+    "%": ModeNames.HALFOP,
+    "+": ModeNames.VOICE,
+    "": ModeNames.NORMAL,
 }
 
 
-def get(mode: str) -> str:
-    return USER_TYPE_MAP.get(mode, "normal")
+def parsed_mode_to_name(mode: str) -> str:
+    return USER_TYPE_MAP.get(mode, ModeNames.NORMAL)

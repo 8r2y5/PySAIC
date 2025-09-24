@@ -2,6 +2,7 @@ import logging
 import re
 from collections import defaultdict
 
+from pysaic.controllers.game import add_users_list_to_game
 from pysaic.entities import IncomingEvent
 from pysaic.state import State
 from pysaic.use_cases.ui.update_users import UpdateUsersUseCase
@@ -9,14 +10,21 @@ from pysaic.use_cases.ui.update_users import UpdateUsersUseCase
 mode_regex = re.compile(r"([+-]\w+)")
 logger = logging.getLogger(__name__)
 
-MODE_TRANSLATOR = {"o": "@", "h": "%", "v": "+", "a": "&", "q": "*", "r": ""}
+MODE_TRANSLATOR = {
+    "o": "@",  # Channel Operator, higher than admin
+    "h": "%",  # Half-Operator
+    "v": "+",  # Voiced
+    "a": "&",  # Admin
+    "q": "*",  # Channel Owner/Founder
+    "r": "",
+}
 TRANSLATOR_TO_MODE = {v: k for k, v in MODE_TRANSLATOR.items()}
 MODE_RANKS = {
     "": 0,
-    "@": 3,
+    "@": 4,
     "%": 2,
     "+": 1,
-    "&": 4,
+    "&": 3,
     "*": 5,
 }
 RANK_TO_MODE = {rank: mode for mode, rank in MODE_RANKS.items()}
@@ -78,7 +86,13 @@ class ModeChangeUseCase:
         if nick == self.state.nick:
             self.state.player.irc_mode = self.chat_users[nick].irc_mode
 
+        logger.info(
+            'User "%s" mode changed to %s',
+            nick,
+            self.chat_users[nick].irc_mode,
+        )
         UpdateUsersUseCase(self.state, self.ui).execute()
+        add_users_list_to_game(self.state.chat_users.values())
 
     def _get_highest_mode_and_type(
         self, current_rank, highest_rank_remove, highest_rank_add, nick

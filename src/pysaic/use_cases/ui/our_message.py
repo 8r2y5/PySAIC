@@ -4,7 +4,7 @@ from tkinter import END
 from pysaic.controllers.game import add_channel_message_to_game
 from pysaic.entities import IncomingEvent, OutgoingMessage
 from pysaic.enums import FactionsEnum
-from pysaic.use_cases import irc_mode_to_user_type
+from pysaic.use_cases.irc_mode_to_user_type import parsed_mode_to_name
 from pysaic.use_cases.text import make_content_malformed
 from pysaic.use_cases.ui.utils import (
     add_content_of_message_to_messages_list,
@@ -105,6 +105,6 @@ class OurMessageUseCase:
             reputation_author=user.reputation,
             rank_author=user.rank,
             highlight="False",
-            user_type=irc_mode_to_user_type.get(user.irc_mode),
+            user_type=parsed_mode_to_name(user.irc_mode),
             content=content,
         )
