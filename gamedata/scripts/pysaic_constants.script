@@ -1,0 +1,20 @@
+-- PySAIC's Constants Module
+
+UserDisplayStyleEnum = {
+	CRCR = "CRCR",
+	PySAIC_Card = "PySAIC_Card",
+	PySAIC_Compact = "PySAIC_Compact",
+}
+userDisplayToNodeMap = {
+	[UserDisplayStyleEnum.CRCR] = "user",
+	[UserDisplayStyleEnum.PySAIC_Card] = "pysaic_card",
+	[UserDisplayStyleEnum.PySAIC_Compact] = "pysaic_compact",
+}
+
+IRCUserModeEnum = {
+    Normal = "Normal",
+    Operator = "op",
+    HalfOp = "halfop",
+    Voice = "voice",
+    Bot = "Bot",
+}

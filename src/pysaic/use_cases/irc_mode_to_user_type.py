@@ -2,7 +2,7 @@ from enum import StrEnum
 
 
 class ModeNames(StrEnum):
-    ADMIN = "admin"
+    ADMIN = "op"
     HALFOP = "halfop"
     VOICE = "voice"
     NORMAL = "normal"

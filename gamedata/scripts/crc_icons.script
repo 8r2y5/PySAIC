@@ -41,8 +41,8 @@ pysaic_factions = {
 
 function getIcon(name, faction, user_type)
     -- should be handled by PySAIC, it is fallback
-    if user_type == "admin" then
-        return 'crc_icon_admin'
+    if user_type == pysaic_constants.IRCUserModeEnum.Operator then
+        return 'crc_icon_operator'
     else
         --There's a reason for this extreme wank but I don't remember what it is
         local oldRandom = math.random()
