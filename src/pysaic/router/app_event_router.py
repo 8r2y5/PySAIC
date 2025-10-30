@@ -88,6 +88,9 @@ class AppEventRouter(Router):
         elif self.event.event.what == AppEventEnum.TOGGLE_AFK:
             self._handle_toggle_afk()
 
+        elif self.event.event.what == AppEventEnum.FOCUS:
+            self._handle_focus_window()
+
         elif self.event.event.what == AppEventEnum.RAW_IRC_MESSAGE:
             self._handle_raw_irc_message()
 
@@ -431,3 +434,11 @@ class AppEventRouter(Router):
             self.ui.irc_messages_list.insert(
                 END, f"[{date_time}] {content}\n", ["Text"]
             )
+
+    def _handle_focus_window(self):
+        logger.info("Focusing main window")
+        self.ui.lift()
+        self._add_information_text('Main window focused.')
+        self.ui.attributes('-topmost', True)
+        self.ui.after_idle(self.ui.attributes, '-topmost', False)
+        self.ui.focus_force()
