@@ -33,7 +33,10 @@ from pysaic.handlers import (
 )
 from pysaic.irc_protocol import PySaicIrcProtocol
 from pysaic.log.handlers import PySAICIRCLoggingHandler
-from pysaic.server import get_pysaic_localserver, ask_instance_to_focus
+from pysaic.use_cases.local_server import (
+    get_pysaic_localserver,
+    ask_instance_to_focus,
+)
 from pysaic.settings import (
     APP_IDENTITY,
     GAMEDATA_PATH,
