@@ -117,9 +117,16 @@ class App(Tk):
         self.incoming_queue.put_nowait(None)
 
     def lift_and_focus(self):
+        # makes app light up on the taskbar
         self.lift()
+
+        # bring window to the front, this actually lifts it above all other windows
         self.attributes("-topmost", True)
+
+        # disable topmost so other windows can be focused later
         self.after_idle(self.attributes, "-topmost", False)
+
+        # focus on input bar, making it ready for typing
         self.focus_force()
 
     def create_widgets(self):
