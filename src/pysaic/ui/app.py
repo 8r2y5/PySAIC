@@ -306,6 +306,7 @@ class App(Tk):
             msg=message,
             duration="long",
             icon=str(PATH / "crcr_icon_new.ico"),
+            launch="pysaic://open",
         )
         logger.debug(
             "Popup sound is set to %r", self.pysaic_config.pop_up_sound

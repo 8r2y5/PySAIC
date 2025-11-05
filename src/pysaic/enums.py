@@ -202,8 +202,11 @@ def _recreate_locations_yaml(locations_data):
             "zaton": "Zaton",
         }
     )
-    with open(LOCATIONS_FOR_ENUM_PATH, "w", encoding="utf-8") as file:
-        yaml.safe_dump(locations_data, file)
+    try:
+        with open(LOCATIONS_FOR_ENUM_PATH, "w", encoding="utf-8") as file:
+            yaml.safe_dump(locations_data, file)
+    except FileNotFoundError:
+        logger.error("Welp, i guess no locations will be set.")
 
 
 try:
