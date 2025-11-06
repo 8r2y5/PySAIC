@@ -56,7 +56,7 @@ def get_pysaic_localserver(loop, incoming_queue):
 async def ask_instance_to_focus():
     reader, writer = await asyncio.open_connection(HOST, PORT)
     message = "focus\n"
-    logger.debug("Send: {!r}".format(message))
+    logger.debug("Send: %r", message)
     writer.write(message.encode())
     await writer.drain()
     logger.debug("Closing the connection to the server.")
