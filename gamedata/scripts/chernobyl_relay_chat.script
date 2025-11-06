@@ -344,9 +344,10 @@ local inputActions = {
 
 function sendActorStatus()
 	printf("Sending actor status")
-	send("ActorStatus/%s", db.actor:character_community())
-	send("Location/%s", level.name())
-	send("Money/%s", db.actor:money())
+	update_faction_if_not_sync(true)
+	update_location_if_not_sync(true)
+	update_reputation_if_not_sync(true)
+	update_rank_if_not_sync(true)
 	fake_conn_lost_update_client(true)
 	send("DEBUG/%s", DEV_DEBUG)
 end
@@ -500,20 +501,20 @@ end
 function actor_on_update()
     update_money()
 	fake_conn_lost_update_client(nil)
-	update_faction_if_not_sync()
-	update_location_if_not_sync()
-	update_reputation_if_not_sync()
-	update_rank_if_not_sync()
+	update_faction_if_not_sync(nil)
+	update_location_if_not_sync(nil)
+	update_reputation_if_not_sync(nil)
+	update_rank_if_not_sync(nil)
 end
 
 
-function update_reputation_if_not_sync()
+function update_reputation_if_not_sync(force_send)
     if not db.actor then
         return
     end
 
     local current_reputation_name = utils_obj.get_reputation_name(db.actor:character_reputation())
-    if prev_reputation == current_reputation_name then
+    if prev_reputation == current_reputation_name and not force_send then
         return
     end
 
@@ -522,13 +523,13 @@ function update_reputation_if_not_sync()
 end
 
 
-function update_rank_if_not_sync()
+function update_rank_if_not_sync(force_send)
     if not db.actor then
         return
     end
 
     local current_rank = ranks.get_obj_rank_name(db.actor)
-    if prev_rank == current_rank then
+    if prev_rank == current_rank and not force_send then
         return
     end
 
@@ -537,9 +538,9 @@ function update_rank_if_not_sync()
 end
 
 
-function update_location_if_not_sync()
+function update_location_if_not_sync(force_send)
     local current_level = level.name()
-    if prev_level == current_level then
+    if prev_level == current_level and not force_send then
         return
     end
     prev_level = current_level
@@ -551,13 +552,13 @@ function on_achievement_earned(param1, param2)
     send("Achievement/%s/%s", param1, param2)
 end
 
-function update_faction_if_not_sync()
+function update_faction_if_not_sync(force_send)
     if not db.actor then
         return
     end
 
     local current_actor = db.actor:character_community()
-    if prev_actor == current_actor then
+    if prev_actor == current_actor and not force_send then
         return
     end
 
