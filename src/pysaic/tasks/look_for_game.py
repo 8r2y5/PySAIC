@@ -38,8 +38,7 @@ async def look_for_game_process(loop, incoming_queue, config, state):
                 pid = None
         else:
             logger.debug("Looking for game process in the system via pool")
-            with ThreadPoolExecutor(max_workers=1) as executor:
-                pid = await loop.run_in_executor(executor, find_game_process)
+            pid = await asyncio.to_thread(find_game_process)
             if pid:
                 is_game_running = True
                 try:
