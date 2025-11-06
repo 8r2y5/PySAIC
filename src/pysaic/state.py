@@ -62,6 +62,8 @@ class State:
         self.player = Player.create_from_config(config)
         self.last_death: Optional[datetime] = None
         self.last_messages = deque(maxlen=20)
+        self.player_update_task = None
+        self.player_changed_values_queue = asyncio.Queue()
 
     def money_enough(self, amount) -> bool:
         return self.player.money >= amount
