@@ -218,11 +218,22 @@ def setup_inject(
 
 @inject.autoparams()
 def close_everything_callback(
-    *args, outgoing_queue: OutgoingQueue, incoming_queue: IncomingQueue
+    task, outgoing_queue: OutgoingQueue, incoming_queue: IncomingQueue
 ):
-    logger.info("Closing everything because of %r", args)
+    logger.info("Closing everything because of %r", task)
     incoming_queue.put_nowait(None)
     outgoing_queue.put_nowait(None)
+    error = task.exception()
+
+    try:
+        task.result()
+    except Exception as e:
+        logger.error("error while getting task result: %s", e, exc_info=True)
+
+    if error:
+        logger.warning("error in task: %s", error, exc_info=True)
+    else:
+        logger.info("task %s finished, there was no error", task.get_name())
 
 
 def initialize_logging():
@@ -324,6 +335,7 @@ def main():
         loop.run_until_complete(outgoing_process_task)
     finally:
         pysaic_localserver.close()
+        loop.run_until_complete(pysaic_localserver.wait_closed())
         logger.info("Stopping")
 
         logger.info("Cancelling tasks")
