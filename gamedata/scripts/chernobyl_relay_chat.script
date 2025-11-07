@@ -344,6 +344,7 @@ local inputActions = {
 
 function sendActorStatus()
 	printf("Sending actor status")
+    update_money(true)
 	update_faction_if_not_sync(true)
 	update_location_if_not_sync(true)
 	update_reputation_if_not_sync(true)
@@ -455,9 +456,9 @@ local function onKeyPress(dik)
 	end
 end
 
-function update_money()
+function update_money(force_send)
     local cur_money = db.actor:money()
-    if prev_money == cur_money then
+    if prev_money == cur_money and not force_send then
 		return
 	end
     prev_money = cur_money
@@ -499,7 +500,7 @@ function fake_conn_lost()
 end
 
 function actor_on_update()
-    update_money()
+    update_money(nil)
 	fake_conn_lost_update_client(nil)
 	update_faction_if_not_sync(nil)
 	update_location_if_not_sync(nil)
