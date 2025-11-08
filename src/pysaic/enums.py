@@ -160,6 +160,12 @@ class DeathReportTypeEnum(StrEnum):
     OnlineFactions = "Online Factions"
 
 
+class DisconnectOnNetworkDestructionSetting(StrEnum):
+    Never = "Never"
+    Always = "Always"
+    MalformSignalOnly = "Malform Signal Only"
+
+
 def _recreate_locations_yaml(locations_data):
     locations_data.update(
         {

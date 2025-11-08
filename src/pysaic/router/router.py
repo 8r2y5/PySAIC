@@ -207,7 +207,7 @@ class Router:
         except IndexError:
             content = event.content
 
-        if self.state.fake_disconnect:
+        if self.state.should_malform_messages:
             content = make_content_malformed(content)
 
         normalized_content = normalize_content(content)

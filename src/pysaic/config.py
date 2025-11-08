@@ -7,7 +7,12 @@ import yaml
 
 from pysaic.controllers.ui.user_list import GroupByFactionWithCounter
 from pysaic.crc_strings.use_case import random_name
-from pysaic.enums import AvatarEnum, DeathReportTypeEnum, FactionsEnum
+from pysaic.enums import (
+    AvatarEnum,
+    DeathReportTypeEnum,
+    FactionsEnum,
+    DisconnectOnNetworkDestructionSetting,
+)
 from pysaic.use_cases.avatar import (
     calculate_icon_based_on_faction_and_name,
     is_icon_valid,
@@ -102,7 +107,9 @@ class Config:
     nick_auto_complete_key: str = "DIK_TAB"
     news_sound: bool = True
     close_chat: bool = True
-    disconnect_when_blowout_or_underground: bool = False
+    disconnect_when_blowout_or_underground: (
+        DisconnectOnNetworkDestructionSetting
+    ) = DisconnectOnNetworkDestructionSetting.MalformSignalOnly
     block_money_transfer: bool = True
     user_list_display: str = GroupByFactionWithCounter.name
     accept_dms_from_not_in_the_channel: bool = False
@@ -239,7 +246,8 @@ class Config:
             close_chat=cls._to_bool(
                 config["close_chat"], default=cls.close_chat
             ),
-            disconnect_when_blowout_or_underground=cls._to_bool(
+            disconnect_when_blowout_or_underground=cls._to_enum(
+                DisconnectOnNetworkDestructionSetting,
                 config["disconnect_when_blowout_or_underground"],
                 default=cls.disconnect_when_blowout_or_underground,
             ),
@@ -358,6 +366,13 @@ class Config:
             self.avatar = AvatarEnum.faction_and_name_based.value
             self.current_avatar = f"crc_icon_{self.current_faction.value}_1"
             return True
+
+    @classmethod
+    def _to_enum(cls, enum_class, value, default):
+        try:
+            return enum_class[value]
+        except (KeyError, TypeError):
+            return default
 
 
 if __name__ == "__main__":

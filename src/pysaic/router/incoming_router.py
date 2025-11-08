@@ -492,7 +492,7 @@ class IncomingRouter(Router):
         AddDmMessage(self.state, self.config, self.ui, event).execute()
 
     def _handle_channel_message(self, event):
-        if self.state.fake_disconnect is True:
+        if self.state.should_malform_messages is True:
             event.content = make_content_malformed(event.content)
         self._add_channel_message(event)
         self._add_channel_message_to_game(event)

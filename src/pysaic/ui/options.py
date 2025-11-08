@@ -17,10 +17,19 @@ from tkinter.ttk import Separator, Style, Spinbox
 
 import inject
 
-from pysaic.config import Config, FactionSetting, InGameUserDisplayEnum
+from pysaic.config import (
+    Config,
+    FactionSetting,
+    InGameUserDisplayEnum,
+)
 from pysaic.controllers.ui.user_list import DISPLAY_MODES_MAP
 from pysaic.entities import AppEvent, IncomingEvent, IncomingQueue
-from pysaic.enums import AppEventEnum, DeathReportTypeEnum, FactionsEnum
+from pysaic.enums import (
+    AppEventEnum,
+    DeathReportTypeEnum,
+    FactionsEnum,
+    DisconnectOnNetworkDestructionSetting,
+)
 from pysaic.ui.avatar_options import AvatarOptions
 from pysaic.use_cases.nick import sanitize_nick
 
@@ -251,15 +260,41 @@ class Options:
 
         frame.grid_columnconfigure(0, weight=1)
 
-        self.disconnect_during_emission_or_when_underground_var = BooleanVar(
+        Label(
+            frame,
+            text="Disconnect on blowouts or underground",
+            background=self.background_color,
+            foreground=self.text_color,
+        ).grid(row=0, column=0, sticky="w")
+        self.disconnect_during_emission_or_when_underground_var = StringVar(
             value=self.config.disconnect_when_blowout_or_underground
         )
-        Checkbutton(
+        disconnect_on_network_destroy = OptionMenu(
             frame,
-            text="Disconnect during emission or when underground",
-            variable=self.disconnect_during_emission_or_when_underground_var,
-            **self.default_style_kwargs,
-        ).grid(row=0, column=0, sticky="w")
+            self.disconnect_during_emission_or_when_underground_var,
+            *[
+                record.value
+                for record in (
+                    DisconnectOnNetworkDestructionSetting.Never,
+                    DisconnectOnNetworkDestructionSetting.MalformSignalOnly,
+                    DisconnectOnNetworkDestructionSetting.Always,
+                )
+            ],
+        )
+        disconnect_on_network_destroy.config(
+            bg=self.background_color,
+            fg=self.text_color,
+            activebackground=self.background_color,
+            activeforeground=self.text_color,
+            width=22,
+        )
+        disconnect_on_network_destroy.grid(row=0, column=0, sticky="e")
+        disconnect_on_network_destroy["menu"].config(
+            bg=self.background_color,
+            fg=self.text_color,
+            activebackground="dim gray",
+            activeforeground="black",
+        )
 
         self.block_money_transfer_var = BooleanVar(
             value=self.config.block_money_transfer
@@ -542,7 +577,9 @@ class Options:
             self.disconnect_during_emission_or_when_underground_var.get(),
         )
         self.config.disconnect_when_blowout_or_underground = (
-            self.disconnect_during_emission_or_when_underground_var.get()
+            DisconnectOnNetworkDestructionSetting(
+                self.disconnect_during_emission_or_when_underground_var.get()
+            )
         )
 
         logger.debug(
