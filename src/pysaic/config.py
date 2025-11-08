@@ -118,7 +118,7 @@ class Config:
     blocked_users: dict[str, set[str]] = field(default_factory=dict)
     blocked_words: list[str] = field(default_factory=list)
     in_game_users_display: InGameUserDisplayEnum = (
-        InGameUserDisplayEnum.PySAIC_Compact
+        InGameUserDisplayEnum.PySAIC_Card
     )
     death_report_type: DeathReportTypeEnum = DeathReportTypeEnum.OnlineFactions
     death_reports: bool = True
