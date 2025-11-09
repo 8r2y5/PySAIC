@@ -323,6 +323,7 @@ def main():
     try:
         loop.run_until_complete(outgoing_process_task)
     finally:
+        pysaic_localserver.close()
         logger.info("Stopping")
 
         logger.info("Cancelling tasks")
@@ -338,7 +339,6 @@ def main():
         quit_task.add_done_callback(lambda _: future.set_result(None))
         loop.run_until_complete(asyncio.wait_for(future, timeout=10))
 
-        pysaic_localserver.close()
         loop.close()
 
     app.quit()
