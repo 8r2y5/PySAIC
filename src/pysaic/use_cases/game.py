@@ -251,10 +251,7 @@ class GameChannelMessageUseCase:
         )
         # we should only send message if it wasn't a command because it could
         # be private message or some other command that should not be sent
-        if (
-            not original_content.startswith("/")
-            and original_content == content
-        ):
+        if not original_content.startswith("/"):
             await self.outgoing_queue.put(
                 OutgoingMessage(
                     target=self.config.server.previous_channel,
