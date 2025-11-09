@@ -3,6 +3,7 @@
 
 import asyncio
 import logging
+from asyncio import AbstractEventLoop
 from datetime import datetime
 from random import randint
 
@@ -175,7 +176,7 @@ class GameHandshakeUseCase:
         add_setting_to_game("CloseChat", str(self.config.close_chat).title())
         add_setting_to_game(
             "DisconnectWhenBlowoutOrUnderground",
-            str(self.config.disconnect_when_blowout_or_underground).title(),
+            str(True).title(),
         )
         add_setting_to_game(
             "CurrentChannel", self.config.server.previous_channel
@@ -237,7 +238,7 @@ class GameChannelMessageUseCase:
         # if order will be different then player will send message as
         # "previous" faction.
         original_content = content = self.channel_message.message.strip(" ")
-        if state.should_malform_messages:
+        if state.should_malform_messages and not content.startswith("/"):
             self.logger.info(
                 "Fake disconnect is set, making content malformed: %r", content
             )
@@ -296,16 +297,25 @@ class ConnectionLostUseCase:
 
     @inject.autoparams()
     async def execute(self, state: State):
-        logger.debug("Connection lost: %r", self.entity)
-        if (
-            self.entity.lost is True
-            and self._should_disconnect_on_network_destruction()
-        ):
-            self._do_full_disconnect(state)
-        elif self.entity is True and self._should_only_malform_messages():
-            self._do_only_malform_messages(state)
-        elif self.entity is False or self.entity.lost is False:
-            self._dont_disconnect(state)
+        logger.info(
+            "Connection lost: %r, should_disconnect: %s, should_malform: %s",
+            self.entity,
+            self._should_disconnect_on_network_destruction(),
+            self._should_only_malform_messages(),
+        )
+        if state.is_currently_under_network_destruction == self.entity.lost:
+            logger.info(
+                "Already in the desired state, ignoring",
+            )
+            return
+        state.is_currently_under_network_destruction = self.entity.lost
+        if self.entity.lost is True:
+            if self._should_disconnect_on_network_destruction():
+                self._do_full_disconnect()
+            elif self._should_only_malform_messages():
+                self._do_only_malform_messages()
+        elif self.entity.lost is False:
+            self._dont_disconnect()
 
     def _should_disconnect_on_network_destruction(self):
         return (
@@ -313,42 +323,35 @@ class ConnectionLostUseCase:
             == DisconnectOnNetworkDestructionSetting.Always
         )
 
-    def _do_full_disconnect(self, state):
-        if (
-            state.is_currently_under_network_destruction
-            and not state.is_in_channel.is_set()
-        ):
+    @inject.autoparams()
+    def _do_full_disconnect(self, state: State, loop: AbstractEventLoop):
+        if state.is_in_channel.is_set() is False:
             logger.debug("Already faking disconnect, ignoring")
             return
 
-        state.is_currently_under_network_destruction = True
-
-        async def _task():
-            if self.entity.reason == "Surge":
+        async def _task(reason):
+            if reason == "Surge":
                 logger.debug(
                     "Waiting for %d seconds before disconnecting",
                     SLEEP_TIME_BEFORE_DISCONNECT,
                 )
                 await asyncio.sleep(SLEEP_TIME_BEFORE_DISCONNECT)
 
-            add_signal_state(str(state.fake_disconnect))
+            add_signal_state(str(True))
             await self.outgoing_queue.put(
                 OutgoingPart(
                     channel=self.config.server.previous_channel,
-                    content=self.entity.reason,
+                    content=reason,
                 )
             )
 
         logger.debug("Faking disconnect with reason: %r", self.entity.reason)
-        asyncio.create_task(_task(), name="fake_disconnect")
+        loop.create_task(_task(self.entity.reason), name="fake_disconnect")
 
-    def _dont_disconnect(self, state):
+    @inject.autoparams()
+    def _dont_disconnect(self, state: State):
         logger.debug("Connection lost is False, not faking disconnect")
-        if not state.is_currently_under_network_destruction:
-            logger.debug("Not faking disconnect, ignoring")
-            return
 
-        state.is_currently_under_network_destruction = True
         add_signal_state(str(state.fake_disconnect))
         join_previous_channel()
 
@@ -358,15 +361,24 @@ class ConnectionLostUseCase:
             == DisconnectOnNetworkDestructionSetting.MalformSignalOnly
         )
 
-    def _do_only_malform_messages(self, state):
+    @inject.autoparams()
+    def _do_only_malform_messages(self, state: State, loop: AbstractEventLoop):
         logger.debug("Only malforming messages on connection lost")
-        if state.state.is_currently_under_network_destruction:
-            logger.debug("Already faking disconnect, ignoring")
-            return
 
-        state.is_currently_under_network_destruction = True
+        async def _task(reason):
+            if reason == "Surge":
+                content = "[PDA SYSTEM] // Regional communications grid disrupted. Seek shelter immediately."
+            else:
+                content = "[PDA SYSTEM] // Weak signal detected. Communications may be unreliable."
+
+            await asyncio.sleep(SLEEP_TIME_BEFORE_DISCONNECT)
+            self.incoming_queue.create_error_event(content)
+
         add_signal_state(str(state.fake_disconnect))
         logger.debug("Set fake disconnect to False for malforming messages")
+        loop.create_task(
+            _task(self.entity.reason), name="malform_only_disconnect"
+        )
 
 
 async def actor_status_use_case(actor_status, incoming_queue: IncomingQueue):

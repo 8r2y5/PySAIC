@@ -161,14 +161,26 @@ class Router:
 
     def _add_information_event(self, event):
         logger.debug("Adding information event: %r", event)
+        tag, game_callback = (
+            (
+                "Error",
+                add_error_message_to_game,
+            )
+            if isinstance(event.event, ErrorEvent)
+            else (
+                "Information",
+                add_information_message_to_game,
+            )
+        )
         with enable_disable(self.messages_list):
             self._add_date_to_message(event)
             self._add_content_of_message(
-                event.event.content, tags=["Information"]
+                event.event.content,
+                tags=[tag],
             )
 
         if event.target != "only_chat":
-            add_information_message_to_game(event.event.content)
+            game_callback(event.event.content)
 
     def _add_user_and_faction_color(
         self, user: str, service=False, additional_tags=None
