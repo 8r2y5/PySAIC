@@ -288,30 +288,35 @@ def main():
     prepared_callback = partial(close_everything_callback)
     from pysaic.tasks.prepare_game_input import prepare_game_input_watcher
 
-    loop.create_task(prepare_game_input_watcher(loop, state))
+    loop.create_task(
+        prepare_game_input_watcher(loop, state), name="PrepareGameInputWatcher"
+    )
     from pysaic.tasks.look_for_game import look_for_game_process
 
     looking_for_game_task = loop.create_task(
-        look_for_game_process(loop, incoming_queue, config, state)
+        look_for_game_process(loop, incoming_queue, config, state),
+        name="LookForGameTask",
     )
     looking_for_game_task.add_done_callback(prepared_callback)
-    app_update_task = loop.create_task(update_app(app))
+    app_update_task = loop.create_task(update_app(app), name="AppUpdateTask")
     app_update_task.add_done_callback(prepared_callback)
     from pysaic.tasks.outgoing_queue import outgoing_queue_processing
 
     outgoing_process_task = loop.create_task(
         outgoing_queue_processing(
             irc, outgoing_queue, incoming_queue, state, loop
-        )
+        ),
+        name="OutgoingQueueProcessingTask",
     )
 
     from pysaic.tasks.incoming_queue import incoming_queue_processing
 
     incoming_queue_processing_task = loop.create_task(
-        incoming_queue_processing(state, incoming_queue, app, config)
+        incoming_queue_processing(state, incoming_queue, app, config),
+        name="IncomingQueueProcessingTask",
     )
     incoming_queue_processing_task.add_done_callback(prepared_callback)
-    loop.create_task(irc.connect())
+    loop.create_task(irc.connect(), name="IRCConnectTask")
     inject.configure(
         partial(
             setup_inject,
@@ -326,7 +331,7 @@ def main():
     )
     from pysaic.tasks.update_checker import update_checker
 
-    loop.create_task(update_checker(incoming_queue))
+    loop.create_task(update_checker(incoming_queue), name="UpdateCheckerTask")
     incoming_queue.put_nowait(
         IncomingEvent.create_information_event(f"Starting {APP_IDENTITY}.")
     )
