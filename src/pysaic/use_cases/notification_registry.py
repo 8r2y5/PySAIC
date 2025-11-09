@@ -2,6 +2,7 @@ import logging
 import os
 import sys
 import winreg
+from contextlib import suppress
 
 logger = logging.getLogger(__name__)
 
@@ -23,10 +24,9 @@ class KeyContext:
         return self
 
     def __exit__(self, exc_type, exc_val, exc_tb):
+        with suppress(Exception):
+            winreg.CloseKey(self.key)
         return True
-
-    def __del__(self):
-        winreg.CloseKey(self.key)
 
     def set(self, name, value):
         winreg.SetValueEx(self.key, name, 0, winreg.REG_SZ, value)
@@ -34,15 +34,20 @@ class KeyContext:
 
 def _set_registry_values():
     with KeyContext(BASE_REGISTRY_STR) as key:
-        key.set("URI Protocol", "")
+        key.set("URL Protocol", "")
+
+        # technically it is URI, but Windows convention is to use URL
+        # this is only a descriptive string
         key.set("", f"URI:{PROTOCOL_NAME} Protocol")
 
     with KeyContext(f"{BASE_REGISTRY_STR}\\DefaultIcon") as key:
         logger.debug("Setting icon to: %r", interpreter)
         key.set("", f'"{interpreter}"')
 
-    KeyContext(f"{BASE_REGISTRY_STR}\\shell")
-    KeyContext(f"{BASE_REGISTRY_STR}\\shell\\open")
+    with KeyContext(f"{BASE_REGISTRY_STR}\\shell"):
+        pass
+    with KeyContext(f"{BASE_REGISTRY_STR}\\shell\\open"):
+        pass
 
     with KeyContext(COMMAND_PATH) as key:
         logger.debug("Setting %s to %r", COMMAND_PATH, LAUNCH_COMMAND)
