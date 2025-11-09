@@ -85,7 +85,7 @@ function _checkIconByMatch(icon_id, beginning_of_id, look_table)
     end
 end
 
-function isValidIcon(icon_id)
+function isValidIcon(icon_id, user_type)
     if icon_id == nil or icon_id == '' then
         return false
     end
