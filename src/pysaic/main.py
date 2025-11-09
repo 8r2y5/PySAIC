@@ -12,25 +12,7 @@ from asyncirc.server import Server
 from pysaic.config import Config
 from pysaic.entities import IncomingEvent, IncomingQueue, OutgoingQueue
 from pysaic.enums import IrcEvents
-from pysaic.handlers import (
-    handle_channel_topic,
-    handle_end_of_names,
-    handle_error_in_nickname,
-    handle_kick,
-    handle_message_of_the_day,
-    handle_mode,
-    handle_names,
-    handle_nick_change_event,
-    handle_nickname_in_use,
-    handle_notice,
-    handle_part_event,
-    handle_privmsg,
-    handle_simple_event,
-    handle_user_banned,
-    handle_welcome_message,
-    log_all_events,
-    not_in_a_channel,
-)
+
 from pysaic.irc_protocol import PySaicIrcProtocol
 from pysaic.log.handlers import PySAICIRCLoggingHandler
 from pysaic.use_cases.local_server import (
@@ -44,18 +26,18 @@ from pysaic.settings import (
     get_log_config,
 )
 from pysaic.state import State
-from pysaic.tasks.incoming_queue import incoming_queue_processing
-from pysaic.tasks.look_for_game import look_for_game_process
-from pysaic.tasks.outgoing_queue import outgoing_queue_processing
-from pysaic.tasks.prepare_game_input import prepare_game_input_watcher
-from pysaic.tasks.update_checker import update_checker
-from pysaic.ui.app import App
 from pysaic.use_cases.get_user_for_irc import get_user_for_irc
+from pysaic.use_cases.notification_registry import (
+    check_and_register_uri_protocol,
+)
 
 logger = logging.getLogger("pysaic")
 
 
 def set_up_irc_client(loop, config):
+    from pysaic.handlers import log_all_events
+    from pysaic.handlers import handle_nickname_in_use
+
     logger.debug("Setting up irc client")
     irc = PySaicIrcProtocol(
         [
@@ -94,6 +76,24 @@ async def update_app(app):
 
 
 def bind_incoming_queue(irc, incoming_queue, config, state, outgoing_queue):
+    from pysaic.handlers import (
+        handle_channel_topic,
+        handle_end_of_names,
+        handle_error_in_nickname,
+        handle_kick,
+        handle_message_of_the_day,
+        handle_mode,
+        handle_names,
+        handle_nick_change_event,
+        handle_notice,
+        handle_part_event,
+        handle_privmsg,
+        handle_simple_event,
+        handle_user_banned,
+        handle_welcome_message,
+        not_in_a_channel,
+    )
+
     logger.debug("Binding incoming queue")
     irc.register(
         IrcEvents.Message_of_the_Day_End.value,
@@ -205,6 +205,8 @@ def setup_inject(
     irc: PySaicIrcProtocol,
 ):
     logger.debug("Configuring inject")
+    from pysaic.ui.app import App
+
     binder.bind(App, app)
     binder.bind(State, state)
     binder.bind(IncomingQueue, incoming_queue)
@@ -236,13 +238,18 @@ def initialize_logging():
 def main():
     incoming_queue = Queue()
     loop = asyncio.new_event_loop()
-    initialize_logging()
     try:
         pysaic_localserver = get_pysaic_localserver(loop, incoming_queue)
     except OSError:
         logger.error("Another instance of PySAIC is already running. Exiting.")
         loop.run_until_complete(ask_instance_to_focus())
+        sys.exit(0)
+    success = check_and_register_uri_protocol()
+    if not success:
+        pysaic_localserver.close()
+        loop.close()
         sys.exit(1)
+    initialize_logging()
     logger.info("Starting %s", APP_IDENTITY)
     logger.debug("WORKDIR: %s", WORKDIR)
     logger.debug("GAMEDATA_PATH: %s", GAMEDATA_PATH)
@@ -264,20 +271,30 @@ def main():
     bind_incoming_queue(irc, incoming_queue, config, state, outgoing_queue)
 
     logger.debug("Creating app")
+    from pysaic.ui.app import App
+
     app = App(state, config, incoming_queue, outgoing_queue)
     prepared_callback = partial(close_everything_callback)
+    from pysaic.tasks.prepare_game_input import prepare_game_input_watcher
+
     loop.create_task(prepare_game_input_watcher(loop, state))
+    from pysaic.tasks.look_for_game import look_for_game_process
+
     looking_for_game_task = loop.create_task(
         look_for_game_process(loop, incoming_queue, config, state)
     )
     looking_for_game_task.add_done_callback(prepared_callback)
     app_update_task = loop.create_task(update_app(app))
     app_update_task.add_done_callback(prepared_callback)
+    from pysaic.tasks.outgoing_queue import outgoing_queue_processing
+
     outgoing_process_task = loop.create_task(
         outgoing_queue_processing(
             irc, outgoing_queue, incoming_queue, state, loop
         )
     )
+
+    from pysaic.tasks.incoming_queue import incoming_queue_processing
 
     incoming_queue_processing_task = loop.create_task(
         incoming_queue_processing(state, incoming_queue, app, config)
@@ -296,6 +313,8 @@ def main():
             irc=irc,
         )
     )
+    from pysaic.tasks.update_checker import update_checker
+
     loop.create_task(update_checker(incoming_queue))
     incoming_queue.put_nowait(
         IncomingEvent.create_information_event(f"Starting {APP_IDENTITY}.")
