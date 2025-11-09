@@ -116,6 +116,12 @@ class App(Tk):
         self.outgoing_queue.put_nowait(None)
         self.incoming_queue.put_nowait(None)
 
+    def lift_and_focus(self):
+        self.lift()
+        self.attributes("-topmost", True)
+        self.after_idle(self.attributes, "-topmost", False)
+        self.focus_force()
+
     def create_widgets(self):
         self.configure(background=BACKGROUND_COLOR)
         self.main_frame = Frame(self, background=BACKGROUND_COLOR)

@@ -437,8 +437,4 @@ class AppEventRouter(Router):
 
     def _handle_focus_window(self):
         logger.info("Focusing main window")
-        self.ui.lift()
-        self._add_information_text('Main window focused.')
-        self.ui.attributes('-topmost', True)
-        self.ui.after_idle(self.ui.attributes, '-topmost', False)
-        self.ui.focus_force()
+        self.ui.lift_and_focus()

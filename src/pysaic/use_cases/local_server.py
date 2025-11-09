@@ -15,13 +15,10 @@ class PySAICClientProtocol(asyncio.Protocol):
         self.transport = None
 
     def connection_made(self, transport):
-        peername = transport.get_extra_info("peername")
-        print("Connection from {}".format(peername))
         self.transport = transport
 
     def data_received(self, data):
         message = data.decode()
-        print("Data received: {!r}".format(message))
         self.incoming_queue.put_nowait(
             IncomingEvent.create_app_event(AppEventEnum.FOCUS, None)
         )
@@ -30,7 +27,6 @@ class PySAICClientProtocol(asyncio.Protocol):
 
     def write_reply(self, fut):
         reply = fut.result()
-        print("Send: {!r}".format(reply))
         self.transport.write(reply.encode())
 
 
