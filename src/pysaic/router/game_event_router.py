@@ -34,10 +34,6 @@ class GameEventRouter(Router):
         self._player_changed_values_queue = asyncio.Queue()
 
     async def _send_sync(self, callback):
-        if self._player_update_task is not None:
-            logger.debug("Player update task already running, skipping")
-            return
-
         if not self.state.is_in_channel.is_set():
             logger.debug("Not in channel, skipping player data sync")
             self._player_update_task = None
@@ -49,7 +45,6 @@ class GameEventRouter(Router):
         await asyncio.sleep(1)
 
         logger.debug("Sending player data sync to Chat")
-        self._add_information_text("Syncing player data with Chat...")
         player_changed_values = {}
         while not self._player_changed_values_queue.empty():
             field_name, value = await self._player_changed_values_queue.get()
@@ -58,9 +53,6 @@ class GameEventRouter(Router):
 
         if len(player_changed_values.keys()) == 1:
             logger.debug("Only one value changed, sending only that")
-            self._add_information_text(
-                "Single value changed, sending only that..."
-            )
             callback()
         else:
             logger.debug(
@@ -68,9 +60,6 @@ class GameEventRouter(Router):
                 player_changed_values,
             )
             self._send_saicsync_message()
-            self._add_information_text(
-                "Multiple values changed, sending SAICSYNC..."
-            )
         self._player_update_task = None
 
     def route(self):
@@ -153,14 +142,9 @@ class GameEventRouter(Router):
             setattr(user, field_name, value)
             self._update_crc_users_data()
             setattr(self.state.player, field_name, value)
-
-            if field_name not in self._player_changed_values:
-                self._player_changed_values[field_name] = value
+            self._player_changed_values_queue.put_nowait((field_name, value))
 
             if self._player_update_task is None:
-                self._add_information_text(
-                    "Player data changed, scheduling sync..."
-                )
                 self._player_update_task = asyncio.run_coroutine_threadsafe(
                     self._send_sync(callback), loop
                 )
