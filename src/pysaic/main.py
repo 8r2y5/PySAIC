@@ -2,7 +2,7 @@ import asyncio
 import logging
 import logging.config
 import sys
-from asyncio import CancelledError, Queue
+from asyncio import CancelledError
 from contextlib import suppress
 from functools import partial
 
@@ -247,7 +247,7 @@ def initialize_logging():
 
 
 def main():
-    incoming_queue = Queue()
+    incoming_queue = IncomingQueue()
     loop = asyncio.new_event_loop()
     try:
         pysaic_localserver = get_pysaic_localserver(loop, incoming_queue)
@@ -276,7 +276,7 @@ def main():
         logging.getLogger("pysaic.handlers").addHandler(
             pysaic_irc_logger_handler
         )
-    outgoing_queue = Queue()
+    outgoing_queue = OutgoingQueue()
     irc = set_up_irc_client(loop, config)
 
     bind_incoming_queue(irc, incoming_queue, config, state, outgoing_queue)

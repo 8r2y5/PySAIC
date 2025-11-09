@@ -20,10 +20,6 @@ from pysaic.events.enum import GameEvents
 logger = logging.getLogger(__name__)
 
 
-class IncomingQueue(Queue):
-    pass
-
-
 class OutgoingQueue(Queue):
     pass
 
@@ -205,6 +201,16 @@ class IncomingEvent:
             target="",
             event=GameEvent(what, payload),
         )
+
+
+class IncomingQueue(Queue):
+    def create_information_event(self, content: str, target: str = ""):
+        self.put_nowait(
+            IncomingEvent.create_information_event(content, target)
+        )
+
+    def create_error_event(self, content):
+        self.put_nowait(IncomingEvent.create_error_event(content))
 
 
 @dataclass
