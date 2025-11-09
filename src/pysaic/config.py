@@ -163,7 +163,7 @@ class Config:
                     "nick_auto_complete_key": self.nick_auto_complete_key,
                     "news_sound": self.news_sound,
                     "close_chat": self.close_chat,
-                    "disconnect_when_blowout_or_underground": self.disconnect_when_blowout_or_underground,
+                    "disconnect_when_blowout_or_underground": self.disconnect_when_blowout_or_underground.name,
                     "block_money_transfer": self.block_money_transfer,
                     "user_list_display": self.user_list_display,
                     "avatar": self.avatar,
