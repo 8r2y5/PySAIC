@@ -25,7 +25,7 @@ class PySAICIRCLoggingHandler(Handler):
         ).replace(self.config.password, "********")
         return (
             f'[{datetime.fromtimestamp(record.created).strftime("%H:%M:%S")}] '
-            f'{content}\n'
+            f"{content}\n"
         )
 
     def emit(self, record):
