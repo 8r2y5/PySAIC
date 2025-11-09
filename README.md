@@ -187,3 +187,5 @@ commands:
   - "MODE {nick} +B"
 ```
 
+# What changed?
+See [CHANGELOG.md](CHANGELOG.md) for details.
