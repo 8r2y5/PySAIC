@@ -460,14 +460,7 @@ def handle_incoming_event(state, event, ui, pysaic_config):
     IncomingRouter.handle_event(state, pysaic_config, ui, event)
 
 
-async def log_all_events(_conn, message: Message, *args):
-    # if (
-    #     message.command == "PRIVMSG"
-    #     and message.parameters[0].startswith("NickServ")
-    #     or message.prefix and message.prefix.nick == "NickServ"
-    # ):
-    #     return
-
+async def log_all_events(_conn, message: Message):
     logger.info(
         "%s -> %s :%s",
         message.prefix.mask if message.prefix else None,

@@ -115,6 +115,7 @@ class Config:
     death_reports: bool = True
     pop_up_on_ping: bool = False
     pop_up_sound: bool = True
+    irc_window: bool = False
 
     @classmethod
     def load_config(cls):
@@ -166,6 +167,7 @@ class Config:
                     "death_reports": self.death_reports,
                     "pop_up_on_ping": self.pop_up_on_ping,
                     "pop_up_sound": self.pop_up_sound,
+                    "irc_window": self.irc_window,
                 },
                 f,
             )
@@ -203,6 +205,7 @@ class Config:
             "death_reports": cls.death_reports,
             "pop_up_on_ping": cls.pop_up_on_ping,
             "pop_up_sound": cls.pop_up_sound,
+            "irc_window": cls.irc_window,
         }
 
     @classmethod
@@ -272,6 +275,9 @@ class Config:
             ),
             pop_up_sound=cls._to_bool(
                 config.get("pop_up_sound"), default=cls.pop_up_sound
+            ),
+            irc_window=cls._to_bool(
+                config.get("irc_window"), default=cls.irc_window
             ),
         )
 

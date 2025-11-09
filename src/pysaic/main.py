@@ -32,6 +32,7 @@ from pysaic.handlers import (
     not_in_a_channel,
 )
 from pysaic.irc_protocol import PySaicIrcProtocol
+from pysaic.log.handlers import PySAICIRCLoggingHandler
 from pysaic.settings import (
     APP_IDENTITY,
     GAMEDATA_PATH,
@@ -237,6 +238,17 @@ def main():
     state = State(config)
     loop = asyncio.new_event_loop()
     incoming_queue = Queue()
+    if config.irc_window:
+        pysaic_irc_logger_handler = PySAICIRCLoggingHandler(
+            incoming_queue, config
+        )
+        irc_protocol = logging.getLogger("pysaic.irc_protocol")
+        irc_protocol.addHandler(pysaic_irc_logger_handler)
+        irc_protocol.setLevel(logging.DEBUG)
+        irc_protocol.info("IRC logging handler initialized")
+        logging.getLogger("pysaic.handlers").addHandler(
+            pysaic_irc_logger_handler
+        )
     outgoing_queue = Queue()
     irc = set_up_irc_client(loop, config)
 
