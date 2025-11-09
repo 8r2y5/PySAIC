@@ -9,6 +9,7 @@ local UPDATE_INTERVAL = 250  -- 250ms
 local MAX_MESSAGE_LOG_LENGTH = 15
 local INPATH = getFS():update_path("$game_config$", "").."\\crc_input.txt"
 local OUTPATH = getFS():update_path("$game_config$", "").."\\crc_output.txt"
+local MESSAGE_COLOR = "%c[255,255,255,255]"  -- white
 local QUERY_COLOR = "%c[255,255,192,192]"  -- light pink
 local ERROR_COLOR = "%c[255,255,128,128]"  -- light red
 local HIGHLIGHT_COLOR = "%c[255,255,255,128]"  -- light yellow
@@ -162,7 +163,7 @@ function parseChannelMessage (body)
 	local title = name..", "..(name == "brzys" and gt("crc_admin")
 		or gt("crc_"..faction) or gt("crc_actor_anonymous")
 			or gt("crc_unknown"))
-	local text = (highlight and HIGHLIGHT_COLOR .. message) or message
+	local text = ((highlight and HIGHLIGHT_COLOR) or MESSAGE_COLOR) .. message
 	addMessage(icon, title, text, reputation, rank)
 end
 
