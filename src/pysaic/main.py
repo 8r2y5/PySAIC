@@ -33,6 +33,7 @@ from pysaic.handlers import (
 )
 from pysaic.irc_protocol import PySaicIrcProtocol
 from pysaic.log.handlers import PySAICIRCLoggingHandler
+from pysaic.server import get_pysaic_localserver, ask_instance_to_focus
 from pysaic.settings import (
     APP_IDENTITY,
     GAMEDATA_PATH,
@@ -230,14 +231,21 @@ def initialize_logging():
 
 
 def main():
+    incoming_queue = Queue()
+    loop = asyncio.new_event_loop()
     initialize_logging()
+    try:
+        pysaic_localserver = get_pysaic_localserver(loop, incoming_queue)
+    except OSError:
+        logger.error("Another instance of PySAIC is already running. Exiting.")
+        loop.run_until_complete(ask_instance_to_focus())
+        sys.exit(1)
     logger.info("Starting %s", APP_IDENTITY)
     logger.debug("WORKDIR: %s", WORKDIR)
     logger.debug("GAMEDATA_PATH: %s", GAMEDATA_PATH)
     config = Config.load_config()
     state = State(config)
-    loop = asyncio.new_event_loop()
-    incoming_queue = Queue()
+
     if config.irc_window:
         pysaic_irc_logger_handler = PySAICIRCLoggingHandler(incoming_queue)
         irc_protocol = logging.getLogger("pysaic.irc_protocol")
@@ -308,6 +316,7 @@ def main():
         quit_task.add_done_callback(lambda _: future.set_result(None))
         loop.run_until_complete(asyncio.wait_for(future, timeout=10))
 
+        pysaic_localserver.close()
         loop.close()
 
     app.quit()

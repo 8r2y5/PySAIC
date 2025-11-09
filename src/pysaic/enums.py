@@ -126,6 +126,7 @@ class FactionsEnum(Enum):
 
 
 class AppEventEnum(Enum):
+    FOCUS = auto()
     RAW_IRC_MESSAGE = auto()
     SET_NOT_AFK = auto()
     SET_AFK = auto()
