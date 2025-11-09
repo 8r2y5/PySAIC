@@ -20,6 +20,7 @@ from pysaic.router.router import Router, send_only_when_connected
 from pysaic.router.utils import generic_send_saic_message
 from pysaic.script_reader.entities import Achievement, Handshake
 from pysaic.settings import LOCATIONS_FOR_ENUM_PATH, SUPPORTED_SCRIPT_VERSION
+from pysaic.state import State
 
 logger = logging.getLogger(__name__)
 
@@ -27,6 +28,38 @@ _INVALID_VALUE = object()
 
 
 class GameEventRouter(Router):
+    def __init__(self, state: State, config, ui, event):
+        super().__init__(state, config, ui, event)
+        self._player_update_task = None
+        self._player_changed_values = {}
+
+    async def _send_sync(self, callback):
+        if self._player_update_task is not None:
+            logger.debug('Player update task already running, skipping')
+            return
+
+        if not self.state.is_in_channel.is_set():
+            logger.debug('Not in channel, skipping player data sync')
+            self._player_update_task = None
+            return
+
+        # game sometimes sends multiple updates in a very short time
+        # we wait a bit to gather them all and send only one update
+        await asyncio.sleep(1)
+
+        logger.debug('Sending player data sync to Chat')
+        self._add_information_text('Syncing player data with Chat...')
+        if len(self._player_changed_values.keys()) == 1:
+            logger.debug('Only one value changed, sending only that')
+            self._add_information_text('Single value changed, sending only that...')
+            callback()
+        else:
+            logger.debug('Multiple values changed, sending full sync, %s changed', self._player_changed_values)
+            self._send_saicsync_message()
+            self._add_information_text('Multiple values changed, sending SAICSYNC...')
+        self._player_changed_values.clear()
+        self._player_update_task = None
+
     def route(self):
         if self.event.event.what == GameEvents.ACTOR_UPDATE:
             self._handle_actor_update()
@@ -70,12 +103,14 @@ class GameEventRouter(Router):
             )
         )
 
+    @inject.autoparams()
     def _handle_player_generic_field_update(
         self,
         field_name: str,
         method: Callable,
         callback: Callable,
         exception_handler: Callable,
+        loop: asyncio.AbstractEventLoop
     ):
         try:
             value = method(self.event.event.payload)
@@ -105,7 +140,16 @@ class GameEventRouter(Router):
             setattr(user, field_name, value)
             self._update_crc_users_data()
             setattr(self.state.player, field_name, value)
-            callback()
+
+            if field_name not in self._player_changed_values:
+                self._player_changed_values[field_name] = value
+
+            if self._player_update_task is None:
+                self._add_information_text('Player data changed, scheduling sync...')
+                self._player_update_task = asyncio.run_coroutine_threadsafe(
+                    self._send_sync(callback), loop
+                )
+                return
 
     def _handle_player_location(self):
         logger.debug("Handling PLAYER_LOCATION event")
