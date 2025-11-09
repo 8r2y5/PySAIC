@@ -1,7 +1,7 @@
 --| PySAIC's Script by brzys
 --| Based on the original script by TKGP and anchorpoint's CRCR
 
-local SCRIPT_VERSION = 11
+local SCRIPT_VERSION = 12
 --local crc_icons = require("crc_icons")
 
 -- Constants
@@ -153,23 +153,40 @@ function handle_icon(name, faction, icon_id)
 	return icon
 end
 
+local function _get_title_value(faction, user_type)
+    local title_value
+    if user_type == 'admin' then
+        title_value = gt("crc_admin")
+    elseif faction then
+        title_value = gt("crc_"..faction)
+    elseif gt("crc_actor_anonymous") then
+        title_value = gt("crc_actor_anonymous")
+    else
+        title_value = gt("crc_unknown")
+    end
+    return title_value
+end
+
 function parseChannelMessage (body)
-	local faction, name, icon_id, reputation, rank, highlight, message = body:match("([^/]+)/([^/]+)/([^/]+)/([^/]+)/([^/]+)/([^/]+)/(.+)")
+	local faction, name, icon_id, reputation, rank, highlight, user_type, message = body:match("([^/]+)/([^/]+)/([^/]+)/([^/]+)/([^/]+)/([^/]+)/([^/]+)/(.+)")
 	highlight = isTrue(highlight)
 	local icon = handle_icon(name, faction, icon_id)
 	if chatBox then
 		chatBox:UpdateUsers()
 	end
-	local title = name..", "..(name == "brzys" and gt("crc_admin")
-		or gt("crc_"..faction) or gt("crc_actor_anonymous")
-			or gt("crc_unknown"))
 	local text = ((highlight and HIGHLIGHT_COLOR) or MESSAGE_COLOR) .. message
-	addMessage(icon, title, text, reputation, rank)
+	addMessage(
+        icon,
+        name..', '.._get_title_value(faction, user_type),
+        text,
+        reputation,
+        rank
+    )
 end
 
 function parsePrivateMessage(body)
-	local faction, from, from_icon, reputation, rank, to, message = body:match("([^/]+)/([^/]+)/([^/]+)/([^/]+)/([^/]+)/([^/]+)/(.+)")
-	icon = handle_icon(from, faction, from_icon)
+	local faction, user_type, from, from_icon, reputation, rank, to, message = body:match("([^/]+)/([^/]+)/([^/]+)/([^/]+)/([^/]+)/([^/]+)/([^/]+)/(.+)")
+	icon = handle_icon(from, faction, from_icon, user_type)
 	if chatBox then
 		chatBox:UpdateUsers()
 	end
@@ -293,8 +310,8 @@ end
 function parseUsers(body)
 	users = {}
     knownIcons = {}
-	for user_nick, faction, rank, reputation, afk, avatar_id, location in body:gmatch("([^/]+),([^/]+),([^/]+),([^/]+),([^/]+),([^/]+)%s=%s([^/]+)") do
-		local user_icon = crc_icons.getIconSafe(user_nick, faction, avatar_id)
+	for user_nick, faction, rank, reputation, afk, avatar_id, user_type, location in body:gmatch("([^/]+),([^/]+),([^/]+),([^/]+),([^/]+),([^/]+),([^/]+)%s=%s([^/]+)") do
+		local user_icon = crc_icons.getIconSafe(user_nick, faction, avatar_id, user_type)
 		users[user_nick] = {
 			faction = faction,
 			rank = rank,
@@ -303,6 +320,7 @@ function parseUsers(body)
 			afk = afk == "1",
 			icon = user_icon,
 			nick = user_nick,
+            user_type = user_type
 		}
 		knownIcons[user_nick] = user_icon
 	end

@@ -3,6 +3,7 @@ from typing import Iterable, Optional
 
 import inject
 
+from pysaic.use_cases import irc_mode_to_user_type
 from pysaic.entities import ChatUser, IncomingEvent, IncomingQueue
 from pysaic.enums import FactionsEnum
 from pysaic.state import State
@@ -30,6 +31,7 @@ def add_channel_message_to_game(
     reputation_author: str,
     rank_author: str,
     highlight: str,
+    user_type: str,
     content: str,
 ):
     add_to_crc_input_file(
@@ -42,6 +44,7 @@ def add_channel_message_to_game(
                 reputation_author,
                 rank_author,
                 highlight,
+                user_type,
                 content,
             )
         )
@@ -51,6 +54,7 @@ def add_channel_message_to_game(
 @ensure_game_is_running
 def add_dm_message_to_game(
     author_faction_actor: str,
+    user_type: str,
     author: str,
     icon_id: str,
     reputation_author: str,
@@ -63,6 +67,7 @@ def add_dm_message_to_game(
             (
                 "Query",
                 author_faction_actor,
+                user_type,
                 author,
                 icon_id,
                 reputation_author,
@@ -115,6 +120,7 @@ def _get_chat_user_data(chat_user: ChatUser):
             chat_user.reputation.value.title(),
             str(int(chat_user.afk)),
             str(chat_user.avatar),
+            irc_mode_to_user_type.get(chat_user.irc_mode),
         )
     )
 
