@@ -253,9 +253,7 @@ class Config:
                 config.get("accept_dms_from_not_in_the_channel"),
                 default=cls.accept_dms_from_not_in_the_channel,
             ),
-            avatar=cls._parse_avatar(
-                config.get("avatar") or cls.avatar
-            ),
+            avatar=cls._parse_avatar(config.get("avatar") or cls.avatar),
             current_avatar=cls._parse_static_avatar(
                 config.get("current_avatar") or cls.current_avatar,
             ),
@@ -266,8 +264,7 @@ class Config:
                 or cls.in_game_users_display.value
             ],
             death_report_type=DeathReportTypeEnum[
-                config.get("death_report_type")
-                or cls.death_report_type.name
+                config.get("death_report_type") or cls.death_report_type.name
             ],
             death_reports=cls._to_bool(
                 config.get("death_reports"), default=cls.death_reports
