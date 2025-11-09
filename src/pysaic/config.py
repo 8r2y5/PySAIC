@@ -5,7 +5,7 @@ from typing import Optional, Union
 
 import yaml
 
-from pysaic.controllers.ui.user_list import NamesInAlphabeticalOrder
+from pysaic.controllers.ui.user_list import GroupByFactionWithCounter
 from pysaic.crc_strings.use_case import random_name
 from pysaic.enums import AvatarEnum, DeathReportTypeEnum, FactionsEnum
 from pysaic.use_cases.avatar import (
@@ -104,13 +104,15 @@ class Config:
     close_chat: bool = True
     disconnect_when_blowout_or_underground: bool = False
     block_money_transfer: bool = True
-    user_list_display: str = NamesInAlphabeticalOrder.name
+    user_list_display: str = GroupByFactionWithCounter.name
     accept_dms_from_not_in_the_channel: bool = False
     avatar: str = AvatarEnum.faction_and_name_based.value
     current_avatar: str = f"{FactionsEnum.Loner.value}_1"
     blocked_users: dict[str, set[str]] = field(default_factory=dict)
     blocked_words: list[str] = field(default_factory=list)
-    in_game_users_display: InGameUserDisplayEnum = InGameUserDisplayEnum.CRCR
+    in_game_users_display: InGameUserDisplayEnum = (
+        InGameUserDisplayEnum.PySAIC_Compact
+    )
     death_report_type: DeathReportTypeEnum = DeathReportTypeEnum.OnlineFactions
     death_reports: bool = True
     pop_up_on_ping: bool = False
@@ -194,7 +196,7 @@ class Config:
             "close_chat": cls.close_chat,
             "disconnect_when_blowout_or_underground": cls.disconnect_when_blowout_or_underground,
             "block_money_transfer": cls.block_money_transfer,
-            "user_list_display": NamesInAlphabeticalOrder.name,
+            "user_list_display": cls.user_list_display,
             "avatar": cls.avatar,
             "current_avatar": cls.current_avatar,
             "accept_dms_from_not_in_the_channel": cls.accept_dms_from_not_in_the_channel,
@@ -246,13 +248,13 @@ class Config:
                 default=cls.block_money_transfer,
             ),
             user_list_display=config.get("user_list_display")
-            or NamesInAlphabeticalOrder.name,
+            or cls.user_list_display,
             accept_dms_from_not_in_the_channel=cls._to_bool(
                 config.get("accept_dms_from_not_in_the_channel"),
                 default=cls.accept_dms_from_not_in_the_channel,
             ),
             avatar=cls._parse_avatar(
-                config.get("avatar") or AvatarEnum.faction_and_name_based.value
+                config.get("avatar") or cls.avatar
             ),
             current_avatar=cls._parse_static_avatar(
                 config.get("current_avatar") or cls.current_avatar,
@@ -261,11 +263,11 @@ class Config:
             blocked_words=config.get("blocked_words") or {},
             in_game_users_display=InGameUserDisplayEnum[
                 config.get("in_game_users_display")
-                or InGameUserDisplayEnum.CRCR.value
+                or cls.in_game_users_display.value
             ],
             death_report_type=DeathReportTypeEnum[
                 config.get("death_report_type")
-                or DeathReportTypeEnum.OnlineFactions.name
+                or cls.death_report_type.name
             ],
             death_reports=cls._to_bool(
                 config.get("death_reports"), default=cls.death_reports
