@@ -176,12 +176,11 @@ class IrcEventRouter(Router):
 
     def _handle_end_of_names(self):
         self._add_information_text("Connected to the channel.")
-        self._ask_others_for_user_data()
-        self._send_user_data_as_privmsg()
 
         self.ui.enable_input()
         self.state.set_in_channel()
-        self._send_amogus_message()
+        self._ask_others_for_user_data()
+        self._send_user_data_as_privmsg()
 
     def _hande_user_is_banned(self):
         logger.debug("User banned: %r", self.event.event.payload)
