@@ -47,7 +47,7 @@ async def handle_welcome_message(
     fogger = logger.getChild("handle_welcome_message")
     state.got_welcome_message.set()
 
-    if state.fake_disconnect is False:
+    if not state.fake_disconnect:
         fogger.info(
             'Joining previous channel "%s"', config.server.previous_channel
         )

@@ -155,7 +155,7 @@ class Router:
         mlogger = logger.getChild("_readd_user_to_chat_users")
         mlogger.info("Joining previous channel")
         if not self.state.is_in_channel.is_set():
-            if self.state.fake_disconnect is False:
+            if not self.state.fake_disconnect:
                 join_previous_channel()
         return user
 

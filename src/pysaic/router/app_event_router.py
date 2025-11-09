@@ -305,7 +305,7 @@ class AppEventRouter(Router):
             if (
                 self.state.got_welcome_message.is_set()
                 and not self.state.is_in_channel.is_set()
-                and self.state.fake_disconnect is False
+                and not self.state.fake_disconnect
             ):
                 join_previous_channel()
         else:
