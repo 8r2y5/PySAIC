@@ -144,9 +144,6 @@ class GameEventRouter(Router):
             )
 
             if self.state.player_update_task is None:
-                self._add_information_text(
-                    "Player data changed, scheduling sync..."
-                )
                 self.state.player_update_task = (
                     asyncio.run_coroutine_threadsafe(
                         self._send_sync(callback), loop
