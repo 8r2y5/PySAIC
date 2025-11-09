@@ -15,7 +15,13 @@ from pysaic.entities import (
     IrcEvent,
     OutgoingCTCP,
 )
-from pysaic.enums import FactionsEnum, LocationEnum, RankEnum, ReputationEnum
+from pysaic.enums import (
+    FactionsEnum,
+    LocationEnum,
+    RankEnum,
+    ReputationEnum,
+    AppEventEnum,
+)
 from pysaic.router.app_event_router import AppEventRouter
 from pysaic.router.game_event_router import GameEventRouter
 from pysaic.router.irc_event_router import IrcEventRouter
@@ -29,7 +35,7 @@ from pysaic.state import State
 from pysaic.ui.app import App
 from pysaic.use_cases.avatar import is_icon_valid
 from pysaic.use_cases.command import CommandUseCase
-from pysaic.use_cases.irc_mode_to_user_type import USER_TYPE_MAP
+from pysaic.use_cases.irc_mode_to_user_type import parsed_mode_to_name
 from pysaic.use_cases.money_transfer import IncomingMoneyTransferUseCase
 from pysaic.use_cases.text import make_content_malformed
 from pysaic.use_cases.ui.add_dm_message import AddDmMessage
@@ -64,7 +70,12 @@ class IncomingRouter(Router):
         cls(state, config, ui, event=event)()
 
     def __call__(self):
-        logger.debug("Handling event: %r", self.event)
+        if not (
+            isinstance(self.event, IncomingEvent)
+            and isinstance(self.event.event, AppEvent)
+            and self.event.event.what == AppEventEnum.RAW_IRC_MESSAGE
+        ):
+            logger.debug("Handling event: %r", self.event)
         handler = self.handlers.get(type(self.event), self._not_found_handler)
         try:
             handler(self.event)
@@ -306,7 +317,7 @@ class IncomingRouter(Router):
             reputation_author=user.reputation,
             rank_author=user.rank,
             highlight=str(self.nick in event.content),
-            user_type=USER_TYPE_MAP[""],
+            user_type=parsed_mode_to_name(user.irc_mode),
             content=content,
         )
 

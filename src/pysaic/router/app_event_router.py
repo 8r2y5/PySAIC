@@ -30,7 +30,8 @@ logger = logging.getLogger(__name__)
 
 class AppEventRouter(Router):
     def route(self):
-        logger.debug("Handling AppEvent: %r", self.event)
+        if self.event.event.what != AppEventEnum.RAW_IRC_MESSAGE:
+            logger.debug("Handling AppEvent: %r", self.event)
         # TODO: replace with dict mapping or or add them dynamically
         if self.event.event.what == AppEventEnum.UPDATE_USERS:
             self._update_crc_users_data()

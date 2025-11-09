@@ -3,10 +3,10 @@ from typing import Iterable, Optional
 
 import inject
 
-from pysaic.use_cases import irc_mode_to_user_type
 from pysaic.entities import ChatUser, IncomingEvent, IncomingQueue
 from pysaic.enums import FactionsEnum
 from pysaic.state import State
+from pysaic.use_cases.irc_mode_to_user_type import parsed_mode_to_name
 
 logger = logging.getLogger(__name__)
 
@@ -120,7 +120,7 @@ def _get_chat_user_data(chat_user: ChatUser):
             chat_user.reputation.value.title(),
             str(int(chat_user.afk)),
             str(chat_user.avatar),
-            irc_mode_to_user_type.get(chat_user.irc_mode),
+            parsed_mode_to_name(chat_user.irc_mode),
         )
     )
 
