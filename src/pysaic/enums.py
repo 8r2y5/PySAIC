@@ -158,9 +158,60 @@ class DeathReportTypeEnum(StrEnum):
     OnlineFactions = "Online Factions"
 
 
-with open(LOCATIONS_FOR_ENUM_PATH, "r", encoding="utf-8") as file:
-    locations_data = yaml.safe_load(file)
+def _recreate_locations_yaml(locations_data):
+    locations_data.update({
+        "grimwood": "Grimwood",
+        "jupiter": "Jupiter",
+        "jupiter_underground": "Jupiter Underground",
+        "k00_marsh": "Great Swamp",
+        "k01_darkscape": "Darkscape",
+        "k02_trucks_cemetery": "Truck Cemetery",
+        "l01_escape": "Cordon",
+        "l02_garbage": "Garbage",
+        "l03_agroprom": "Agroprom",
+        "l03u_agr_underground": "Agroprom Underground",
+        "l04_darkvalley": "Dark Valley",
+        "l04u_labx18": "Lab X-18",
+        "l05_bar": "Rostok",
+        "l06_rostok": "Wild Territory",
+        "l07_military": "Army Warehouses",
+        "l08_yantar": "Yantar",
+        "l08u_brainlab": "Lab X-16",
+        "l09_deadcity": "Dead City",
+        "l10_limansk": "Limansk",
+        "l10_radar": "Radar",
+        "l10_red_forest": "Red Forest",
+        "l10u_bunker": "Brain Scorcher",
+        "l11_hospital": "Deserted Hospital",
+        "l11_pripyat": "Outskirts",
+        "l12_stancia": "South of the CNPP",
+        "l12_stancia_2": "North of the CNPP",
+        "l12u_control_monolith": "Mono Control Center",
+        "l12u_sarcofag": "CNPP",
+        "l13_generators": "Generators",
+        "l13u_warlab": "Warlab",
+        "labx8": "Lab X-8",
+        "poselok_ug": "Town Yuzhniy",
+        "pripyat": "Pripyat",
+        "promzona": "Promzone",
+        "unknown": "Unknown",
+        "y04_pole": "Meadow",
+        "zaton": "Zaton",
+    })
+    with open(LOCATIONS_FOR_ENUM_PATH, "w", encoding="utf-8") as file:
+        yaml.safe_dump(locations_data, file)
 
+
+try:
+    with open(LOCATIONS_FOR_ENUM_PATH, "r", encoding="utf-8") as file:
+        locations_data = yaml.safe_load(file)
+except FileNotFoundError:
+    locations_data = {}
+    _recreate_locations_yaml(locations_data)
+
+if not locations_data or not isinstance(locations_data, dict):
+    locations_data = {}
+    _recreate_locations_yaml(locations_data)
 # Ensure 'unknown' is always present as a default value
 locations_data["unknown"] = "Unknown"
 LocationEnum = Enum(
