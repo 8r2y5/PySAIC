@@ -24,15 +24,6 @@
 	<string id="crc_ccon">
 		<text>C-Consciousness</text>
 	</string>
-	<string id="crc_admin">
-		<text>Network Administrator</text>
-	</string>
-    <string id="crc_halfop">
-		<text>Bot</text>
-	</string>
-    <string id="crc_moderator">
-		<text>Moderator</text>
-	</string>
 	<string id="crc_unknown">
 		<text>Unknown</text>
 	</string>

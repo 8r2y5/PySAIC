@@ -19,19 +19,6 @@ local NOT_IN_GAME_ARGB = GetARGB(255, 255, 128, 128) -- red
 local IN_GAME_ARGB = GetARGB(255, 128, 255, 154)  -- green
 local IS_SIGNAL_LOST = false
 
-
-local UserDisplayStyleEnum = {
-	CRCR = "CRCR",
-	PySAIC_Card = "PySAIC_Card",
-	PySAIC_Compact = "PySAIC_Compact",
-}
-
-local userDisplayToNodeMap = {
-	[UserDisplayStyleEnum.CRCR] = "user",
-	[UserDisplayStyleEnum.PySAIC_Card] = "pysaic_card",
-	[UserDisplayStyleEnum.PySAIC_Compact] = "pysaic_compact",
-}
-
 -- Options
 local option = {
 	newsDuration = 10000,  -- 10 seconds
@@ -40,7 +27,7 @@ local option = {
 	newsSound = true,
 	closeChat = true,
 	disconnectWhenBlowoutOrUnderground = true,
-	userDisplayStyle = UserDisplayStyleEnum.CRCR
+	userDisplayStyle = pysaic_constants.UserDisplayStyleEnum.CRCR
 }
 
 -- Etc
@@ -156,12 +143,12 @@ end
 local function _get_title_value(faction, user_type)
     local title_value = ''
     local faction_value = ''
-    if user_type == 'admin' then
-        title_value = gt("crc_admin")
-    elseif user_type == 'halfop' then
-        title_value = gt("crc_halfop")
-    elseif user_type == 'voice' then
-        title_value = gt("crc_moderator")
+    if user_type == pysaic_constants.IRCUserModeEnum.Operator then
+        title_value = gt("pysaic_irc_operator")
+    elseif user_type == pysaic_constants.IRCUserModeEnum.HalfOp then
+        title_value = gt("pysaic_irc_halfop")
+    elseif user_type == pysaic_constants.IRCUserModeEnum.Voice then
+        title_value = gt("pysaic_irc_voice")
     end
     if title_value ~= '' then
         title_value = title_value .. ', '
@@ -260,8 +247,8 @@ function parseDisconnectWhenBlowoutOrUnderground(value)
 end
 
 function parseUserDisplayStyle(value)
-	if not UserDisplayStyleEnum[value] then
-		value = UserDisplayStyleEnum.CRCR
+	if not pysaic_constants.UserDisplayStyleEnum[value] then
+		value = pysaic_constants.UserDisplayStyleEnum.CRCR
 	end
 	option.userDisplayStyle = value
 end
@@ -674,7 +661,7 @@ end
 
 
 function ChatBox:getUserNodeName()
-	local user_node_name = userDisplayToNodeMap[option.userDisplayStyle]
+	local user_node_name = pysaic_constants.userDisplayToNodeMap[option.userDisplayStyle]
 	if not user_node_name then
 		user_node_name = "user"
 	end
@@ -728,9 +715,9 @@ function ChatBox:UpdateUsers()
 		icon = self.xml:InitStatic(user_node_name .. ":icon", user)
 		name = self.xml:InitStatic(user_node_name .. ":name", user)
 		status = self.xml:InitStatic(user_node_name .. ":status", user)
-        if option.userDisplayStyle == UserDisplayStyleEnum.PySAIC_Card then
+        if option.userDisplayStyle == pysaic_constants.UserDisplayStyleEnum.PySAIC_Card then
 			self:setPySAICCard(data, user)
-		elseif option.userDisplayStyle == UserDisplayStyleEnum.PySAIC_Compact then
+		elseif option.userDisplayStyle == pysaic_constants.UserDisplayStyleEnum.PySAIC_Compact then
 			self:setPySAICCompact(data, user)
         end
 
@@ -787,7 +774,7 @@ function ChatBox:UpdateMessages()
 		self.xml:InitStatic("message:icon", message):InitTexture(messageData.icon)
 		self.xml:InitStatic("message:title", message):TextControl():SetText(messageData.title)
 		self.xml:InitStatic("message:message_text", message):TextControl():SetText(messageData.text)
-		if option.userDisplayStyle == UserDisplayStyleEnum.PySAIC_Card then
+		if option.userDisplayStyle == pysaic_constants.UserDisplayStyleEnum.PySAIC_Card then
 			self:setPySAICCardMessage(messageData, message)
 		end
 		table.insert(self.messages, message)
