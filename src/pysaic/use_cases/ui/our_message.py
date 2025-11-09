@@ -78,7 +78,7 @@ class OurMessageUseCase:
                 )
                 return
 
-        if self.state.fake_disconnect is True:
+        if self.state.should_malform_messages:
             logger.debug(
                 "Fake disconnect is enabled, making content malformed %r",
                 content,

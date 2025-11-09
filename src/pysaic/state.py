@@ -7,6 +7,7 @@ from pathlib import Path
 from typing import Optional
 
 from pysaic.entities import ChatUser, ChatUsers, Player
+from pysaic.enums import DisconnectOnNetworkDestructionSetting
 
 logger = logging.getLogger(__name__)
 
@@ -51,7 +52,6 @@ class State:
         self.logger = logger.getChild("instance").getChild(self.id)
         self.config = config
         self.got_welcome_message = asyncio.Event()
-        self.fake_disconnect: bool = False
         self._game_location: Optional[Path] = None
         self.crc_input_path: Optional[Path] = None
         self._is_game_running: bool = False
@@ -64,6 +64,7 @@ class State:
         self.last_messages = deque(maxlen=20)
         self.player_update_task = None
         self.player_changed_values_queue = asyncio.Queue()
+        self.is_currently_under_network_destruction: bool = False
 
     def money_enough(self, amount) -> bool:
         return self.player.money >= amount
@@ -81,3 +82,22 @@ class State:
         self.player.faction = self.config.current_faction
         self.chat_users.update_user_location(self.nick, self.player.location)
         self.is_in_channel.set()
+
+    @property
+    def should_malform_messages(self) -> bool:
+        return (
+            self.is_currently_under_network_destruction
+            and self.config.disconnect_when_blowout_or_underground
+            in (
+                DisconnectOnNetworkDestructionSetting.MalformSignalOnly,
+                DisconnectOnNetworkDestructionSetting.Always,
+            )
+        )
+
+    @property
+    def fake_disconnect(self) -> bool:
+        return (
+            self.is_currently_under_network_destruction
+            and self.config.disconnect_when_blowout_or_underground
+            in (DisconnectOnNetworkDestructionSetting.Always,)
+        )

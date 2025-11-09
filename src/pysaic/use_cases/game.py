@@ -27,7 +27,7 @@ from pysaic.entities import (
     OutgoingPart,
     OutgoingQueue,
 )
-from pysaic.enums import AppEventEnum
+from pysaic.enums import AppEventEnum, DisconnectOnNetworkDestructionSetting
 from pysaic.events.enum import GameEvents
 from pysaic.handlers import join_previous_channel
 from pysaic.script_reader.entities import (
@@ -237,7 +237,7 @@ class GameChannelMessageUseCase:
         # if order will be different then player will send message as
         # "previous" faction.
         original_content = content = self.channel_message.message.strip(" ")
-        if state.fake_disconnect:
+        if state.should_malform_messages:
             self.logger.info(
                 "Fake disconnect is set, making content malformed: %r", content
             )
@@ -299,43 +299,74 @@ class ConnectionLostUseCase:
         logger.debug("Connection lost: %r", self.entity)
         if (
             self.entity.lost is True
-            and self.config.disconnect_when_blowout_or_underground
+            and self._should_disconnect_on_network_destruction()
         ):
-            if state.fake_disconnect and not state.is_in_channel.is_set():
-                logger.debug("Already faking disconnect, ignoring")
-                return
-
-            state.fake_disconnect = True
-
-            async def _task():
-                if self.entity.reason == "Surge":
-                    logger.debug(
-                        "Waiting for %d seconds before disconnecting",
-                        SLEEP_TIME_BEFORE_DISCONNECT,
-                    )
-                    await asyncio.sleep(SLEEP_TIME_BEFORE_DISCONNECT)
-
-                add_signal_state(str(state.fake_disconnect))
-                await self.outgoing_queue.put(
-                    OutgoingPart(
-                        channel=self.config.server.previous_channel,
-                        content=self.entity.reason,
-                    )
-                )
-
-            logger.debug(
-                "Faking disconnect with reason: %r", self.entity.reason
-            )
-            asyncio.create_task(_task(), name="fake_disconnect")
+            self._do_full_disconnect(state)
+        elif self.entity is True and self._should_only_malform_messages():
+            self._do_only_malform_messages(state)
         elif self.entity is False or self.entity.lost is False:
-            logger.debug("Connection lost is False, not faking disconnect")
-            if not state.fake_disconnect:
-                logger.debug("Not faking disconnect, ignoring")
-                return
+            self._dont_disconnect(state)
 
-            state.fake_disconnect = False
+    def _should_disconnect_on_network_destruction(self):
+        return (
+            self.config.disconnect_when_blowout_or_underground
+            == DisconnectOnNetworkDestructionSetting.Always
+        )
+
+    def _do_full_disconnect(self, state):
+        if (
+            state.is_currently_under_network_destruction
+            and not state.is_in_channel.is_set()
+        ):
+            logger.debug("Already faking disconnect, ignoring")
+            return
+
+        state.is_currently_under_network_destruction = True
+
+        async def _task():
+            if self.entity.reason == "Surge":
+                logger.debug(
+                    "Waiting for %d seconds before disconnecting",
+                    SLEEP_TIME_BEFORE_DISCONNECT,
+                )
+                await asyncio.sleep(SLEEP_TIME_BEFORE_DISCONNECT)
+
             add_signal_state(str(state.fake_disconnect))
-            join_previous_channel()
+            await self.outgoing_queue.put(
+                OutgoingPart(
+                    channel=self.config.server.previous_channel,
+                    content=self.entity.reason,
+                )
+            )
+
+        logger.debug("Faking disconnect with reason: %r", self.entity.reason)
+        asyncio.create_task(_task(), name="fake_disconnect")
+
+    def _dont_disconnect(self, state):
+        logger.debug("Connection lost is False, not faking disconnect")
+        if not state.is_currently_under_network_destruction:
+            logger.debug("Not faking disconnect, ignoring")
+            return
+
+        state.is_currently_under_network_destruction = True
+        add_signal_state(str(state.fake_disconnect))
+        join_previous_channel()
+
+    def _should_only_malform_messages(self):
+        return (
+            self.config.disconnect_when_blowout_or_underground
+            == DisconnectOnNetworkDestructionSetting.MalformSignalOnly
+        )
+
+    def _do_only_malform_messages(self, state):
+        logger.debug("Only malforming messages on connection lost")
+        if state.state.is_currently_under_network_destruction:
+            logger.debug("Already faking disconnect, ignoring")
+            return
+
+        state.is_currently_under_network_destruction = True
+        add_signal_state(str(state.fake_disconnect))
+        logger.debug("Set fake disconnect to False for malforming messages")
 
 
 async def actor_status_use_case(actor_status, incoming_queue: IncomingQueue):
