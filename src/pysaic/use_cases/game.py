@@ -297,31 +297,27 @@ class ConnectionLostUseCase:
 
     @inject.autoparams()
     async def execute(self, state: State):
-        logger.info(
-            "Connection lost: %r, should_disconnect: %s, should_malform: %s",
+        logger.debug(
+            "Connection lost: %r",
             self.entity,
-            self._should_disconnect_on_network_destruction(),
-            self._should_only_malform_messages(),
         )
-        if state.is_currently_under_network_destruction == self.entity.lost:
-            logger.info(
+        if state.is_currently_under_network_destruction == self.entity.reason:
+            logger.debug(
                 "Already in the desired state, ignoring",
             )
             return
-        state.is_currently_under_network_destruction = self.entity.lost
+        state.is_currently_under_network_destruction = self.entity.reason
         if self.entity.lost is True:
-            if self._should_disconnect_on_network_destruction():
+            if self._should_disconnect_on_network_destruction(state):
                 self._do_full_disconnect()
             elif self._should_only_malform_messages():
                 self._do_only_malform_messages()
         elif self.entity.lost is False:
             self._dont_disconnect()
 
-    def _should_disconnect_on_network_destruction(self):
-        return (
-            self.config.disconnect_when_blowout_or_underground
-            == DisconnectOnNetworkDestructionSetting.Always
-        )
+    @staticmethod
+    def _should_disconnect_on_network_destruction(state: State):
+        return state.fake_disconnect
 
     @inject.autoparams()
     def _do_full_disconnect(self, state: State, loop: AbstractEventLoop):

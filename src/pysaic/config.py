@@ -6,7 +6,6 @@ from typing import Optional, Union
 import yaml
 
 from pysaic.controllers.ui.user_list import GroupByFactionWithCounter
-from pysaic.crc_strings.use_case import random_name
 from pysaic.enums import (
     AvatarEnum,
     DeathReportTypeEnum,
@@ -17,7 +16,6 @@ from pysaic.use_cases.avatar import (
     calculate_icon_based_on_faction_and_name,
     is_icon_valid,
 )
-from pysaic.use_cases.nick import sanitize_nick
 
 logger = logging.getLogger(__name__)
 
@@ -107,9 +105,12 @@ class Config:
     nick_auto_complete_key: str = "DIK_TAB"
     news_sound: bool = True
     close_chat: bool = True
-    disconnect_when_blowout_or_underground: (
-        DisconnectOnNetworkDestructionSetting
-    ) = DisconnectOnNetworkDestructionSetting.MalformSignalOnly
+    disconnect_when_emission: DisconnectOnNetworkDestructionSetting = (
+        DisconnectOnNetworkDestructionSetting.MalformSignalOnly
+    )
+    disconnect_when_underground: DisconnectOnNetworkDestructionSetting = (
+        DisconnectOnNetworkDestructionSetting.MalformSignalOnly
+    )
     block_money_transfer: bool = True
     user_list_display: str = GroupByFactionWithCounter.name
     accept_dms_from_not_in_the_channel: bool = False
@@ -163,7 +164,8 @@ class Config:
                     "nick_auto_complete_key": self.nick_auto_complete_key,
                     "news_sound": self.news_sound,
                     "close_chat": self.close_chat,
-                    "disconnect_when_blowout_or_underground": self.disconnect_when_blowout_or_underground.name,
+                    "disconnect_when_emission": self.disconnect_when_emission.name,
+                    "disconnect_when_underground": self.disconnect_when_underground.name,
                     "block_money_transfer": self.block_money_transfer,
                     "user_list_display": self.user_list_display,
                     "avatar": self.avatar,
@@ -191,6 +193,8 @@ class Config:
 
     @classmethod
     def _default_config(cls) -> dict:
+        from pysaic.crc_strings.use_case import random_name
+
         return {
             "nick": random_name().replace(" ", "_"),
             "password": "",
@@ -201,7 +205,8 @@ class Config:
             "nick_auto_complete_key": cls.nick_auto_complete_key,
             "news_sound": cls.news_sound,
             "close_chat": cls.close_chat,
-            "disconnect_when_blowout_or_underground": cls.disconnect_when_blowout_or_underground,
+            "disconnect_when_emission": cls.disconnect_when_emission,
+            "disconnect_when_underground": cls.disconnect_when_underground,
             "block_money_transfer": cls.block_money_transfer,
             "user_list_display": cls.user_list_display,
             "avatar": cls.avatar,
@@ -231,6 +236,8 @@ class Config:
         current_faction = FactionsEnum[
             config.get("current_faction") or FactionsEnum.Loner.name
         ]
+        from pysaic.use_cases.nick import sanitize_nick
+
         return cls(
             nick=sanitize_nick(config["nick"]),
             server=Server.load_config(),
@@ -246,10 +253,15 @@ class Config:
             close_chat=cls._to_bool(
                 config["close_chat"], default=cls.close_chat
             ),
-            disconnect_when_blowout_or_underground=cls._to_enum(
+            disconnect_when_emission=cls._to_enum(
                 DisconnectOnNetworkDestructionSetting,
-                config["disconnect_when_blowout_or_underground"],
-                default=cls.disconnect_when_blowout_or_underground,
+                config.get("disconnect_when_emission"),
+                default=cls.disconnect_when_emission,
+            ),
+            disconnect_when_underground=cls._to_enum(
+                DisconnectOnNetworkDestructionSetting,
+                config.get("disconnect_when_underground"),
+                default=cls.disconnect_when_underground,
             ),
             block_money_transfer=cls._to_bool(
                 config["block_money_transfer"],

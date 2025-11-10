@@ -260,18 +260,55 @@ class Options:
 
         frame.grid_columnconfigure(0, weight=1)
 
+        disconnect_config_values = [
+            record.value
+            for record in (
+                DisconnectOnNetworkDestructionSetting.Never,
+                DisconnectOnNetworkDestructionSetting.MalformSignalOnly,
+                DisconnectOnNetworkDestructionSetting.Always,
+            )
+        ]
         Label(
             frame,
-            text="Disconnect on blowouts or underground",
+            text="Disconnect when emission",
             background=self.background_color,
             foreground=self.text_color,
         ).grid(row=0, column=0, sticky="w")
-        self.disconnect_during_emission_or_when_underground_var = StringVar(
-            value=self.config.disconnect_when_blowout_or_underground
+        self._disconnect_when_emission_var = StringVar(
+            value=self.config.disconnect_when_emission
         )
-        disconnect_on_network_destroy = OptionMenu(
+        disconnect_when_network = OptionMenu(
             frame,
-            self.disconnect_during_emission_or_when_underground_var,
+            self._disconnect_when_emission_var,
+            *disconnect_config_values,
+        )
+        disconnect_when_network.config(
+            bg=self.background_color,
+            fg=self.text_color,
+            activebackground=self.background_color,
+            activeforeground=self.text_color,
+            width=22,
+        )
+        disconnect_when_network.grid(row=0, column=0, sticky="e")
+        disconnect_when_network["menu"].config(
+            bg=self.background_color,
+            fg=self.text_color,
+            activebackground="dim gray",
+            activeforeground="black",
+        )
+
+        Label(
+            frame,
+            text="Disconnect when underground",
+            background=self.background_color,
+            foreground=self.text_color,
+        ).grid(row=1, column=0, sticky="w")
+        self._disconnect_when_underground_var = StringVar(
+            value=self.config.disconnect_when_underground
+        )
+        disconnect_when_underground = OptionMenu(
+            frame,
+            self._disconnect_when_underground_var,
             *[
                 record.value
                 for record in (
@@ -281,15 +318,15 @@ class Options:
                 )
             ],
         )
-        disconnect_on_network_destroy.config(
+        disconnect_when_underground.config(
             bg=self.background_color,
             fg=self.text_color,
             activebackground=self.background_color,
             activeforeground=self.text_color,
             width=22,
         )
-        disconnect_on_network_destroy.grid(row=0, column=0, sticky="e")
-        disconnect_on_network_destroy["menu"].config(
+        disconnect_when_underground.grid(row=1, column=0, sticky="e")
+        disconnect_when_underground["menu"].config(
             bg=self.background_color,
             fg=self.text_color,
             activebackground="dim gray",
@@ -304,7 +341,7 @@ class Options:
             text="Block money transfer",
             variable=self.block_money_transfer_var,
             **self.default_style_kwargs,
-        ).grid(row=1, column=0, sticky="w")
+        ).grid(row=2, column=0, sticky="w")
 
         self.sound_notification_var = BooleanVar(value=self.config.news_sound)
         Checkbutton(
@@ -312,10 +349,10 @@ class Options:
             text="Sound notification",
             variable=self.sound_notification_var,
             **self.default_style_kwargs,
-        ).grid(row=2, column=0, sticky="w")
+        ).grid(row=3, column=0, sticky="w")
 
         news_duration_frame = Frame(frame, background=self.background_color)
-        news_duration_frame.grid(row=3, column=0, sticky="w")
+        news_duration_frame.grid(row=4, column=0, sticky="w")
 
         Label(
             news_duration_frame,
@@ -573,12 +610,21 @@ class Options:
         self.config.password = self.password_entry.get()
 
         logger.debug(
-            "disconnect_during_emission_or_when_underground: %r",
-            self.disconnect_during_emission_or_when_underground_var.get(),
+            "disconnect_when_emission: %r",
+            self._disconnect_when_emission_var.get(),
         )
-        self.config.disconnect_when_blowout_or_underground = (
+        self.config.disconnect_when_emission = (
             DisconnectOnNetworkDestructionSetting(
-                self.disconnect_during_emission_or_when_underground_var.get()
+                self._disconnect_when_emission_var.get()
+            )
+        )
+        logger.debug(
+            "disconnect_when_underground: %r",
+            self._disconnect_when_underground_var.get(),
+        )
+        self.config.disconnect_when_underground = (
+            DisconnectOnNetworkDestructionSetting(
+                self._disconnect_when_underground_var.get()
             )
         )
 
