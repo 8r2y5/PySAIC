@@ -97,27 +97,27 @@ def get_log_config():
             },
             "pysaic.tasks.outgoing_queue": {
                 "handlers": ["default", "app", "error"],
-                "level": "DEBUG",
+                "level": "INFO",
                 "propagate": False,
             },
             "pysaic.script_reader": {
                 "handlers": ["default", "reader_log"],
-                "level": "DEBUG",
+                "level": "INFO",
                 "propagate": False,
             },
             "pysaic.ui.options": {
                 "handlers": ["default"],
-                "level": "DEBUG",
+                "level": "INFO",
                 "propagate": False,
             },
             "pysaic.ui.hyper_links": {
                 "handlers": ["default"],
-                "level": "DEBUG",
+                "level": "INFO",
                 "propagate": False,
             },
             "pysaic.controllers.game": {
                 "handlers": ["default"],
-                "level": "DEBUG",
+                "level": "INFO",
                 "propagate": False,
             },
             "pysaic.irc_protocol": {
@@ -127,7 +127,7 @@ def get_log_config():
             },
             "pysaic.router": {
                 "handlers": ["default", "app", "error"],
-                "level": "DEBUG",
+                "level": "INFO",
                 "propagate": False,
             },
             "pysaic.use_cases": {
