@@ -22,7 +22,7 @@ from winotify import Notification, audio
 
 from pysaic.entities import AppEvent, IncomingEvent
 from pysaic.enums import AppEventEnum, FactionsEnum
-from pysaic.settings import APP_IDENTITY
+from pysaic.settings import APP_IDENTITY, DEBUG
 from pysaic.ui.hyper_links import HyperlinkManager
 from pysaic.ui.options import Options
 
@@ -142,7 +142,7 @@ class App(Tk):
         self.users_list.config(font=("Microsoft Sans Serif", 11))
         self.messages_list.config(font=("Microsoft Sans Serif", 11))
         self.set_color_tags()
-        if self.pysaic_config.irc_window:
+        if DEBUG:
             self._create_irc_window()
 
     def disable_input(self):

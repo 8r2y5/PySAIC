@@ -24,6 +24,7 @@ from pysaic.settings import (
     GAMEDATA_PATH,
     WORKDIR,
     get_log_config,
+    DEBUG,
 )
 from pysaic.state import State
 from pysaic.use_cases.get_user_for_irc import get_user_for_irc
@@ -267,7 +268,7 @@ def main():
     config = Config.load_config()
     state = State(config)
 
-    if config.irc_window:
+    if DEBUG:
         pysaic_irc_logger_handler = PySAICIRCLoggingHandler(incoming_queue)
         irc_protocol = logging.getLogger("pysaic.irc_protocol")
         irc_protocol.addHandler(pysaic_irc_logger_handler)

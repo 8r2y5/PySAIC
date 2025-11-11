@@ -5,7 +5,7 @@ from packaging.version import Version
 
 START_OF_ACTOR_CHARACTER = "☻"
 END_OF_ACTOR_CHARACTER = "☺"
-VERSION = "0.3.0b4"
+VERSION = "0.3.0b5"
 CURRENT_VERSION = Version(VERSION)
 SUPPORTED_SCRIPT_VERSION = (12,)
 APP_IDENTITY = f"PySAIC {VERSION}"
@@ -38,6 +38,7 @@ LOCATIONS_FOR_ENUM_PATH = RES_PATH / "locations.yml"
 ANOMALY_DIR_PATH = (os.environ.get("ANOMALY_DIR_PATH") or "").strip()
 if ANOMALY_DIR_PATH:
     ANOMALY_DIR_PATH = Path(ANOMALY_DIR_PATH)
+DEBUG = os.environ.get("PYSAIC_DEBUG", "0") == "1"
 
 
 def get_log_config():

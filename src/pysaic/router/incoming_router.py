@@ -333,16 +333,24 @@ class IncomingRouter(Router):
     def _parse_saicsync(self, author, content):
         # SAIC: 1/location/avatar/rank/reputation/afk
         logger.debug("Parsing SAICSYNC: %r", content)
-        sync_msg = content.split(" ", 1)[1]
-        version, params = sync_msg.split("/", 1)
-        if version == "1":
-            location, avatar, rank, reputation, afk = params.split("/", 4)
-        elif version == "2":
-            location, avatar, rank, reputation, afk, reception = params.split(
-                "/", 5
-            )
-        else:
-            logger.error("Unsupported SAICSYNC version: %r", version)
+        try:
+            sync_msg = content.split(" ", 1)[1]
+            version, params = sync_msg.split("/", 1)
+        except Exception:
+            logger.exception("Error parsing SAICSYNC message: %r", content)
+            return
+        try:
+            if version == "1":
+                location, avatar, rank, reputation, afk = params.split("/", 4)
+            elif version == "2":
+                location, avatar, rank, reputation, afk, reception = (
+                    params.split("/", 5)
+                )
+            else:
+                logger.error("Unsupported SAICSYNC version: %r", version)
+                return
+        except Exception:
+            logger.exception("Error parsing SAICSYNC params: %r", params)
             return
 
         should_update = False
