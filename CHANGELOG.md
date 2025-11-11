@@ -1,6 +1,13 @@
 # Changelog
 
-## v0.3.0b5 — 2025-11-11
+## 0.3.0b6 — 2025-11-11
+### Short summary
+Fix config issue that was causing some settings to not be saved properly in v0.3.0b5
+
+### Do I need to do anything?
+Just update chat app, game files did were not changed so no game restart is required.
+
+## 0.3.0b5 — 2025-11-11
 
 ### Short summary
 A small update focused on making the chat experience smoother and less distracting. We improved syncing, reduced noisy messages, and made disconnects and window behavior more predictable.
@@ -57,7 +64,7 @@ Open an issue or contact support with a short description of what happened and w
 
 ---
 
-## Changes since v0.2.0 (brief user summary)
+## Changes since 0.2.0 (brief user summary)
 - Added avatar editor and more avatar options.
 - Better chat synchronization and new IRC commands support.
 - Popup notifications for messages.

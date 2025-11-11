@@ -90,7 +90,7 @@ class State:
             return False
         if (
             self.is_currently_under_network_destruction == "Surge"
-            and self.config.disconnect_on_emission
+            and self.config.disconnect_when_emission
             in (
                 DisconnectOnNetworkDestructionSetting.MalformSignalOnly,
                 DisconnectOnNetworkDestructionSetting.Always,
@@ -99,7 +99,7 @@ class State:
             return True
         return (
             self.is_currently_under_network_destruction == "Underground"
-            and self.config.disconnect_on_underground
+            and self.config.disconnect_when_underground
             in (
                 DisconnectOnNetworkDestructionSetting.MalformSignalOnly,
                 DisconnectOnNetworkDestructionSetting.Always,
@@ -112,12 +112,12 @@ class State:
             return False
         if (
             self.is_currently_under_network_destruction == "Surge"
-            and self.config.disconnect_on_emission
+            and self.config.disconnect_when_emission
             in (DisconnectOnNetworkDestructionSetting.Always,)
         ):
             return True
         return (
             self.is_currently_under_network_destruction == "Underground"
-            and self.config.disconnect_on_underground
+            and self.config.disconnect_when_underground
             in (DisconnectOnNetworkDestructionSetting.Always,)
         )
