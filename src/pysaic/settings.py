@@ -7,12 +7,12 @@ START_OF_ACTOR_CHARACTER = "☻"
 END_OF_ACTOR_CHARACTER = "☺"
 VERSION = "0.3.0b7"
 CURRENT_VERSION = Version(VERSION)
-SUPPORTED_SCRIPT_VERSION = (12,)
+SUPPORTED_SCRIPT_VERSION = (13,)
 APP_IDENTITY = f"PySAIC {VERSION}"
 
 # logs
 MAX_BYTES = 2 * 1024 * 1024  # 2 mb
-NUMBER_OF_BACKUPS = 5
+NUMBER_OF_BACKUPS = 2
 
 # paths
 avatar_images_path = (
@@ -118,7 +118,7 @@ def get_log_config():
             },
             "pysaic.controllers.game": {
                 "handlers": ["default"],
-                "level": "INFO",
+                "level": "DEBUG",
                 "propagate": False,
             },
             "pysaic.irc_protocol": {

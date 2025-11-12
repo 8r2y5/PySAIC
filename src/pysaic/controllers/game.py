@@ -91,6 +91,10 @@ def set_ingame_display_setting(value: str):
     add_setting_to_game("UserDisplayStyle", value)
 
 
+def set_ingame_display_setting_order_setting(value: str):
+    add_setting_to_game("InGameUserDisplayOrder", value)
+
+
 @ensure_game_is_running
 def add_information_message_to_game(content: str):
     add_to_crc_input_file(f"Information/{content}")

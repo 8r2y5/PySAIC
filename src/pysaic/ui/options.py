@@ -21,6 +21,7 @@ from pysaic.config import (
     Config,
     FactionSetting,
     InGameUserDisplayEnum,
+    InGameUserDisplayOrderEnum,
 )
 from pysaic.controllers.ui.user_list import DISPLAY_MODES_MAP
 from pysaic.entities import AppEvent, IncomingEvent, IncomingQueue
@@ -49,8 +50,8 @@ class Options:
         self.options_window = Toplevel(self.main_window)
         self.options_window.title("Options")
         self.options_window.configure(bg=self.main_window.cget("bg"))
-        height = 500
-        width = 430
+        height = 550
+        width = 450
         self.options_window.geometry(f"{width}x{height}+100+100")
         self.options_window.minsize(width, height)
         self.options_window.iconbitmap(PATH / "crcr_icon_new.ico")
@@ -418,7 +419,7 @@ class Options:
         # In-game list display
         Label(
             frame,
-            text="In-game list display",
+            text="In-game list display type",
             background=self.background_color,
             foreground=self.text_color,
         ).grid(row=1, column=0, sticky="w", pady=2)
@@ -448,13 +449,49 @@ class Options:
             row=1, column=2, sticky="e", pady=2, padx=(5, 0)
         )
 
+        # In-game users display order
+        Label(
+            frame,
+            text="In-game list display order",
+            background=self.background_color,
+            foreground=self.text_color,
+        ).grid(row=2, column=0, sticky="w", pady=2)
+        self.in_game_display_order_var = StringVar(
+            frame, value=self.config.in_game_users_display_order
+        )
+        in_game_display_order_option = OptionMenu(
+            frame,
+            self.in_game_display_order_var,
+            *[
+                InGameUserDisplayOrderEnum.Nick.value,
+                InGameUserDisplayOrderEnum.Faction.value,
+                InGameUserDisplayOrderEnum.OnlineStatus.value,
+            ],
+        )
+        in_game_display_order_option.config(
+            bg=self.background_color,
+            fg=self.text_color,
+            activebackground=self.background_color,
+            activeforeground=self.text_color,
+            width=15,
+        )
+        in_game_display_order_option["menu"].config(
+            bg=self.background_color,
+            fg=self.text_color,
+            activebackground="dim gray",
+            activeforeground="black",
+        )
+        in_game_display_order_option.grid(
+            row=2, column=2, sticky="e", pady=2, padx=(5, 0)
+        )
+
         # Death report
         Label(
             frame,
             text="Death report",
             background=self.background_color,
             foreground=self.text_color,
-        ).grid(row=2, column=0, sticky="w", pady=2)
+        ).grid(row=3, column=0, sticky="w", pady=2)
 
         self.report_death_var = BooleanVar(value=self.config.death_reports)
         Checkbutton(
@@ -463,7 +500,7 @@ class Options:
             variable=self.report_death_var,
             command=self._toggle_death_report_type,
             **self.default_style_kwargs,
-        ).grid(row=2, column=1, sticky="w", pady=2)
+        ).grid(row=3, column=1, sticky="w", pady=2)
 
         self.death_report_type_var = StringVar(
             frame, value=self.config.death_report_type
@@ -487,7 +524,7 @@ class Options:
             activebackground="dim gray",
             activeforeground="black",
         )
-        self.death_report_type_option.grid(row=2, column=2, sticky="e", pady=2)
+        self.death_report_type_option.grid(row=3, column=2, sticky="e", pady=2)
 
         self._toggle_death_report_type()
 
@@ -497,7 +534,7 @@ class Options:
             text="Popup settings",
             background=self.background_color,
             foreground=self.text_color,
-        ).grid(row=3, column=0, sticky="w", pady=2)
+        ).grid(row=4, column=0, sticky="w", pady=2)
         self.notification_on_ping_var = BooleanVar(
             value=self.config.pop_up_on_ping
         )
@@ -507,7 +544,7 @@ class Options:
             text="Show popup on ping",
             variable=self.notification_on_ping_var,
             **self.default_style_kwargs,
-        ).grid(row=3, column=1, sticky="w", pady=2)
+        ).grid(row=4, column=1, sticky="w", pady=2)
         self.notification_popop_sound_var = BooleanVar(
             value=self.config.pop_up_sound
         )
@@ -517,7 +554,7 @@ class Options:
             text="Play sound on ping",
             variable=self.notification_popop_sound_var,
             **self.default_style_kwargs,
-        ).grid(row=3, column=2, sticky="e", pady=2)
+        ).grid(row=4, column=2, sticky="e", pady=2)
 
     def _toggle_death_report_type(self):
         self.death_report_type_option["state"] = (
@@ -658,6 +695,15 @@ class Options:
         self.config.in_game_users_display = InGameUserDisplayEnum(
             self.in_game_display_var.get()
         )
+
+        logger.debug(
+            "in_game_users_display_order: %r",
+            self.in_game_display_order_var.get(),
+        )
+        self.config.in_game_users_display_order = InGameUserDisplayOrderEnum(
+            self.in_game_display_order_var.get()
+        )
+
         logger.debug(
             "report death? %s, death_report_type: %r",
             self.report_death_var.get(),

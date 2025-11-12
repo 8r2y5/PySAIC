@@ -18,3 +18,9 @@ IRCUserModeEnum = {
     Voice = "voice",
     Bot = "Bot",
 }
+
+InGameDisplayStyleEnum = {
+    Name = "Name",
+    Faction = "Faction",
+    OnlineStatus = "OnlineStatus",
+}

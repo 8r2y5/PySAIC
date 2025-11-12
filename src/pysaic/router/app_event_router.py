@@ -7,6 +7,7 @@ from pysaic.controllers.game import (
     ask_for_actor_status,
     ask_for_handshake,
     set_ingame_display_setting,
+    set_ingame_display_setting_order_setting,
 )
 from pysaic.entities import (
     IncomingEvent,
@@ -157,6 +158,9 @@ class AppEventRouter(Router):
 
     def _update_ingame_display_setting(self):
         set_ingame_display_setting(self.config.in_game_users_display.name)
+        set_ingame_display_setting_order_setting(
+            self.config.in_game_users_display_order.name
+        )
 
     def _update_nick_from_options(self):
         logger.debug("Updating nick")

@@ -15,6 +15,7 @@ from pysaic.controllers.game import (
     add_signal_state,
     ask_for_actor_status,
     set_ingame_display_setting,
+    set_ingame_display_setting_order_setting,
 )
 from pysaic.crc_strings.use_case import DeathMessageUseCase
 from pysaic.entities import (
@@ -189,6 +190,9 @@ class GameHandshakeUseCase:
             ),
         )
         set_ingame_display_setting(self.config.in_game_users_display.name)
+        set_ingame_display_setting_order_setting(
+            self.config.in_game_users_display_order.name
+        )
         add_signal_state(str(self.state.fake_disconnect))
 
 

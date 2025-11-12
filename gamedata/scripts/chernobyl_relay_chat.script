@@ -1,7 +1,7 @@
 --| PySAIC's Script by brzys
 --| Based on the original script by TKGP and anchorpoint's CRCR
 
-local SCRIPT_VERSION = 12
+local SCRIPT_VERSION = 13
 --local crc_icons = require("crc_icons")
 
 -- Constants
@@ -18,6 +18,7 @@ local AFK_ARGB = GetARGB(255, 255, 255, 32)  -- yellow
 local NOT_IN_GAME_ARGB = GetARGB(255, 255, 128, 128) -- red
 local IN_GAME_ARGB = GetARGB(255, 128, 255, 154)  -- green
 local IS_SIGNAL_LOST = false
+local USER_LIST_ORDER = nil
 
 -- Options
 local option = {
@@ -276,6 +277,20 @@ function parseHandshake(body)
 	send_handshake(body)
 end
 
+function parseInGameDisplayOrder(value)
+    if value == pysaic_constants.InGameDisplayStyleEnum.Faction then
+        USER_LIST_ORDER = sort_by_faction
+    elseif value == pysaic_constants.InGameDisplayStyleEnum.OnlineStatus then
+        USER_LIST_ORDER = sort_by_online_status
+    else
+        USER_LIST_ORDER = sort_by_nick
+    end
+    printf("User list order updated to: %s", USER_LIST_ORDER)
+    if chatBox then
+        chatBox:UpdateUsers()
+    end
+end
+
 
 local settingsParserMap = {
 	NewsDuration = parseNewsDuration,
@@ -290,6 +305,7 @@ local settingsParserMap = {
 	Channels = parseChannels,
 	AFK = parseAFK,
 	Handshake = parseHandshake,
+    InGameUserDisplayOrder = parseInGameDisplayOrder
 }
 
 
@@ -573,6 +589,7 @@ function save_state(m_data)
 end
 
 function load_state(m_data)
+    USER_LIST_ORDER = sort_by_nick
 	prev_fake_conn_status = m_data.connstatus or false
 	prevChannel = m_data.prevChannel or ''
 end
@@ -593,6 +610,7 @@ function on_game_start()
     printf('CRC script started with version %s', SCRIPT_VERSION)
 	isDead = false
 	ChatBoxEnabled = true
+    USER_LIST_ORDER = sort_by_nick
 	AddUniqueCall(update)
 	RegisterScriptCallback("save_state", save_state)
 	RegisterScriptCallback("load_state", load_state)
@@ -693,6 +711,32 @@ function sort_by_nick(nick, other_nick)
 	return nick:lower() < other_nick:lower()
 end
 
+function sort_by_online_status(nick, other_nick)
+    local user = users[nick]
+    local other_user = users[other_nick]
+    if user.location == "False" and other_user.location ~= "False" then
+        return false
+    elseif user.location ~= "False" and other_user.location == "False" then
+        return true
+    else
+        return sort_by_nick(nick, other_nick)
+    end
+end
+
+function sort_by_faction(nick, other_nick)
+    local user = users[nick]
+    local other_user = users[other_nick]
+    if user.faction:lower() == "actor_anonymous" then
+        return false
+    elseif other_user.faction:lower() == "actor_anonymous" then
+        return true
+    end
+    if user.faction == other_user.faction then
+        return sort_by_nick(nick, other_nick)
+    end
+    return sort_by_online_status(nick, other_nick)
+end
+
 function pairsByKeys(t, f)
 	local a = {}
 	for n in pairs(t) do
@@ -710,7 +754,7 @@ end
 function ChatBox:UpdateUsers()
     self.scroll:Clear()
 	local user_node_name = self:getUserNodeName()
-    for _, data in pairsByKeys(users, sort_by_nick) do
+    for _, data in pairsByKeys(users, USER_LIST_ORDER) do
         local user, icon, name, status
         local NotInGame = data.location == "False"
 		user = self.xml:InitStatic(user_node_name, nil)
