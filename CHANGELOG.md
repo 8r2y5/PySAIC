@@ -1,13 +1,26 @@
 # Changelog
 
-## 0.3.0b6 — 2025-11-11
+## `0.3.0b7` — 2025-11-12
 ### Short summary
-Fix config issue that was causing some settings to not be saved properly in v0.3.0b5
+- Fix issue with text malform, making some messages not being properly formatted in `0.3.0b6`
+- Add `/reply` command to quickly reply to the last private message received or sent
+  - there is also alias `/r` for convenience
 
 ### Do I need to do anything?
 Just update chat app, game files did were not changed so no game restart is required.
 
-## 0.3.0b5 — 2025-11-11
+---
+
+## `0.3.0b6` — 2025-11-11
+### Short summary
+- Fix config issue that was causing some settings to not be saved properly in `0.3.0b5`
+
+### Do I need to do anything?
+Just update chat app, game files did were not changed so no game restart is required.
+
+---
+
+## `0.3.0b5` — 2025-11-11
 
 ### Short summary
 A small update focused on making the chat experience smoother and less distracting. We improved syncing, reduced noisy messages, and made disconnects and window behavior more predictable.
@@ -24,14 +37,14 @@ A small update focused on making the chat experience smoother and less distracti
 - Tidied up window and disconnect behavior to avoid surprises when switching or closing the app.
 
 ### Do I need to do anything?
-No. Update to v0.3.0b5 and continue using the app as usual. If you see repeated sync failures or missing visuals, please take a screenshot and report it.
+No. Update to `0.3.0b5` and continue using the app as usual. If you see repeated sync failures or missing visuals, please take a screenshot and report it.
 
 ### Need help?
 Open an issue or contact support with a short description and steps to reproduce the problem; screenshots help a lot.
 
 ---
 
-## Release notes (since 0.3.0b4)
+## Release notes (since `0.3.0b4`)
 
 ### Short summary
 This update makes the chat app more stable and easier to use. We focused on fixing annoying sync problems, reducing noisy messages, and making window and disconnect behavior more predictable. Most changes are behind the scenes, but you should feel the app is smoother and less distracting.
@@ -64,7 +77,7 @@ Open an issue or contact support with a short description of what happened and w
 
 ---
 
-## Changes since 0.2.0 (brief user summary)
+## Changes since `0.2.0` (brief user summary)
 - Added avatar editor and more avatar options.
 - Better chat synchronization and new IRC commands support.
 - Popup notifications for messages.
