@@ -16,6 +16,7 @@ from pysaic.use_cases.avatar import (
     calculate_icon_based_on_faction_and_name,
     is_icon_valid,
 )
+from pysaic.crc_strings.use_case import random_name
 
 logger = logging.getLogger(__name__)
 
@@ -191,8 +192,6 @@ class Config:
 
     @classmethod
     def _default_config(cls) -> dict:
-        from pysaic.crc_strings.use_case import random_name
-
         return {
             "nick": random_name().replace(" ", "_"),
             "password": "",
