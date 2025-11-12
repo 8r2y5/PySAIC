@@ -1,16 +1,17 @@
 import logging
 from random import randint
 
-from pysaic.settings import END_OF_ACTOR_CHARACTER, START_OF_ACTOR_CHARACTER
+from pysaic.settings import END_OF_ACTOR_CHARACTER
 
 logger = logging.getLogger(__name__)
 
 
 def make_content_malformed(original_content: str) -> str:
-    if START_OF_ACTOR_CHARACTER in original_content:
+    if END_OF_ACTOR_CHARACTER in original_content:
         logger.debug("It is a death message, making it malformed")
         prefix, content = original_content.split(END_OF_ACTOR_CHARACTER, 1)
         content = list(content)
+        prefix += END_OF_ACTOR_CHARACTER
     else:
         logger.debug("It is a regular message, making it malformed")
         prefix = ""
