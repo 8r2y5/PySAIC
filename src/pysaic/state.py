@@ -66,6 +66,7 @@ class State:
         self.player_update_task = None
         self.player_changed_values_queue = asyncio.Queue()
         self.is_currently_under_network_destruction: str | None = None
+        self.last_private_message_from: str | None = None
 
     def money_enough(self, amount) -> bool:
         return self.player.money >= amount

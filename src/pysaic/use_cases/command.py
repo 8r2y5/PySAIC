@@ -123,6 +123,8 @@ class CommandUseCase:
             "whowas": self.handle_whowas,
             "kick": self.handle_kick,
             "smite": self.handle_kick,
+            "reply": self.handle_reply,
+            "r": self.handle_reply,
         }
 
     @classmethod
@@ -161,6 +163,7 @@ class CommandUseCase:
 
         target = target.lstrip("@")
         logger.info("Sending private message to %r: %r", target, content)
+        self.state.last_private_message_from = target
         message = OutgoingMessage(target, content)
         OurPrivMessageUseCase(
             self.state.chat_users,
@@ -603,3 +606,23 @@ class CommandUseCase:
                     args=[self.config.server.previous_channel, target, reason],
                 )
             )
+
+    @inject.autoparams()
+    def handle_reply(self, params, incoming_queue: IncomingQueue):
+        """
+        Reply to last private message. Usage: /reply <message>
+        """
+        last_private = self.state.last_private_message_from
+        if not last_private:
+            incoming_queue.put_nowait(
+                IncomingEvent.create_error_event(
+                    "No one has sent you a private message yet."
+                )
+            )
+            return
+
+        if not params or params.strip() == "":
+            self.handle_help("reply")
+            return
+
+        self.handle_priv_msg(f"{last_private} {params.strip()}")

@@ -15,7 +15,6 @@ from pysaic.entities import DeathTimestamped
 from pysaic.enums import DeathReportTypeEnum, FactionsEnum, LocationEnum
 from pysaic.script_reader.entities import Death
 from pysaic.settings import END_OF_ACTOR_CHARACTER, START_OF_ACTOR_CHARACTER
-from pysaic.state import State
 
 tags_regexp = re.compile(r"(\w+)")
 
@@ -46,6 +45,8 @@ def random_name():
 class XMLFileController:
     def __init__(self, file_path, flat=False):
         self.flat = flat
+        from pysaic.state import State
+
         try:
             state = inject.instance(State)
         except inject.InjectorException:

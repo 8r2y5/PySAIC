@@ -16,6 +16,7 @@ logger = logging.getLogger(__name__)
 
 class AddDmMessage(UiUseCase):
     def execute(self):
+        self.state.last_private_message_from = self.event.author.nick
         self._add_dm_message()
         self._add_dm_message_to_game()
 
