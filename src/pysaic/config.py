@@ -129,7 +129,7 @@ class Config:
         InGameUserDisplayEnum.PySAIC_Card
     )
     in_game_users_display_order: InGameUserDisplayOrderEnum = (
-        InGameUserDisplayOrderEnum.Nick
+        InGameUserDisplayOrderEnum.Faction
     )
     death_report_type: DeathReportTypeEnum = DeathReportTypeEnum.OnlineFactions
     death_reports: bool = True
