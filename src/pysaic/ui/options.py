@@ -465,6 +465,7 @@ class Options:
             *[
                 InGameUserDisplayOrderEnum.Nick.value,
                 InGameUserDisplayOrderEnum.Faction.value,
+                InGameUserDisplayOrderEnum.Faction_Counter.value,
                 InGameUserDisplayOrderEnum.OnlineStatus.value,
             ],
         )

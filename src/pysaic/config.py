@@ -36,6 +36,7 @@ class FactionSetting(StrEnum):
 
 class InGameUserDisplayOrderEnum(StrEnum):
     Faction = "Faction"
+    Faction_Counter = "Faction Counter"
     Nick = "Nick"
     OnlineStatus = "Online Status"
 

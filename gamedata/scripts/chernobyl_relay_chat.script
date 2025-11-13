@@ -281,6 +281,8 @@ end
 function parseInGameDisplayOrder(value)
     if value == pysaic_constants.InGameDisplayStyleEnum.Faction then
         USER_LIST_ORDER = sort_by_faction
+    elseif value == pysaic_constants.InGameDisplayStyleEnum.Faction_Counter then
+        USER_LIST_ORDER = sort_by_faction_and_counter
     elseif value == pysaic_constants.InGameDisplayStyleEnum.OnlineStatus then
         USER_LIST_ORDER = sort_by_online_status
     else
@@ -747,6 +749,10 @@ function sort_by_faction(nick, other_nick)
     return sort_by_online_status(nick, other_nick)
 end
 
+function sort_by_faction_and_counter(nick, other_nick)
+    return sort_by_faction(nick, other_nick)
+end
+
 function pairsByKeys(t, f)
 	local a = {}
 	for n in pairs(t) do
@@ -760,21 +766,34 @@ function pairsByKeys(t, f)
 	end
 end
 
-local function get_faction_separator_text(faction)
-    return gt("crc_"..(faction or "unknown") ) .. " (" .. tostring(FACTION_SIZE[faction] or 1) .. ")"
-end
-
 function ChatBox:UpdateUsers()
     self.scroll:Clear()
 	local user_node_name = self:getUserNodeName()
-    local separator = USER_LIST_ORDER == sort_by_faction
+    local separator = (
+        USER_LIST_ORDER == sort_by_faction
+        or USER_LIST_ORDER == sort_by_faction_and_counter
+    )
+    local counter = (
+        USER_LIST_ORDER == sort_by_faction_and_counter
+    )
     local last_faction
     for _, data in pairsByKeys(users, USER_LIST_ORDER) do
         if separator and last_faction ~= data.faction then
             last_faction = data.faction
             local faction_separator = self.xml:InitStatic("faction_separator", nil)
-            local faction_text = self.xml:InitStatic("faction_separator:text", faction_separator)
-            faction_text:TextControl():SetText(get_faction_separator_text(last_faction))
+            local faction_text = self.xml:InitStatic("faction_separator:name", faction_separator)
+            faction_text:TextControl():SetText(
+                gt("crc_"..(last_faction or "unknown") )
+            )
+            faction_text:TextControl():SetTextColor(
+                pysaic_constants.FACTION_COLORS[data.faction]
+            )
+            if counter then
+                local faction_name_counter = self.xml:InitStatic("faction_separator:counter", faction_separator)
+                faction_name_counter:TextControl():SetText(
+                    "(" .. tostring(FACTION_SIZE[data.faction] or 1) .. ")"
+                )
+            end
             self.scroll:AddWindow(faction_separator, true)
             faction_separator:SetAutoDelete(true)
         end
