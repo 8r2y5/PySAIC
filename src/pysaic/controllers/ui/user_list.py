@@ -79,7 +79,12 @@ class GroupByFactionAndName(SortedMixin):
     name = "Group by faction and name"
 
     def sort_by(self, chat_user: ChatUser):
-        return get_faction_tag(chat_user.faction), chat_user.name
+        faction = get_faction_tag(chat_user.faction)
+        return (
+            get_faction_tag(chat_user.faction),
+            1 if faction == FactionsEnum.Anonymous.name else 0,
+            chat_user.name,
+        )
 
     def write(self):
         for chat_user in sorted(self.users.values(), key=self.sort_by):
@@ -96,21 +101,22 @@ class GroupByFactionWithCounter(SortedMixin):
         )
 
     def sort_by(self, chat_user: ChatUser):
+        faction = get_faction_tag(chat_user.faction)
         return (
-            self.counter[chat_user.faction] if chat_user.faction else 0,
-            get_faction_tag(chat_user.faction),
-            int(chat_user.in_game),
+            -(self.counter[chat_user.faction] if chat_user.faction else 0),
+            1 if faction == FactionsEnum.Anonymous.name else 0,
+            faction,
+            -int(chat_user.in_game),
             chat_user.name,
         )
 
     def write(self):
         last_group = None
         users_sorted = sorted(
-            self.users.values(), key=self.sort_by, reverse=True
+            self.users.values(), key=self.sort_by, reverse=False
         )
         for chat_user in users_sorted:
             faction_tag = get_faction_tag(chat_user.faction)
-            # logger.info("Adding user: %r (%r)", chat_user, faction_tag)
             if last_group != faction_tag:
                 display_tag = faction_tag.replace("_", " ")
                 self.users_list.insert(END, f"{display_tag}", faction_tag)
