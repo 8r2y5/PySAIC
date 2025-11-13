@@ -118,7 +118,7 @@ def get_log_config():
             },
             "pysaic.controllers.game": {
                 "handlers": ["default"],
-                "level": "DEBUG",
+                "level": "INFO",
                 "propagate": False,
             },
             "pysaic.irc_protocol": {
