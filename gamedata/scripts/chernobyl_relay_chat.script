@@ -323,6 +323,7 @@ end
 function parseUsers(body)
 	users = {}
     knownIcons = {}
+    FACTION_SIZE = {}
 	for user_nick, faction, rank, reputation, afk, avatar_id, user_type, location in body:gmatch("([^/]+),([^/]+),([^/]+),([^/]+),([^/]+),([^/]+),([^/]+)%s=%s([^/]+)") do
 		local user_icon = crc_icons.getIconSafe(user_nick, faction, avatar_id, user_type)
 		users[user_nick] = {
@@ -336,6 +337,7 @@ function parseUsers(body)
             user_type = user_type
 		}
 		knownIcons[user_nick] = user_icon
+        FACTION_SIZE[faction] = (FACTION_SIZE[faction] or 0) + 1
 	end
 	if chatBox then
 		chatBox:UpdateUsers()
@@ -727,10 +729,15 @@ end
 function sort_by_faction(nick, other_nick)
     local user = users[nick]
     local other_user = users[other_nick]
+    local size_user = FACTION_SIZE[user.faction]
+    local size_other = FACTION_SIZE[other_user.faction]
+
     if user.faction == other_user.faction then
         return sort_by_online_status(nick, other_nick)
+    elseif size_user ~= size_other then
+        return size_user > size_other
     else
-        return FACTION_SIZE[user.faction] > FACTION_SIZE[other_user.faction]
+        return user.faction < other_user.faction
     end
 end
 
@@ -752,24 +759,16 @@ local function get_faction_separator_text(faction)
 end
 
 function ChatBox:UpdateUsers()
-    local scroll_pos = self.scroll:GetWndPos()
-
     self.scroll:Clear()
 	local user_node_name = self:getUserNodeName()
     local separator = USER_LIST_ORDER == sort_by_faction
     local last_faction
-    if separator then
-        FACTION_SIZE = {}
-        for _, data in pairs(users) do
-            FACTION_SIZE[data.faction] = (FACTION_SIZE[data.faction] or 0) + 1
-        end
-    end
     for _, data in pairsByKeys(users, USER_LIST_ORDER) do
         if separator and last_faction ~= data.faction then
             last_faction = data.faction
             local faction_separator = self.xml:InitStatic("faction_separator", nil)
             local faction_text = self.xml:InitStatic("faction_separator:text", faction_separator)
-            faction_text:TextControl():SetText(get_faction_separator_text(data.faction))
+            faction_text:TextControl():SetText(get_faction_separator_text(last_faction))
             self.scroll:AddWindow(faction_separator, true)
             faction_separator:SetAutoDelete(true)
         end
@@ -812,8 +811,6 @@ function ChatBox:UpdateUsers()
         self.scroll:AddWindow(user, true)
         user:SetAutoDelete(true)
     end
-    -- restore scroll position
-    self.scroll:SetWndPos(scroll_pos)
 end
 
 function ChatBox:UpdateChannels()

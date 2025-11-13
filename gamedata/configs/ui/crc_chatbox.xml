@@ -35,8 +35,8 @@
 		<text font="letterica18" align="c">crc_close</text>
 	</button_close>
 
-    <faction_separator x="0" y="715" width="744" height="2" stretch="1">
-        <text font="letterica18"/>
+    <faction_separator x="0" y="0" width="5" height="6" stretch="1">
+        <text x="-32" font="letterica18"/>
     </faction_separator>
 	
 	<message x="0" y="0" width="1024" height="39">
