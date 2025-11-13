@@ -730,11 +730,11 @@ function sort_by_faction(nick, other_nick)
         return false
     elseif other_user.faction:lower() == "actor_anonymous" then
         return true
+    elseif user.faction == other_user.faction then
+        return sort_by_online_status(nick, other_nick)
+    else
+        return sort_by_nick(user.faction, other_user.faction)
     end
-    if user.faction == other_user.faction then
-        return sort_by_nick(nick, other_nick)
-    end
-    return sort_by_online_status(nick, other_nick)
 end
 
 function pairsByKeys(t, f)
