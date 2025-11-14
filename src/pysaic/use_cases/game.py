@@ -29,7 +29,7 @@ from pysaic.entities import (
     OutgoingPart,
     OutgoingQueue,
 )
-from pysaic.enums import AppEventEnum, DisconnectOnNetworkDestructionSetting
+from pysaic.enums import AppEventEnum
 from pysaic.events.enum import GameEvents
 from pysaic.handlers import join_previous_channel
 from pysaic.script_reader.entities import (
@@ -312,16 +312,12 @@ class ConnectionLostUseCase:
             return
         state.is_currently_under_network_destruction = self.entity.reason
         if self.entity.lost is True:
-            if self._should_disconnect_on_network_destruction(state):
+            if state.fake_disconnect:
                 self._do_full_disconnect()
-            elif self._should_only_malform_messages():
+            elif state.should_malform_messages:
                 self._do_only_malform_messages()
         elif self.entity.lost is False:
             self._dont_disconnect()
-
-    @staticmethod
-    def _should_disconnect_on_network_destruction(state: State):
-        return state.fake_disconnect
 
     @inject.autoparams()
     def _do_full_disconnect(self, state: State, loop: AbstractEventLoop):
@@ -354,12 +350,6 @@ class ConnectionLostUseCase:
 
         add_signal_state(str(state.fake_disconnect))
         join_previous_channel()
-
-    def _should_only_malform_messages(self):
-        return (
-            self.config.disconnect_when_blowout_or_underground
-            == DisconnectOnNetworkDestructionSetting.MalformSignalOnly
-        )
 
     @inject.autoparams()
     def _do_only_malform_messages(self, state: State, loop: AbstractEventLoop):
