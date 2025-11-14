@@ -1,13 +1,15 @@
 # Changelog
 
-## `0.3.0b7` — 2025-11-12
+## `0.3.0b7` — 2025-11-14
 ### Short summary
-- Fix issue with text malform, making some messages not being properly formatted in `0.3.0b6`
-- Add `/reply` command to quickly reply to the last private message received or sent
-  - there is also alias `/r` for convenience
+- Add `/reply` command to quickly reply to the last private message received or sent.
+  - there is also alias `/r` for convenience.
+- Add option to configure in-game user list display.
+- Improved user list sorting.
+- Fix issue with text malform, making some messages not being properly formatted in `0.3.0b6`.
 
 ### Do I need to do anything?
-Just update chat app, game files did were not changed so no game restart is required.
+You need to copy all the files and restart the game.
 
 ---
 
