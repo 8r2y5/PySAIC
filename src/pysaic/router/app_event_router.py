@@ -135,6 +135,7 @@ class AppEventRouter(Router):
         self._update_ui_user_list()
 
     def _update_faction_setting(self):
+        logger.debug("Updating faction")
         try:
             user = self.chat_users[self.state.nick]
         except KeyError:
@@ -144,15 +145,10 @@ class AppEventRouter(Router):
                 return
 
         if self.config.current_faction != user.faction:
-            try:
-                self.chat_users.update_user_faction(
-                    self.state.nick, self.config.current_faction
-                )
-            except KeyError:
-                logger.warning('Having no user for nick "%s"', self.state.nick)
-                self.chat_users.set_user(
-                    self.state.nick, self.state.player.create_chat_user()
-                )
+            self.state.player.faction = self.config.current_faction
+            self.chat_users.set_user(
+                self.state.nick, self.state.player.create_chat_user()
+            )
             self.state.player.faction = self.config.current_faction
             self._send_amogus_message()
 
