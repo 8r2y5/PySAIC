@@ -22,6 +22,7 @@ inject = "^5.2.1"
 aiohttp = "^3.10.10"
 win10toast = "^0.9"
 winotify = "^1.1.0"
+py7zr = "^1.0.0"
 
 [tool.poetry.group.dev.dependencies]
 black = "^24.4.2"
