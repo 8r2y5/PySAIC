@@ -777,6 +777,7 @@ function pairsByKeys(t, f)
 end
 
 function ChatBox:UpdateUsers()
+    local last_scroll_pos = self.user_list:GetCurrentScrollPos()
     self.scroll:Clear()
 	local user_node_name = self:getUserNodeName()
     local separator = (
@@ -849,6 +850,7 @@ function ChatBox:UpdateUsers()
         self.scroll:AddWindow(user, true)
         user:SetAutoDelete(true)
     end
+    self.scroll:SetScrollPos(last_scroll_pos)
 end
 
 function ChatBox:UpdateChannels()
