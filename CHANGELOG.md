@@ -1,5 +1,17 @@
 # Changelog
 
+## `0.3.0b8` — 2025-11-18
+### Short summary
+- Add faction colored nicks in-game user list.
+  - You can toggle this option in settings. It is enabled by default.
+- Improved emission and underground detection.
+- Improved faction and avatar syncing in-game.
+- Made Clear Sky more distinguishable from Mercenary in user list.
+  - Their colors were too similar, Clear Sky is now a lighter shade of blue.
+
+### Do I need to do anything?
+You need to copy all the files and restart the game.
+
 ## `0.3.0b7` — 2025-11-14
 ### Short summary
 - Add `/reply` command to quickly reply to the last private message received or sent.
