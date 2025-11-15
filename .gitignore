@@ -163,3 +163,4 @@ cython_debug/
 *.yml
 logs
 *.xcf
+logging_conf.json

@@ -1,9 +1,10 @@
 import asyncio
+import json
 import logging
 import logging.config
 import sys
+import traceback
 from asyncio import CancelledError
-from contextlib import suppress
 from functools import partial
 
 import inject
@@ -238,11 +239,20 @@ def close_everything_callback(
 
 
 def initialize_logging():
-    if (WORKDIR / "logging.conf").exists():
-        with suppress(Exception):
-            logging.config.fileConfig(
-                WORKDIR / "logging.conf", disable_existing_loggers=False
+    if (WORKDIR / "logging_conf.json").exists():
+        try:
+            print("Loading logging configuration from logging_conf.json")
+            with open(WORKDIR / "logging_conf.json") as f:
+                data = json.load(f)
+                print(data)
+                logging.config.dictConfig(data)
+        except Exception as e:
+            print(
+                "Failed to load logging configuration from logging_conf.json, falling back to default configuration",
+                e,
             )
+            print(traceback.format_exc())
+        else:
             return
     logging.config.dictConfig(get_log_config())
 
