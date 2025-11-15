@@ -821,7 +821,7 @@ function ChatBox:_add_user_to_user_list(user_node_name, user_data)
 end
 
 function ChatBox:UpdateUsers()
-    local last_scroll_pos = self.user_list:GetCurrentScrollPos()
+    local last_scroll_pos = self.scroll:GetCurrentScrollPos()
     self.scroll:Clear()
 	local user_node_name = self:getUserNodeName()
     local separator = (
