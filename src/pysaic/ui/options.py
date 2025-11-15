@@ -423,6 +423,15 @@ class Options:
             background=self.background_color,
             foreground=self.text_color,
         ).grid(row=1, column=0, sticky="w", pady=2)
+        self._faction_colored_nicks = BooleanVar(
+            value=self.config.faction_colored_nicks
+        )
+        Checkbutton(
+            frame,
+            text="Faction colored nicks",
+            variable=self._faction_colored_nicks,
+            **self.default_style_kwargs,
+        ).grid(row=1, column=1, sticky="w", pady=2)
         self.in_game_display_var = StringVar(
             frame, value=self.config.in_game_users_display
         )
@@ -696,6 +705,10 @@ class Options:
         self.config.in_game_users_display = InGameUserDisplayEnum(
             self.in_game_display_var.get()
         )
+        logger.debug(
+            "faction_colored_nicks: %r", self._faction_colored_nicks.get()
+        )
+        self.config.faction_colored_nicks = self._faction_colored_nicks.get()
 
         logger.debug(
             "in_game_users_display_order: %r",

@@ -132,6 +132,7 @@ class Config:
     in_game_users_display_order: InGameUserDisplayOrderEnum = (
         InGameUserDisplayOrderEnum.Faction
     )
+    faction_colored_nicks: bool = True
     death_report_type: DeathReportTypeEnum = DeathReportTypeEnum.OnlineFactions
     death_reports: bool = True
     pop_up_on_ping: bool = False
@@ -185,6 +186,7 @@ class Config:
                     "blocked_words": self.blocked_words,
                     "in_game_users_display": self.in_game_users_display.name,
                     "in_game_users_display_order": self.in_game_users_display_order.name,
+                    "faction_colored_nicks": self.faction_colored_nicks,
                     "death_report_type": self.death_report_type.name,
                     "death_reports": self.death_reports,
                     "pop_up_on_ping": self.pop_up_on_ping,
@@ -224,6 +226,7 @@ class Config:
             "blocked_words": [],
             "in_game_users_display": cls.in_game_users_display.name,
             "in_game_users_display_order": cls.in_game_users_display_order.name,
+            "faction_colored_nicks": cls.faction_colored_nicks,
             "death_report_type": cls.death_report_type.name,
             "death_reports": cls.death_reports,
             "pop_up_on_ping": cls.pop_up_on_ping,
@@ -295,6 +298,10 @@ class Config:
                 InGameUserDisplayOrderEnum,
                 config.get("in_game_users_display_order"),
                 default=cls.in_game_users_display_order.name,
+            ),
+            faction_colored_nicks=cls._to_bool(
+                config.get("faction_colored_nicks"),
+                default=cls.faction_colored_nicks,
             ),
             death_report_type=DeathReportTypeEnum[
                 config.get("death_report_type") or cls.death_report_type.name

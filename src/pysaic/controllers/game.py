@@ -111,6 +111,11 @@ def add_signal_state(content: str):
     add_to_crc_input_file(f"SignalState/{content}")
 
 
+@ensure_game_is_running
+def add_faction_colored_nicks(enabled: bool):
+    add_setting_to_game("FactionColoredNicks", str(enabled))
+
+
 def _get_chat_user_faction(faction: Optional[FactionsEnum]):
     return faction or FactionsEnum.Anonymous
 

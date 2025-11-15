@@ -16,6 +16,7 @@ from pysaic.controllers.game import (
     ask_for_actor_status,
     set_ingame_display_setting,
     set_ingame_display_setting_order_setting,
+    add_faction_colored_nicks,
 )
 from pysaic.crc_strings.use_case import DeathMessageUseCase
 from pysaic.entities import (
@@ -194,6 +195,7 @@ class GameHandshakeUseCase:
             self.config.in_game_users_display_order.name
         )
         add_signal_state(str(self.state.fake_disconnect))
+        add_faction_colored_nicks(self.config.faction_colored_nicks)
 
 
 class GameChannelMessageUseCase:
@@ -301,10 +303,15 @@ class ConnectionLostUseCase:
 
     @inject.autoparams()
     async def execute(self, state: State):
-        logger.debug(
+        logger.info(
             "Connection lost: %r",
             self.entity,
         )
+        if self.entity.reason is None:
+            logger.debug("No reason for reconnect, ignoring")
+            add_signal_state(str(state.fake_disconnect))
+            return
+
         if state.is_currently_under_network_destruction == self.entity.reason:
             logger.debug(
                 "Already in the desired state, ignoring",

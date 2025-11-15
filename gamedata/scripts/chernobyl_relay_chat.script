@@ -19,6 +19,7 @@ local NOT_IN_GAME_ARGB = GetARGB(255, 255, 128, 128) -- red
 local IN_GAME_ARGB = GetARGB(255, 128, 255, 154)  -- green
 local IS_SIGNAL_LOST = false
 local USER_LIST_ORDER
+local COLORED_NICKS
 local FACTION_SIZE = {}
 
 -- Options
@@ -295,6 +296,14 @@ function parseInGameDisplayOrder(value)
 end
 
 
+function parseFactionColors(value)
+    COLORED_NICKS = isTrue(value)
+    if chatBox then
+        chatBox:UpdateUsers()
+    end
+end
+
+
 local settingsParserMap = {
 	NewsDuration = parseNewsDuration,
 	ChatKey = parseChatKey,
@@ -308,7 +317,8 @@ local settingsParserMap = {
 	Channels = parseChannels,
 	AFK = parseAFK,
 	Handshake = parseHandshake,
-    InGameUserDisplayOrder = parseInGameDisplayOrder
+    InGameUserDisplayOrder = parseInGameDisplayOrder,
+    FactionColoredNicks = parseFactionColors
 }
 
 
@@ -811,6 +821,9 @@ function ChatBox:UpdateUsers()
 
         icon:InitTexture(data.icon or crc_icons.unknown)
         name:TextControl():SetText(data.nick)
+        if COLORED_NICKS and data.faction then
+            name:TextControl():SetTextColor(pysaic_constants.FACTION_COLORS[data.faction])
+        end
         if NotInGame then
 			if data.afk then
 				status:TextControl():SetText(gt("crc_afk"))
