@@ -2,15 +2,69 @@ import asyncio
 import logging
 from asyncio import Task
 from collections import deque
+from dataclasses import dataclass
 from datetime import datetime
 from pathlib import Path
 from typing import Optional
 
 from pysaic.config import Config
-from pysaic.entities import ChatUser, ChatUsers, Player
-from pysaic.enums import DisconnectOnNetworkDestructionSetting
+from pysaic.entities import ChatUser, ChatUsers
+from pysaic.enums import (
+    DisconnectOnNetworkDestructionSetting,
+    LocationEnum,
+    RankEnum,
+    ReputationEnum,
+    AvatarEnum,
+)
 
 logger = logging.getLogger(__name__)
+
+
+@dataclass()
+class Player(ChatUser):
+    money: int = 0
+    config: Optional[Config] = None
+    logger = logger.getChild("player")
+
+    def reset(self):
+        self.location = LocationEnum.unknown
+        self.in_game = False
+        self.rank = RankEnum.unknown
+        self.reputation = ReputationEnum.unknown
+        self.money = 0
+        self.last_ask_update = None
+        self.afk = False
+
+    def create_chat_user(self) -> ChatUser:
+        return ChatUser(
+            name=self.name,
+            faction=self.faction,
+            location=self.location,
+            in_game=self.in_game,
+            rank=self.rank,
+            reputation=self.reputation,
+            irc_mode=self.irc_mode,
+            avatar=self.get_avatar(myself=True),
+        )
+
+    def get_avatar(self, myself: bool = False) -> str:
+        if myself is True:
+            return self.config.current_avatar
+
+        return (
+            "random"
+            if self.config.avatar == AvatarEnum.player
+            else self.config.current_avatar
+        )
+
+    @classmethod
+    def create_from_config(cls, config):
+        return cls(
+            name=config.nick,
+            faction=config.current_faction,
+            avatar=config.current_avatar,
+            config=config,
+        )
 
 
 class State:
