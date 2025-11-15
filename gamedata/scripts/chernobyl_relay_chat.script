@@ -776,6 +776,50 @@ function pairsByKeys(t, f)
 	end
 end
 
+
+function ChatBox:_add_user_to_user_list(user_node_name, user_data)
+    local user, icon, name, status
+    local NotInGame = user_data.location == "False"
+    user = self.xml:InitStatic(user_node_name, nil)
+    icon = self.xml:InitStatic(user_node_name .. ":icon", user)
+    name = self.xml:InitStatic(user_node_name .. ":name", user)
+    status = self.xml:InitStatic(user_node_name .. ":status", user)
+    if option.userDisplayStyle == pysaic_constants.UserDisplayStyleEnum.PySAIC_Card then
+        self:setPySAICCard(user_data, user)
+    elseif option.userDisplayStyle == pysaic_constants.UserDisplayStyleEnum.PySAIC_Compact then
+        self:setPySAICCompact(user_data, user)
+    end
+
+    icon:InitTexture(user_data.icon or crc_icons.unknown)
+    name:TextControl():SetText(user_data.nick)
+    if COLORED_NICKS and user_data.faction then
+        name:TextControl():SetTextColor(pysaic_constants.FACTION_COLORS[data.faction])
+    end
+    if NotInGame then
+        if user_data.afk then
+            status:TextControl():SetText(gt("crc_afk"))
+            status:TextControl():SetTextColor(AFK_ARGB)
+        else
+            status:TextControl():SetText(gt("crc_notingame"))
+            status:TextControl():SetTextColor(NOT_IN_GAME_ARGB)
+        end
+    else
+        if option.userDisplayStyle == "CRCR" then
+            text = gt("crc_ingame")
+        else
+            text = gt(user_data.location) or gt("crc_ingame")
+        end
+        status:TextControl():SetText(text)
+        if user_data.afk then
+            status:TextControl():SetTextColor(AFK_ARGB)
+        else
+            status:TextControl():SetTextColor(IN_GAME_ARGB)
+        end
+    end
+    self.scroll:AddWindow(user, true)
+    user:SetAutoDelete(true)
+end
+
 function ChatBox:UpdateUsers()
     local last_scroll_pos = self.user_list:GetCurrentScrollPos()
     self.scroll:Clear()
@@ -808,47 +852,7 @@ function ChatBox:UpdateUsers()
             self.scroll:AddWindow(faction_separator, true)
             faction_separator:SetAutoDelete(true)
         end
-        local user, icon, name, status
-        local NotInGame = data.location == "False"
-		user = self.xml:InitStatic(user_node_name, nil)
-		icon = self.xml:InitStatic(user_node_name .. ":icon", user)
-		name = self.xml:InitStatic(user_node_name .. ":name", user)
-		status = self.xml:InitStatic(user_node_name .. ":status", user)
-        if option.userDisplayStyle == pysaic_constants.UserDisplayStyleEnum.PySAIC_Card then
-			self:setPySAICCard(data, user)
-		elseif option.userDisplayStyle == pysaic_constants.UserDisplayStyleEnum.PySAIC_Compact then
-			self:setPySAICCompact(data, user)
-        end
-
-        icon:InitTexture(data.icon or crc_icons.unknown)
-        name:TextControl():SetText(data.nick)
-        if COLORED_NICKS and data.faction then
-            name:TextControl():SetTextColor(pysaic_constants.FACTION_COLORS[data.faction])
-        end
-        if NotInGame then
-			if data.afk then
-				status:TextControl():SetText(gt("crc_afk"))
-				status:TextControl():SetTextColor(AFK_ARGB)
-			else
-				status:TextControl():SetText(gt("crc_notingame"))
-				status:TextControl():SetTextColor(NOT_IN_GAME_ARGB)
-			end
-        else
-            if option.userDisplayStyle == "CRCR" then
-				text = gt("crc_ingame")
-			else
-				text = gt(data.location) or gt("crc_ingame")
-			end
-            status:TextControl():SetText(text)
-			if data.afk then
-				status:TextControl():SetTextColor(AFK_ARGB)
-			else
-				status:TextControl():SetTextColor(IN_GAME_ARGB)
-			end
-
-        end
-        self.scroll:AddWindow(user, true)
-        user:SetAutoDelete(true)
+        self:_add_user_to_user_list(user_node_name, data)
     end
     self.scroll:SetScrollPos(last_scroll_pos)
 end
@@ -887,8 +891,6 @@ end
 function ChatBox:setPySAICCardMessage(data, message)
 	if data.rank and data.rank ~= "unknown" then
 		self.xml:InitStatic("message:rank", message):InitTexture("pysaic_rank_" .. data.rank)
-	else
-		printf("Rank is unknown")
 	end
 	if data.reputation == "Terrible" or data.reputation == "Dreary" or data.reputation == "Awful" or data.reputation == "Bad" then
 		self.xml:InitStatic("message:reputation", message):InitTexture("pysaic_reputation_bad")
