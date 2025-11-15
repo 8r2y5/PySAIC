@@ -8,6 +8,7 @@ from pysaic.controllers.game import (
     ask_for_handshake,
     set_ingame_display_setting,
     set_ingame_display_setting_order_setting,
+    add_faction_colored_nicks,
 )
 from pysaic.entities import (
     IncomingEvent,
@@ -145,7 +146,9 @@ class AppEventRouter(Router):
                 return
 
         if self.config.current_faction != user.faction:
+            logger.debug("Updating faction to %r", self.config.current_faction)
             self.state.player.faction = self.config.current_faction
+            self.config.recalculate_avatar()
             self.chat_users.set_user(
                 self.state.nick, self.state.player.create_chat_user()
             )
@@ -157,6 +160,7 @@ class AppEventRouter(Router):
         set_ingame_display_setting_order_setting(
             self.config.in_game_users_display_order.name
         )
+        add_faction_colored_nicks(self.config.faction_colored_nicks)
 
     def _update_nick_from_options(self):
         logger.debug("Updating nick")
@@ -179,8 +183,8 @@ class AppEventRouter(Router):
         logger.debug("Handling OPTIONS_UPDATED event")
         self._add_information_text("Options have been updated.")
 
-        self._update_crc_users_data()
         self._update_faction_setting()
+        self._update_crc_users_data()
         self._update_ingame_display_setting()
         self._update_ui_user_list()
 
