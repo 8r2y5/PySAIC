@@ -60,25 +60,26 @@ class GameEventRouter(Router):
         self.state.player_update_task = None
 
     def route(self):
-        if self.event.event.what == GameEvents.ACTOR_UPDATE:
-            self._handle_actor_update()
-        elif self.event.event.what == GameEvents.MONEY_CHANGE:
-            self._handle_money_change()
-        elif self.event.event.what == GameEvents.HANDSHAKE:
-            self._handle_game_handshake()
-        elif self.event.event.what == GameEvents.PLAYER_LOCATION:
-            self._handle_player_location()
-        elif self.event.event.what == GameEvents.ACHIEVEMENT:
-            self._handle_new_achievement()
-        elif self.event.event.what == GameEvents.RANK:
-            self._handle_rank()
-        elif self.event.event.what == GameEvents.REPUTATION:
-            self._handle_reputation()
-        elif self.event.event.what == GameEvents.AFK:
-            # this if exists only so logger doesn't complain about missing handler
-            pass
-        else:
-            logger.warning("Unknown game event: %r", self.event)
+        match self.event.event.what:
+            case GameEvents.ACTOR_UPDATE:
+                self._handle_actor_update()
+            case GameEvents.MONEY_CHANGE:
+                self._handle_money_change()
+            case GameEvents.HANDSHAKE:
+                self._handle_game_handshake()
+            case GameEvents.PLAYER_LOCATION:
+                self._handle_player_location()
+            case GameEvents.ACHIEVEMENT:
+                self._handle_new_achievement()
+            case GameEvents.RANK:
+                self._handle_rank()
+            case GameEvents.REPUTATION:
+                self._handle_reputation()
+            case GameEvents.AFK:
+                # this if exists only so logger doesn't complain about missing handler
+                pass
+            case _:
+                logger.warning("Unknown game event: %r", self.event)
         # this should be always at the end since game is sending signals
         self._handle_not_afk()
 
