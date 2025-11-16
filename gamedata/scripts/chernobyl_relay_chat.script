@@ -793,7 +793,9 @@ function ChatBox:_add_user_to_user_list(user_node_name, user_data)
     icon:InitTexture(user_data.icon or crc_icons.unknown)
     name:TextControl():SetText(user_data.nick)
     if COLORED_NICKS and user_data.faction then
-        name:TextControl():SetTextColor(pysaic_constants.FACTION_COLORS[data.faction])
+        name:TextControl():SetTextColor(
+            pysaic_constants.FACTION_COLORS[user_data.faction]
+        )
     end
     if NotInGame then
         if user_data.afk then
