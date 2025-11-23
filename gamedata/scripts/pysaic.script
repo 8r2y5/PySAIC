@@ -1,0 +1,938 @@
+--| PySAIC's Script by brzys
+
+local SCRIPT_VERSION = 13
+
+-- Constants
+local UPDATE_INTERVAL = 250  -- 250ms
+local MAX_MESSAGE_LOG_LENGTH = 15
+local INPATH = getFS():update_path("$game_config$", "").."\\crc_input.txt"
+local OUTPATH = getFS():update_path("$game_config$", "").."\\crc_output.txt"
+local MESSAGE_COLOR = "%c[255,255,255,255]"  -- white
+local QUERY_COLOR = "%c[255,255,192,192]"  -- light pink
+local ERROR_COLOR = "%c[255,255,128,128]"  -- light red
+local HIGHLIGHT_COLOR = "%c[255,255,255,128]"  -- light yellow
+local MONEY_COLOR = "%c[255,255,139,1]"  -- orange
+local AFK_ARGB = GetARGB(255, 255, 255, 32)  -- yellow
+local NOT_IN_GAME_ARGB = GetARGB(255, 255, 128, 128) -- red
+local IN_GAME_ARGB = GetARGB(255, 128, 255, 154)  -- green
+local IS_SIGNAL_LOST = false
+local USER_LIST_ORDER
+local COLORED_NICKS
+local FACTION_SIZE = {}
+
+-- Options
+local option = {
+	newsDuration = 10000,  -- 10 seconds
+	chatKey = DIK_keys.DIK_RETURN,
+	nickAutoCompleteKey = DIK_keys.DIK_TAB,
+	newsSound = true,
+	closeChat = true,
+	disconnectWhenBlowoutOrUnderground = true,
+	userDisplayStyle = pysaic_constants.UserDisplayStyleEnum.CRCR
+}
+
+-- Etc
+local config = system_ini()
+local lastUpdate = 0
+local sendQueue = {}
+local messageLog = {}
+local chatBox
+local showChatBox = false
+local ChatBoxEnabled = true
+local users = {}
+local knownIcons = {}
+local prev_money = 0
+local prev_actor
+local prev_level
+local prev_reputation
+local prev_rank
+local table_channel = {}
+local irc_name_to_description = {}
+
+
+local function gt(id)
+	local result = game.translate_string(id)
+	if result == id then
+		return nil
+	else
+		return result
+	end
+end
+
+local function isTrue(value)
+	return value == "True"
+end
+
+-- it is reloaded every time game is loaded, should also be recreated
+-- when user change language in options
+local newsSoundMap = {
+    [crc_icons.info] = "pda_welcome",
+    [crc_icons.error] = "pda_alarm",
+    ["default"] = "pda_tips"
+}
+
+local function getNewsSound(messageType)
+    return newsSoundMap[messageType] or newsSoundMap["default"]
+end
+
+local function addMessage(icon, title, text, reputation, rank)
+	local messageLogLength = size_table(messageLog)
+	if messageLogLength > MAX_MESSAGE_LOG_LENGTH then
+		local toRemove = messageLogLength - MAX_MESSAGE_LOG_LENGTH
+		for _ = toRemove, 1, -1 do
+			table.remove(messageLog, 1)
+		end
+	end
+	table.insert(
+		messageLog,
+		{
+			title = title,
+			text = text,
+			icon = icon,
+			reputation = reputation,
+			rank = rank
+		}
+	)
+	db.actor:give_game_news(title, text, icon, 0, option.newsDuration)
+	if option.newsSound then
+		xr_sound.set_sound_play(db.actor:id(), getNewsSound(icon))
+	end
+	if chatBox then
+		chatBox:UpdateMessages()
+	end
+end
+
+local function send(message, ...)
+	local line = message:format(...).."\n"
+	table.insert(sendQueue, line)
+end
+
+function send_handshake(body)
+    printf("Sending handshake with body: %s", body)
+	send("Handshake/%s/%s", SCRIPT_VERSION, body or "null")
+end
+
+function parseInformationMessage(body)
+	addMessage(
+		crc_icons.info,
+		gt("crc_info"),
+		body,
+		nil,
+		nil
+	)
+end
+
+function parseErrorMessage(body)
+	addMessage(
+		crc_icons.error,
+		gt("crc_error"),
+		ERROR_COLOR .. body,
+		nil,
+		nil
+	)
+end
+
+function handle_icon(name, faction, icon_id)
+	if not knownIcons[name] then
+		icon = crc_icons.getIconSafe(name, faction, icon_id)
+	else
+		icon = knownIcons[name]
+	end
+	return icon
+end
+
+local function _get_title_value(faction, user_type)
+    local title_value = ''
+    local faction_value = ''
+    if user_type == pysaic_constants.IRCUserModeEnum.Operator then
+        title_value = gt("pysaic_irc_operator")
+    elseif user_type == pysaic_constants.IRCUserModeEnum.HalfOp then
+        title_value = gt("pysaic_irc_halfop")
+    elseif user_type == pysaic_constants.IRCUserModeEnum.Voice then
+        title_value = gt("pysaic_irc_voice")
+    end
+    if title_value ~= '' then
+        title_value = title_value .. ', '
+    end
+    if faction then
+        faction_value = gt("crc_"..faction)
+    elseif gt("crc_actor_anonymous") then
+        faction_value = gt("crc_actor_anonymous")
+    else
+        faction_value = gt("crc_unknown")
+    end
+    return title_value .. faction_value
+end
+
+function parseChannelMessage (body)
+	local faction, name, icon_id, reputation, rank, highlight, user_type, message = body:match("([^/]+)/([^/]+)/([^/]+)/([^/]+)/([^/]+)/([^/]+)/([^/]+)/(.+)")
+	highlight = isTrue(highlight)
+	local icon = handle_icon(name, faction, icon_id)
+	if chatBox then
+		chatBox:UpdateUsers()
+	end
+	local text = ((highlight and HIGHLIGHT_COLOR) or MESSAGE_COLOR) .. message
+	addMessage(
+        icon,
+        name..', '.._get_title_value(faction, user_type),
+        text,
+        reputation,
+        rank
+    )
+end
+
+function parsePrivateMessage(body)
+	local faction, user_type, from, from_icon, reputation, rank, to, message = body:match("([^/]+)/([^/]+)/([^/]+)/([^/]+)/([^/]+)/([^/]+)/([^/]+)/(.+)")
+	icon = handle_icon(from, faction, from_icon, user_type)
+	if chatBox then
+		chatBox:UpdateUsers()
+	end
+	addMessage(icon, from .. " -> " .. to, QUERY_COLOR .. message, reputation, rank)
+end
+
+function parseSendingMoney(body)
+	local from, reputation, rank, to, amount = body:match("([^/]+)/([^/]+)/([^/]+)/([^/]+)/(.+)")
+	if chatBox then
+		chatBox:UpdateUsers()
+	end
+	local title = from .. " " .. (gt("crc_money")) .. " " .. to
+	local text = MONEY_COLOR .. amount .. " RUB"
+	addMessage(crc_icons.info, title, text, reputation, rank)
+	if users[from] then
+		db.actor:give_money(-amount)
+	end
+end
+
+function parseGettingMoney(body)
+	-- parsing information fully but reputation and rank should not be displayed
+	local from, reputation, rank, amount = body:match("([^/]+)/([^/]+)/([^/]+)/(.+)")
+	if chatBox then
+		chatBox:UpdateUsers()
+	end
+	local title = from .. " " .. (gt("crc_money_recv"))
+	local text = MONEY_COLOR .. amount .. " RUB"
+	addMessage(crc_icons.info, title, text, nil, nil)
+	db.actor:give_money(amount)
+end
+
+function parseNewsDuration(value)
+	option.newsDuration = tonumber(value)
+end
+
+function parseChatKey(value)
+	option.chatKey = DIK_keys[value]
+end
+
+function parseNickAutoCompleteKey(value)
+	option.nickAutoCompleteKey = DIK_keys[value]
+end
+
+function parseNewsSound(value)
+	option.newsSound = isTrue(value)
+end
+
+function parseCloseChat(value)
+	option.closeChat = isTrue(value)
+end
+
+function parseActorStatus()
+	sendActorStatus()
+end
+
+function parseCurrentChannel(value)
+	prevChannel = value
+end
+
+function parseDisconnectWhenBlowoutOrUnderground(value)
+	option.disconnectWhenBlowoutOrUnderground = isTrue(value)
+end
+
+function parseUserDisplayStyle(value)
+	if not pysaic_constants.UserDisplayStyleEnum[value] then
+		value = pysaic_constants.UserDisplayStyleEnum.CRCR
+	end
+	option.userDisplayStyle = value
+end
+
+function parseChannels(value)
+	table_channel = {}
+	for channel_tuple in value:gmatch("([^,]+)") do
+		for irc_name, description_name in channel_tuple:gmatch("([^/]+)%s=%s([^/]+)") do
+			table.insert(table_channel, irc_name)
+			irc_name_to_description[irc_name] = description_name
+		end
+	end
+	if chatBox then
+		chatBox:UpdateChannels()
+	end
+end
+
+
+function parseAFK(value)
+	send('AFK/null')
+end
+
+
+function parseHandshake(body)
+	send_handshake(body)
+end
+
+function parseInGameDisplayOrder(value)
+    if value == pysaic_constants.InGameDisplayStyleEnum.Faction then
+        USER_LIST_ORDER = sort_by_faction
+    elseif value == pysaic_constants.InGameDisplayStyleEnum.Faction_Counter then
+        USER_LIST_ORDER = sort_by_faction_and_counter
+    elseif value == pysaic_constants.InGameDisplayStyleEnum.OnlineStatus then
+        USER_LIST_ORDER = sort_by_online_status
+    else
+        USER_LIST_ORDER = sort_by_nick
+    end
+    printf("User list order updated to: %s", USER_LIST_ORDER)
+    if chatBox then
+        chatBox:UpdateUsers()
+    end
+end
+
+
+function parseFactionColors(value)
+    COLORED_NICKS = isTrue(value)
+    if chatBox then
+        chatBox:UpdateUsers()
+    end
+end
+
+
+local settingsParserMap = {
+	NewsDuration = parseNewsDuration,
+	ChatKey = parseChatKey,
+	NickAutoCompleteKey = parseNickAutoCompleteKey,
+	NewsSound = parseNewsSound,
+	CloseChat = parseCloseChat,
+	ActorStatus = parseActorStatus,
+	CurrentChannel = parseCurrentChannel,
+	DisconnectWhenBlowoutOrUnderground = parseDisconnectWhenBlowoutOrUnderground,
+	UserDisplayStyle = parseUserDisplayStyle,
+	Channels = parseChannels,
+	AFK = parseAFK,
+	Handshake = parseHandshake,
+    InGameUserDisplayOrder = parseInGameDisplayOrder,
+    FactionColoredNicks = parseFactionColors
+}
+
+
+function parseSettings(body)
+	local setting, value = body:match("([^/]+)/(.+)")
+	local parser = settingsParserMap[setting]
+	if parser then
+		parser(value)
+	--else
+		--printf("Unknown setting: '%s' with value: '%s'", setting, value)
+	end
+end
+
+function parseUsers(body)
+	users = {}
+    knownIcons = {}
+    FACTION_SIZE = {}
+	for user_nick, faction, rank, reputation, afk, avatar_id, user_type, location in body:gmatch("([^/]+),([^/]+),([^/]+),([^/]+),([^/]+),([^/]+),([^/]+)%s=%s([^/]+)") do
+		local user_icon = crc_icons.getIconSafe(user_nick, faction, avatar_id, user_type)
+		users[user_nick] = {
+			faction = faction,
+			rank = rank,
+			reputation = reputation,
+			location = location,
+			afk = afk == "1",
+			icon = user_icon,
+			nick = user_nick,
+            user_type = user_type
+		}
+		knownIcons[user_nick] = user_icon
+        FACTION_SIZE[faction] = (FACTION_SIZE[faction] or 0) + 1
+	end
+	if chatBox then
+		chatBox:UpdateUsers()
+	end
+end
+
+function parseSignalState(body)
+    IS_SIGNAL_LOST = body == 'True'
+end
+
+local inputActions = {
+	Information = parseInformationMessage,
+	Error = parseErrorMessage,
+	Message = parseChannelMessage,
+	Query = parsePrivateMessage,
+	Money = parseSendingMoney,
+	MoneyRecv = parseGettingMoney,
+	Setting = parseSettings,
+	Users = parseUsers,
+    SignalState = parseSignalState
+}
+
+
+function sendActorStatus()
+	printf("Sending actor status")
+    update_money(true)
+	update_faction_if_not_sync(true)
+	update_location_if_not_sync(true)
+	update_reputation_if_not_sync(true)
+	update_rank_if_not_sync(true)
+	fake_conn_lost_update_client(true)
+	send("DEBUG/%s", DEV_DEBUG)
+end
+
+function parseInput(receiveQueue)
+	for _, line in ipairs(receiveQueue) do
+		local type, body = line:match("([^/]+)/(.+)")
+		local action = inputActions[type]
+		if action then
+			--printf("Input message: %s, %s", type, body)
+			action(body)
+		else
+			printf("No callback for '%s'", type)
+			-- Whine about it
+		end
+	end
+end
+
+function writeOutput()
+	local output = io.open(OUTPATH, "a")
+	if output then
+		for _, line in ipairs(sendQueue) do
+			output:write(line)
+		end
+		output:close()
+		sendQueue = {}
+	end
+end
+
+local function update()
+	if chatBox and not chatBox.focus then
+		chatBox.editBox:CaptureFocus(true)
+		chatBox.focus = true
+	end
+
+	if showChatBox and ChatBoxEnabled then
+		showChatBox = false
+		chatBox = ChatBox()
+		-- chatBox:UpdateChannels()
+		chatBox:ShowDialog()
+		-- Disable keypress callback so other scripts don't fire while typing
+		Register_UI("ChatBox","chernobyl_relay_chat")
+	end
+
+	if not db.actor or time_global() < lastUpdate + UPDATE_INTERVAL then
+		return
+	end
+	lastUpdate = time_global()
+
+	if #sendQueue > 0 then
+		writeOutput()
+	end
+
+	local input = io.open(INPATH, "r")
+	if input then
+		local receiveQueue = {}
+		for line in input:lines() do
+			table.insert(receiveQueue, line)
+		end
+		input:close()
+
+		-- Clear the input file after reading
+		input = io.open(INPATH, "w")
+		if input then
+			input:close()
+		end
+
+		parseInput(receiveQueue)
+	end
+end
+
+local function onDeath(whoID)
+	local section, class
+	local who = whoID and alife():object(whoID)
+	if not who then
+		section = "UNKNOWN"
+		class = "UNKNOWN"
+	else
+		section = who:section_name()
+		class = ini_sys:r_string_ex(section, "kind") or ini_sys:r_string_ex(section, "class")
+		if class == "AI_STL_S" then
+			class = who:community()
+		end
+	end
+	if not isDead then --possible fix for death message spam
+		isDead = true
+		send("Death/%s/%s/%s/%s", db.actor:character_community(), level.name(), class:upper(), section)
+	end
+	if chatBox then
+		ChatBox:Cancel()
+	end
+	ChatBoxEnabled = false
+end
+
+local function onKeyPress(dik)
+	if dik == option.chatKey and not chatBox then
+		if IS_SIGNAL_LOST then
+			db.actor:give_game_news(gt("crc_info"), gt("crc_signallost"), crc_icons.info, 0, option.newsDuration)
+			xr_sound.set_sound_play(db.actor:id(), "pda_tips")
+			send("ConnLost/%s/%s", prev_fake_conn_status, get_disconnect_reason())
+		else
+			-- Defer to next update to avoid this keypress being sent to the UI as well
+			showChatBox = true
+		end
+	end
+end
+
+function update_money(force_send)
+    local cur_money = db.actor:money()
+    if prev_money == cur_money and not force_send then
+		return
+	end
+    prev_money = cur_money
+	send("Money/%s", cur_money)
+end
+
+function get_disconnect_reason()
+	if (level_weathers.bLevelUnderground) then
+        reason = "Underground"
+    elseif (xr_conditions.surge_started()) then
+        reason = "Surge"
+    else
+        reason = "None"
+    end
+	return reason
+end
+
+function fake_conn_lost_update_client(force_send)
+	local cur_fake_conn_status = fake_conn_lost()
+	if not force_send and prev_fake_conn_status == cur_fake_conn_status then
+		return
+	end
+	prev_fake_conn_status = cur_fake_conn_status
+    send("ConnLost/%s/%s", prev_fake_conn_status, get_disconnect_reason())
+    printf("Connection status updated to client - " .. tostring(cur_fake_conn_status))
+end
+
+function fake_conn_lost()
+	if (level_weathers.bLevelUnderground or xr_conditions.surge_started()) then
+	    if option.disconnectWhenBlowoutOrUnderground then
+            if IS_SIGNAL_LOST and chatBox then
+                ChatBox:Cancel()
+            end
+            return true
+        end
+        return false
+    end
+	return false
+end
+
+function actor_on_update()
+    update_money(nil)
+	fake_conn_lost_update_client(nil)
+	update_faction_if_not_sync(nil)
+	update_location_if_not_sync(nil)
+	update_reputation_if_not_sync(nil)
+	update_rank_if_not_sync(nil)
+end
+
+
+function update_reputation_if_not_sync(force_send)
+    if not db.actor then
+        return
+    end
+
+    local current_reputation_name = utils_obj.get_reputation_name(db.actor:character_reputation())
+    if prev_reputation == current_reputation_name and not force_send then
+        return
+    end
+
+    send("Reputation/%s", current_reputation_name)
+    prev_reputation = current_reputation_name
+end
+
+
+function update_rank_if_not_sync(force_send)
+    if not db.actor then
+        return
+    end
+
+    local current_rank = ranks.get_obj_rank_name(db.actor)
+    if prev_rank == current_rank and not force_send then
+        return
+    end
+
+    send("Rank/%s", current_rank)
+    prev_rank = current_rank
+end
+
+
+function update_location_if_not_sync(force_send)
+    local current_level = level.name()
+    if prev_level == current_level and not force_send then
+        return
+    end
+    prev_level = current_level
+
+    send("Location/%s", current_level)
+end
+
+function on_achievement_earned(param1, param2)
+    send("Achievement/%s/%s", param1, param2)
+end
+
+function update_faction_if_not_sync(force_send)
+    if not db.actor then
+        return
+    end
+
+    local current_actor = db.actor:character_community()
+    if prev_actor == current_actor and not force_send then
+        return
+    end
+
+    send("ActorStatus/%s", current_actor)
+    prev_actor = current_actor
+end
+
+function save_state(m_data)
+	m_data.connstatus = prev_fake_conn_status
+	m_data.prevChannel = prevChannel
+end
+
+function load_state(m_data)
+    USER_LIST_ORDER = sort_by_nick
+	prev_fake_conn_status = m_data.connstatus or false
+	prevChannel = m_data.prevChannel or ''
+end
+
+function actor_on_net_destroy()
+	if chatBox and option.disconnectWhenBlowoutOrUnderground then
+		ChatBox:Cancel()
+	end
+end
+
+function actorOnItemTake(item)
+	if IsArtefact(item) then
+		send('ArtifactFound/%s/%s/%s', item:name(), level.name(), item:section())
+	end
+end
+
+function on_game_start()
+    printf('CRC script started with version %s', SCRIPT_VERSION)
+	isDead = false
+	ChatBoxEnabled = true
+    USER_LIST_ORDER = sort_by_nick
+	AddUniqueCall(update)
+	RegisterScriptCallback("save_state", save_state)
+	RegisterScriptCallback("load_state", load_state)
+	RegisterScriptCallback("actor_on_before_death", onDeath)
+	RegisterScriptCallback("actor_on_update", actor_on_update)
+	RegisterScriptCallback("actor_on_achievement_earned", on_achievement_earned)
+	RegisterScriptCallback("actor_on_net_destroy", actor_on_net_destroy)
+	-- Not using axr_keybind for old version compatibility
+	RegisterScriptCallback("on_key_press", onKeyPress)
+	RegisterScriptCallback("actor_on_item_take", actorOnItemTake)
+	send_handshake('startup')
+end
+----------------------------------------------GUI------------------------------------------------------
+
+class "ChatBox" (CUIScriptWnd)
+function ChatBox:__init() super()
+	self:SetWndRect(Frect():set(0, 0, 1024, 768))
+	self.xml = CScriptXmlInit()
+	self.xml:ParseFile("crc_chatbox.xml")
+
+	self.xml:InitStatic("background", self)
+	self.xml:InitStatic("background_userlist", self)
+	self.xml:InitFrame("frame", self)
+
+	self.editBox = self.xml:InitEditBox("edit_box", self)
+	self.list_channel = self.xml:InitComboBox("list_channel", self)
+	self.scroll = self.xml:InitScrollView("scroll", self)
+
+	self:Register(self.list_channel, "list_channel")
+	self:Register(self.xml:Init3tButton("button_send", self), "button_send")
+	self:Register(self.xml:Init3tButton("button_close", self), "button_close")
+
+	self:AddCallback("button_send", ui_events.BUTTON_CLICKED, self.Send, self)
+	self:AddCallback("button_close", ui_events.BUTTON_CLICKED, self.Cancel, self)
+	self:AddCallback("list_channel", ui_events.LIST_ITEM_SELECT, self.OnSelectChannel, self)
+
+	self.users = {}
+	self:UpdateUsers()
+	self.messages = {}
+	self:UpdateMessages()
+	self:UpdateChannels()
+
+	self.focus = false
+end
+
+function ChatBox:OnSelectChannel()
+	if prevChannel == self.list_channel:GetText() then
+		return
+	end
+	prevChannel = self.list_channel:GetText()
+	send("ChannelChange/%s", prevChannel)
+end
+
+function ChatBox:OnKeyboard(dik, keyboard_action)
+	CUIScriptWnd.OnKeyboard(self, dik, keyboard_action)
+	if keyboard_action == ui_events.WINDOW_KEY_PRESSED then
+		if dik == DIK_keys.DIK_RETURN or dik == DIK_keys.DIK_NUMPADENTER then
+			self:Send()
+		elseif dik == DIK_keys.DIK_ESCAPE then
+			currChannel = self.currChannel
+			self:Cancel()
+		elseif dik == option.nickAutoCompleteKey then
+            self:completeNick()
+		end
+	end
+	return true
+end
+
+
+function ChatBox:getUserNodeName()
+	local user_node_name = pysaic_constants.userDisplayToNodeMap[option.userDisplayStyle]
+	if not user_node_name then
+		user_node_name = "user"
+	end
+	return user_node_name
+end
+
+
+function ChatBox:setPySAICCard(data, user)
+	if data.rank ~= "unknown" then
+		self.xml:InitStatic("pysaic_card:rank", user):InitTexture("pysaic_rank_" .. data.rank)
+	end
+
+	if data.reputation == "Terrible" or data.reputation == "Dreary" or data.reputation == "Awful" or data.reputation == "Bad" then
+		self.xml:InitStatic("pysaic_card:reputation", user):InitTexture("pysaic_reputation_bad")
+	elseif data.reputation == "Good" or data.reputation == "Great" or data.reputation == "Brilliant" or data.reputation == "Excellent" then
+		self.xml:InitStatic("pysaic_card:reputation", user):InitTexture("pysaic_reputation_good")
+	end
+end
+
+
+function ChatBox:setPySAICCompact(data, user)
+	self.xml:InitStatic("pysaic_compact:rank", user):TextControl():SetText(tostring(data.rank))
+	self.xml:InitStatic("pysaic_compact:reputation", user):TextControl():SetText(tostring(data.reputation))
+end
+
+function sort_by_nick(nick, other_nick)
+	return nick:lower() < other_nick:lower()
+end
+
+function sort_by_online_status(nick, other_nick)
+    local user = users[nick]
+    local other_user = users[other_nick]
+    if user.location == "False" and other_user.location ~= "False" then
+        return false
+    elseif user.location ~= "False" and other_user.location == "False" then
+        return true
+    else
+        return sort_by_nick(nick, other_nick)
+    end
+end
+
+function sort_by_faction(nick, other_nick)
+    local user = users[nick]
+    local other_user = users[other_nick]
+    local anonymous_faction = "actor_anonymous"
+    local size_user = FACTION_SIZE[user.faction] or 0
+    local size_other = FACTION_SIZE[other_user.faction] or 0
+    if size_user ~= size_other then
+        return size_user > size_other
+    end
+    if user.faction ~= other_user.faction then
+        if user.faction == anonymous_faction then
+            return false
+        end
+        if other_user.faction == anonymous_faction then
+            return true
+        end
+        return gt('crc_' .. user.faction) < gt('crc_' .. other_user.faction)
+    end
+    return sort_by_online_status(nick, other_nick)
+end
+
+function sort_by_faction_and_counter(nick, other_nick)
+    return sort_by_faction(nick, other_nick)
+end
+
+function pairsByKeys(t, f)
+	local a = {}
+	for n in pairs(t) do
+		table.insert(a, n)
+	end
+	table.sort(a, f)
+	local i = 0
+	return function() -- iterator
+		i = i + 1
+		return a[i], t[a[i]]
+	end
+end
+
+
+function ChatBox:_add_user_to_user_list(user_node_name, user_data)
+    local user, icon, name, status
+    local NotInGame = user_data.location == "False"
+    user = self.xml:InitStatic(user_node_name, nil)
+    icon = self.xml:InitStatic(user_node_name .. ":icon", user)
+    name = self.xml:InitStatic(user_node_name .. ":name", user)
+    status = self.xml:InitStatic(user_node_name .. ":status", user)
+    if option.userDisplayStyle == pysaic_constants.UserDisplayStyleEnum.PySAIC_Card then
+        self:setPySAICCard(user_data, user)
+    elseif option.userDisplayStyle == pysaic_constants.UserDisplayStyleEnum.PySAIC_Compact then
+        self:setPySAICCompact(user_data, user)
+    end
+
+    icon:InitTexture(user_data.icon or crc_icons.unknown)
+    name:TextControl():SetText(user_data.nick)
+    if COLORED_NICKS and user_data.faction then
+        name:TextControl():SetTextColor(
+            pysaic_constants.FACTION_COLORS[user_data.faction]
+        )
+    end
+    if NotInGame then
+        if user_data.afk then
+            status:TextControl():SetText(gt("crc_afk"))
+            status:TextControl():SetTextColor(AFK_ARGB)
+        else
+            status:TextControl():SetText(gt("crc_notingame"))
+            status:TextControl():SetTextColor(NOT_IN_GAME_ARGB)
+        end
+    else
+        if option.userDisplayStyle == "CRCR" then
+            text = gt("crc_ingame")
+        else
+            text = gt(user_data.location) or gt("crc_ingame")
+        end
+        status:TextControl():SetText(text)
+        if user_data.afk then
+            status:TextControl():SetTextColor(AFK_ARGB)
+        else
+            status:TextControl():SetTextColor(IN_GAME_ARGB)
+        end
+    end
+    self.scroll:AddWindow(user, true)
+    user:SetAutoDelete(true)
+end
+
+function ChatBox:UpdateUsers()
+    local last_scroll_pos = self.scroll:GetCurrentScrollPos()
+    self.scroll:Clear()
+	local user_node_name = self:getUserNodeName()
+    local separator = (
+        USER_LIST_ORDER == sort_by_faction
+        or USER_LIST_ORDER == sort_by_faction_and_counter
+    )
+    local counter = (
+        USER_LIST_ORDER == sort_by_faction_and_counter
+    )
+    local last_faction
+    for _, data in pairsByKeys(users, USER_LIST_ORDER) do
+        if separator and last_faction ~= data.faction then
+            last_faction = data.faction
+            local faction_separator = self.xml:InitStatic("faction_separator", nil)
+            local faction_text = self.xml:InitStatic("faction_separator:name", faction_separator)
+            faction_text:TextControl():SetText(
+                gt("crc_"..(last_faction or "unknown") )
+            )
+            faction_text:TextControl():SetTextColor(
+                pysaic_constants.FACTION_COLORS[data.faction]
+            )
+            if counter then
+                local faction_name_counter = self.xml:InitStatic("faction_separator:counter", faction_separator)
+                faction_name_counter:TextControl():SetText(
+                    "(" .. tostring(FACTION_SIZE[data.faction] or 1) .. ")"
+                )
+            end
+            self.scroll:AddWindow(faction_separator, true)
+            faction_separator:SetAutoDelete(true)
+        end
+        self:_add_user_to_user_list(user_node_name, data)
+    end
+    self.scroll:SetScrollPos(last_scroll_pos)
+end
+
+function ChatBox:UpdateChannels()
+    if #table_channel == 0 then
+        send_handshake("UpdateChannels")
+        return
+    end
+    for i=1,#table_channel do
+        self.list_channel:AddItem(irc_name_to_description[table_channel[i]], i)
+    end
+
+    self.list_channel:SetText(irc_name_to_description[prevChannel])
+end
+
+function ChatBox:UpdateMessages()
+	for _, message in ipairs(self.messages) do
+		self:DetachChild(message)
+	end
+	self.messages = {}
+	for index, messageData in ipairs(messageLog) do
+		local message = self.xml:InitStatic("message", self)
+		local newPos = vector2():set(0, 768 - 100 - (#messageLog - index) * message:GetHeight())
+		message:SetWndPos(newPos)
+		self.xml:InitStatic("message:icon", message):InitTexture(messageData.icon)
+		self.xml:InitStatic("message:title", message):TextControl():SetText(messageData.title)
+		self.xml:InitStatic("message:message_text", message):TextControl():SetText(messageData.text)
+		if option.userDisplayStyle == pysaic_constants.UserDisplayStyleEnum.PySAIC_Card then
+			self:setPySAICCardMessage(messageData, message)
+		end
+		table.insert(self.messages, message)
+	end
+end
+
+function ChatBox:setPySAICCardMessage(data, message)
+	if data.rank and data.rank ~= "unknown" then
+		self.xml:InitStatic("message:rank", message):InitTexture("pysaic_rank_" .. data.rank)
+	end
+	if data.reputation == "Terrible" or data.reputation == "Dreary" or data.reputation == "Awful" or data.reputation == "Bad" then
+		self.xml:InitStatic("message:reputation", message):InitTexture("pysaic_reputation_bad")
+	elseif data.reputation == "Good" or data.reputation == "Great" or data.reputation == "Brilliant" or data.reputation == "Excellent" then
+		self.xml:InitStatic("message:reputation", message):InitTexture("pysaic_reputation_good")
+	end
+end
+
+function send_message(content)
+    send("Message/%s/%s", db.actor:character_community(), content)
+end
+
+
+function ChatBox:Send()
+	local input = self.editBox:GetText()
+	if input and input ~= "" then
+		self.editBox:SetText("")
+		send_message(input)
+	end
+	if option.closeChat then
+		self:Cancel()
+	else
+		chatBox.editBox:CaptureFocus(true)
+	end
+end
+
+function ChatBox:Cancel()
+	chatBox:HideDialog()
+	Unregister_UI("ChatBox") --possible fix to a stack trace: 0x000000014014D6CA (moved this BEFORE = nil)
+	chatBox = nil
+end
+
+function ChatBox:completeNick()
+    local text = self.editBox:GetText()
+    local nick = text:match("@(%w+)")
+    if nick then
+        for k, _ in pairs(users) do
+            if k:lower():find(nick:lower()) then
+                text = text:gsub("@"..nick, "@"..k)
+                self.editBox:SetText(text)
+                break
+            end
+        end
+    end
+end

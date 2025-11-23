@@ -1,0 +1,109 @@
+-- PySAIC's Icon Library
+
+info = "crc_icon_info"
+error = "crc_icon_error"
+unknown = "crc_icon_unknown"
+
+factions = {
+    actor_army = 16,
+    actor_bandit = 18,
+    actor_csky = 20,
+    actor_dolg = 10,
+    actor_ecolog = 7,
+    actor_freedom = 16,
+    actor_greh = 8,
+    actor_isg = 10,
+    actor_killer = 14,
+    actor_monolith = 8,
+    actor_renegade = 10,
+    actor_stalker = 20,
+    actor_zombied = 18,
+}
+
+pysaic_factions = {
+    actor_army = 35,
+    actor_bandit = 42,
+    actor_csky = 43,
+    actor_dolg = 43,
+    actor_ecolog = 40,
+    actor_freedom = 45,
+    actor_greh = 35,
+    actor_isg = 33,
+    actor_killer = 44,
+    actor_monolith = 35,
+    actor_renegade = 33,
+    actor_stalker = 57,
+    actor_zombied = 0,
+}
+
+function getIcon(name, faction, user_type)
+    -- should be handled by PySAIC, it is fallback
+    if user_type == pysaic_constants.IRCUserModeEnum.Operator then
+        return 'crc_icon_operator'
+    else
+        --There's a reason for this extreme wank but I don't remember what it is
+        local oldRandom = math.random()
+        local seed = 0
+        for _, charValue in ipairs({name:byte(1, #name)}) do
+            seed = seed + charValue
+        end
+        seed = seed / #name
+        seed = math.floor((seed - math.floor(seed)) * 10000)
+        math.randomseed(seed)
+        local count = factions[faction]
+        if count then
+            local index = math.random(factions[faction] + pysaic_factions[faction])
+            math.randomseed(oldRandom)
+            if index <= factions[faction] then
+                return "crc_icon_" .. faction .. "_" .. index
+            else
+                index = index - factions[faction]
+                return "pysaic_icon_" .. faction .. "_" .. index
+            end
+        else
+            return unknown
+        end
+    end
+end
+
+function _checkIconByMatch(icon_id, beginning_of_id, look_table)
+    icon = string.match(icon_id, "^(" .. beginning_of_id.. "_actor_[^_]+_[0-9]+)$")
+    if icon then
+        local faction = string.match(icon, "^" .. beginning_of_id .. "_(actor_[^_]+)")
+        if faction == nil then
+            return false
+        end
+        if look_table[faction] then
+            local index = tonumber(string.match(icon, "_([0-9]+)$"))
+            if index and index > 0 and index <= look_table[faction] then
+                return true
+            end
+        end
+    end
+end
+
+function isValidIcon(icon_id)
+    if icon_id == nil or icon_id == '' then
+        return false
+    end
+    if icon_id == 'pysaic_icon_player' then
+        return true
+    end
+    if _checkIconByMatch(icon_id, 'crc_icon', factions) then
+        return true
+    end
+    if _checkIconByMatch(icon_id, 'pysaic_icon', pysaic_factions) then
+        return true
+    end
+    return false
+end
+
+function getIconSafe(name, faction, icon_id, user_type)
+    local user_icon
+    if isValidIcon(icon_id) then
+        user_icon = icon_id
+    else
+        user_icon = getIcon(name, faction, user_type)
+    end
+    return user_icon
+end
