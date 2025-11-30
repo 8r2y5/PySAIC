@@ -586,7 +586,7 @@ class Options:
         Button(
             frame,
             text="Join Discord",
-            command=lambda: os.system("start https://discord.gg/KjNHXCkHr9"),
+            command=lambda: os.system("start https://discord.gg/wqETk83bvh"),
             background=self.background_color,
             foreground=self.text_color,
         ).grid(row=0, column=0, sticky="w")
