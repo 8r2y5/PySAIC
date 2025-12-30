@@ -66,8 +66,8 @@ end
 -- it is reloaded every time game is loaded, should also be recreated
 -- when user change language in options
 local newsSoundMap = {
-    [crc_icons.info] = "pda_welcome",
-    [crc_icons.error] = "pda_alarm",
+    [pysaic_icons.info] = "pda_welcome",
+    [pysaic_icons.error] = "pda_alarm",
     ["default"] = "pda_tips"
 }
 
@@ -114,7 +114,7 @@ end
 
 function parseInformationMessage(body)
 	addMessage(
-		crc_icons.info,
+		pysaic_icons.info,
 		gt("crc_info"),
 		body,
 		nil,
@@ -124,7 +124,7 @@ end
 
 function parseErrorMessage(body)
 	addMessage(
-		crc_icons.error,
+		pysaic_icons.error,
 		gt("crc_error"),
 		ERROR_COLOR .. body,
 		nil,
@@ -134,7 +134,7 @@ end
 
 function handle_icon(name, faction, icon_id)
 	if not knownIcons[name] then
-		icon = crc_icons.getIconSafe(name, faction, icon_id)
+		icon = pysaic_icons.getIconSafe(name, faction, icon_id)
 	else
 		icon = knownIcons[name]
 	end
@@ -197,7 +197,7 @@ function parseSendingMoney(body)
 	end
 	local title = from .. " " .. (gt("crc_money")) .. " " .. to
 	local text = MONEY_COLOR .. amount .. " RUB"
-	addMessage(crc_icons.info, title, text, reputation, rank)
+	addMessage(pysaic_icons.info, title, text, reputation, rank)
 	if users[from] then
 		db.actor:give_money(-amount)
 	end
@@ -211,7 +211,7 @@ function parseGettingMoney(body)
 	end
 	local title = from .. " " .. (gt("crc_money_recv"))
 	local text = MONEY_COLOR .. amount .. " RUB"
-	addMessage(crc_icons.info, title, text, nil, nil)
+	addMessage(pysaic_icons.info, title, text, nil, nil)
 	db.actor:give_money(amount)
 end
 
@@ -335,7 +335,7 @@ function parseUsers(body)
     knownIcons = {}
     FACTION_SIZE = {}
 	for user_nick, faction, rank, reputation, afk, avatar_id, user_type, location in body:gmatch("([^/]+),([^/]+),([^/]+),([^/]+),([^/]+),([^/]+),([^/]+)%s=%s([^/]+)") do
-		local user_icon = crc_icons.getIconSafe(user_nick, faction, avatar_id, user_type)
+		local user_icon = pysaic_icons.getIconSafe(user_nick, faction, avatar_id, user_type)
 		users[user_nick] = {
 			faction = faction,
 			rank = rank,
@@ -475,7 +475,7 @@ end
 local function onKeyPress(dik)
 	if dik == option.chatKey and not chatBox then
 		if IS_SIGNAL_LOST then
-			db.actor:give_game_news(gt("crc_info"), gt("crc_signallost"), crc_icons.info, 0, option.newsDuration)
+			db.actor:give_game_news(gt("crc_info"), gt("crc_signallost"), pysaic_icons.info, 0, option.newsDuration)
 			xr_sound.set_sound_play(db.actor:id(), "pda_tips")
 			send("ConnLost/%s/%s", prev_fake_conn_status, get_disconnect_reason())
 		else
@@ -788,7 +788,7 @@ function ChatBox:_add_user_to_user_list(user_node_name, user_data)
         self:setPySAICCompact(user_data, user)
     end
 
-    icon:InitTexture(user_data.icon or crc_icons.unknown)
+    icon:InitTexture(user_data.icon or pysaic_icons.unknown)
     name:TextControl():SetText(user_data.nick)
     if COLORED_NICKS and user_data.faction then
         name:TextControl():SetTextColor(
