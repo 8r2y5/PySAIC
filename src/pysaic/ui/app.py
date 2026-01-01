@@ -41,6 +41,21 @@ PATH = Path(os.path.abspath(os.path.dirname(__file__)))
 AUTO_COMPLETE_REGEXP = re.compile(r"[@]?\w+$")
 
 
+class AltFontSize:
+    def __init__(self, widget, delta):
+        self.widget = widget
+        self.delta = delta
+
+    def config(self, **kwargs):
+        if "font" in kwargs:
+            font = kwargs["font"]
+            if isinstance(font, (list, tuple)) and len(font) > 1:
+                font = (font[0], max(font[1] + self.delta, 1))
+                kwargs["font"] = font
+
+        self.widget.config(**kwargs)
+
+
 class App(Tk):
     @property
     def is_focused(self) -> bool:
@@ -139,8 +154,7 @@ class App(Tk):
         self._prepare_right_frame()
         self._prepare_bottom_frame()
 
-        self.users_list.config(font=("Microsoft Sans Serif", 11))
-        self.messages_list.config(font=("Microsoft Sans Serif", 11))
+        self._update_fonts_on_widgets()
         self.set_color_tags()
         if DEBUG:
             self._create_irc_window()
@@ -518,5 +532,23 @@ class App(Tk):
         )
         self.irc_messages_list.pack(expand=True, fill="both", padx=3, pady=3)
         self.irc_messages_list.tag_config("Text", foreground="ghost white")
-        self.irc_messages_list.config(font=("Microsoft Sans Serif", 11))
+        self.irc_messages_list.config(
+            font=(self.pysaic_config.font.name, self.pysaic_config.font.size)
+        )
         self.irc_messages_list.config(state="disabled")
+
+    def _update_fonts_on_widgets(self):
+        for widget in (
+            self.users_list,
+            self.messages_list,
+            self.input_message,
+            AltFontSize(self.send_button, -1),
+            AltFontSize(self.channels_dropbox, -2),
+            AltFontSize(self.options_button, -2),
+        ):
+            widget.config(
+                font=(
+                    self.pysaic_config.font.name,
+                    self.pysaic_config.font.size,
+                )
+            )

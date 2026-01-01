@@ -102,6 +102,22 @@ class Server:
 
 
 @dataclass
+class FontConfig:
+    name: str = "Segoe UI"
+    size: int = 11
+
+    @classmethod
+    def load_from_config(cls, config):
+        try:
+            return cls(
+                config.get("name") or cls.name, config.get("size") or cls.size
+            )
+        except Exception:
+            logger.exception("Could not read font config, creating default")
+            return cls()
+
+
+@dataclass
 class Config:
     nick: str
     server: Server
@@ -137,6 +153,7 @@ class Config:
     death_reports: bool = True
     pop_up_on_ping: bool = False
     pop_up_sound: bool = True
+    font: FontConfig = field(default_factory=FontConfig)
 
     @classmethod
     def load_config(cls):
@@ -191,6 +208,7 @@ class Config:
                     "death_reports": self.death_reports,
                     "pop_up_on_ping": self.pop_up_on_ping,
                     "pop_up_sound": self.pop_up_sound,
+                    "font": asdict(self.font),
                 },
                 f,
             )
@@ -231,6 +249,7 @@ class Config:
             "death_reports": cls.death_reports,
             "pop_up_on_ping": cls.pop_up_on_ping,
             "pop_up_sound": cls.pop_up_sound,
+            "font": cls.font,
         }
 
     @classmethod
@@ -315,6 +334,7 @@ class Config:
             pop_up_sound=cls._to_bool(
                 config.get("pop_up_sound"), default=cls.pop_up_sound
             ),
+            font=FontConfig.load_from_config(config),
         )
 
     @classmethod
