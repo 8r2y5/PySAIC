@@ -1,6 +1,0 @@
-channels:
-- description: CRCR English Moderated
-  name: '#crcr_english'
-host: irc.slashnet.org
-port: 6667
-previous_channel: '#crcr_english'
