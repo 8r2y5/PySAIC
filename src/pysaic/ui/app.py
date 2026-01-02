@@ -539,8 +539,8 @@ class App(Tk):
 
     def _update_fonts_on_widgets(self):
         for widget in (
-            self.users_list,
-            self.messages_list,
+            AltFontSize(self.users_list, 1),
+            AltFontSize(self.messages_list, 1),
             self.input_message,
             AltFontSize(self.send_button, -1),
             AltFontSize(self.channels_dropbox, -2),
