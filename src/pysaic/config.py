@@ -146,6 +146,7 @@ class ColorsConfig:
     duty: str = "firebrick1"
     freedom: str = "spring green"
     mercenary: str = "dodgerblue"
+    military: str = "PaleGreen3"
     renegade: str = "green yellow"
     zombie: str = "black"
     anonymous: str = "black"
@@ -156,6 +157,7 @@ class ColorsConfig:
     offline: str = "red"
     afk: str = "yellow"
     background: str = "gray30"
+    background_light: str = "gray40"
 
     @classmethod
     def load_from_config(cls, config: None | dict[str, str] = None):

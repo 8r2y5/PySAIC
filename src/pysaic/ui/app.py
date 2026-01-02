@@ -20,9 +20,11 @@ from tkinter.ttk import Scrollbar, Style
 
 from winotify import Notification, audio
 
+from pysaic.config import Config
 from pysaic.entities import AppEvent, IncomingEvent
 from pysaic.enums import AppEventEnum, FactionsEnum
 from pysaic.settings import APP_IDENTITY, DEBUG
+from pysaic.state import State
 from pysaic.ui.hyper_links import HyperlinkManager
 from pysaic.ui.options import Options
 
@@ -71,8 +73,8 @@ class App(Tk):
 
     def __init__(
         self,
-        state,
-        config,
+        state: State,
+        config: Config,
         incoming_queue: Queue,
         outgoing_queue: Queue,
     ):
@@ -84,7 +86,7 @@ class App(Tk):
             gripcount=0,
             background=BACKGROUND_COLOR,
             darkcolor="gray20",
-            lightcolor="gray40",
+            lightcolor=self.pysaic_config.colors.background_light,
             troughcolor="dim gray",
             bordercolor=BACKGROUND_COLOR,
             arrowcolor="floral white",
@@ -178,7 +180,7 @@ class App(Tk):
         self.messages_list = Text(
             left_frame,
             yscrollcommand=chat_scroll.set,
-            background="gray40",
+            background=self.pysaic_config.colors.background_light,
             wrap="word",
         )
         self.messages_list.grid(row=0, column=0, sticky="nsew")
@@ -241,13 +243,13 @@ class App(Tk):
         )
         self.channels_dropbox.config(
             bg=BACKGROUND_COLOR,
-            fg="ghost white",
+            fg=self.pysaic_config.colors.text,
             activebackground=BACKGROUND_COLOR,
-            activeforeground="ghost white",
+            activeforeground=self.pysaic_config.colors.text,
         )
         self.channels_dropbox["menu"].config(
             bg=BACKGROUND_COLOR,
-            fg="ghost white",
+            fg=self.pysaic_config.colors.text,
             activebackground="dim gray",
             activeforeground="black",
         )
@@ -258,7 +260,7 @@ class App(Tk):
             text="Options",
             command=lambda: Options(self.pysaic_config, self).main(),
             background=BACKGROUND_COLOR,
-            foreground="ghost white",
+            foreground=self.pysaic_config.colors.text,
             width=10,
         )
         self.options_button.grid(row=0, column=1, sticky="ew")
@@ -272,7 +274,7 @@ class App(Tk):
             right_bottom_frame,
             yscrollcommand=self.users_list_scroll.set,
             width=22,
-            background="gray40",
+            background=self.pysaic_config.colors.background_light,
         )
         self.users_list.pack(side="left", expand=True, fill="both")
         self.users_list_scroll.config(command=self.users_list.yview)
@@ -283,9 +285,9 @@ class App(Tk):
         self.bottom_frame.grid(row=1, column=0, columnspan=2, sticky="nsew")
         self.input_message = Entry(
             self.bottom_frame,
-            background="gray40",
-            foreground="ghost white",
-            disabledbackground="gray30",
+            background=self.pysaic_config.colors.background_light,
+            foreground=self.pysaic_config.colors.text,
+            disabledbackground=self.pysaic_config.colors.background,
         )
         self.input_message.pack(
             expand=True, fill="both", side="left", padx=3, pady=3
@@ -298,7 +300,7 @@ class App(Tk):
             self.bottom_frame,
             text="Send",
             command=input_function,
-            foreground="ghost white",
+            foreground=self.pysaic_config.colors.text,
             background=BACKGROUND_COLOR,
         )
         self.input_message.bind("<Tab>", self._nick_auto_complete)
@@ -416,75 +418,115 @@ class App(Tk):
         for widget in (self.messages_list, self.users_list):
             bold_font = Font(widget, widget.cget("font"))
             bold_font.configure(weight="bold")
-            widget.tag_config("Time", foreground="floral white")
-            widget.tag_config("Text", foreground="ghost white")
-            widget.tag_config("Highlight", background="gray50")
-            widget.tag_config("hyper", foreground="#3B8ED0", underline=1)
+            widget.tag_config(
+                "Time", foreground=self.pysaic_config.colors.time
+            )
+            widget.tag_config(
+                "Text", foreground=self.pysaic_config.colors.text
+            )
+            widget.tag_config(
+                "Highlight", background=self.pysaic_config.colors.highlight
+            )
+            widget.tag_config(
+                "hyper",
+                foreground=self.pysaic_config.colors.hyper_link,
+                underline=True,
+            )
             widget.tag_raise("sel", aboveThis="Highlight")
-            widget.tag_config("Information", foreground="lightblue")
-            widget.tag_config("Error", foreground="red3")
+            widget.tag_config(
+                "Information", foreground=self.pysaic_config.colors.information
+            )
+            widget.tag_config(
+                "Error", foreground=self.pysaic_config.colors.error
+            )
             widget.tag_config(
                 FactionsEnum.Clear_Sky.name,
-                foreground="deep sky blue",
+                foreground=self.pysaic_config.colors.clear_sky,
                 font=bold_font,
             )
             widget.tag_config(
                 FactionsEnum.Loner.name,
-                foreground="light goldenrod",
+                foreground=self.pysaic_config.colors.loner,
                 font=bold_font,
             )
             widget.tag_config(
                 FactionsEnum.Ecologist.name,
-                foreground="darkorange",
+                foreground=self.pysaic_config.colors.ecologist,
                 font=bold_font,
             )
             widget.tag_config(
-                FactionsEnum.Bandit.name, foreground="sienna3", font=bold_font
+                FactionsEnum.Bandit.name,
+                foreground=self.pysaic_config.colors.bandit,
+                font=bold_font,
             )
             widget.tag_config(
                 FactionsEnum.Monolith.name,
-                foreground="DarkOrchid3",
+                foreground=self.pysaic_config.colors.monolith,
                 font=bold_font,
             )
             widget.tag_config(
-                FactionsEnum.Duty.name, foreground="firebrick1", font=bold_font
+                FactionsEnum.Duty.name,
+                foreground=self.pysaic_config.colors.duty,
+                font=bold_font,
             )
             widget.tag_config(
                 FactionsEnum.Freedom.name,
-                foreground="spring green",
+                foreground=self.pysaic_config.colors.freedom,
                 font=bold_font,
             )
             widget.tag_config(
                 FactionsEnum.Mercenary.name,
-                foreground="dodgerblue",
+                foreground=self.pysaic_config.colors.mercenary,
                 font=bold_font,
             )
             widget.tag_config(
                 FactionsEnum.Military.name,
-                foreground="PaleGreen3",
+                foreground=self.pysaic_config.colors.military,
                 font=bold_font,
             )
             widget.tag_config(
                 FactionsEnum.Renegade.name,
-                foreground="green yellow",
+                foreground=self.pysaic_config.colors.renegade,
                 font=bold_font,
             )
             widget.tag_config(
-                FactionsEnum.Zombie.name, foreground="black", font=bold_font
+                FactionsEnum.Zombie.name,
+                foreground=self.pysaic_config.colors.zombie,
+                font=bold_font,
             )
             widget.tag_config(
-                FactionsEnum.Anonymous.name, foreground="black", font=bold_font
+                FactionsEnum.Anonymous.name,
+                foreground=self.pysaic_config.colors.anonymous,
+                font=bold_font,
             )
             widget.tag_config(
-                FactionsEnum.UNISG.name, foreground="salmon", font=bold_font
+                FactionsEnum.UNISG.name,
+                foreground=self.pysaic_config.colors.unisg,
+                font=bold_font,
             )
             widget.tag_config(
-                FactionsEnum.SIN.name, foreground="maroon4", font=bold_font
+                FactionsEnum.SIN.name,
+                foreground=self.pysaic_config.colors.sin,
+                font=bold_font,
             )
-            widget.tag_config("DM", foreground="hot pink", font=bold_font)
-            widget.tag_config("online", foreground="green", font=bold_font)
-            widget.tag_config("offline", foreground="red", font=bold_font)
-            widget.tag_config("afk", foreground="yellow", font=bold_font)
+            widget.tag_config(
+                "DM",
+                foreground=self.pysaic_config.colors.direct_message,
+                font=bold_font,
+            )
+            widget.tag_config(
+                "online",
+                foreground=self.pysaic_config.colors.online,
+                font=bold_font,
+            )
+            widget.tag_config(
+                "offline",
+                foreground=self.pysaic_config.colors.offline,
+                font=bold_font,
+            )
+            widget.tag_config(
+                "afk", foreground=self.pysaic_config.colors.afk, font=bold_font
+            )
 
     def _cycle_through_users(self, users, characters) -> str:
         users_gen = iter(users)
@@ -512,6 +554,7 @@ class App(Tk):
         self.input_message.delete(cursor_position, "insert")
         return TK_BREAK
 
+    # noinspection PyTypeChecker
     def _set_input_state(self, value: str):
         self.channels_dropbox.config(state=value)
         self.input_message.config(state=value)
@@ -527,11 +570,13 @@ class App(Tk):
         self.irc_window.configure(background=BACKGROUND_COLOR)
         self.irc_messages_list = Text(
             self.irc_window,
-            background="gray40",
+            background=self.pysaic_config.colors.background_light,
             wrap="word",
         )
         self.irc_messages_list.pack(expand=True, fill="both", padx=3, pady=3)
-        self.irc_messages_list.tag_config("Text", foreground="ghost white")
+        self.irc_messages_list.tag_config(
+            "Text", foreground=self.pysaic_config.colors.text
+        )
         self.irc_messages_list.config(
             font=(self.pysaic_config.font.name, self.pysaic_config.font.size)
         )
