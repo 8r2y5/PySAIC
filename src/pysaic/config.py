@@ -1,5 +1,5 @@
 import logging
-from dataclasses import asdict, dataclass, field, MISSING
+from dataclasses import asdict, dataclass, field, MISSING, _MISSING_TYPE
 from enum import StrEnum
 from typing import Optional, Callable, Any, Self
 
@@ -233,7 +233,7 @@ class Config:
         default=lambda x: random_name().replace(" ", "_"),
         loading=load_and_sanitize_nick,
     )
-    password: str = ""
+    password: str = field(default="")
     server: Server = config_field(
         loading=lambda x: Server.load_config(),
         dumping=lambda x: getattr(x, "server").save_config(),
@@ -367,7 +367,13 @@ class Config:
             ):
                 value = load_func(config)
             else:
-                value = config.get(field_name)
+                if value := config.get(field_name):
+                    pass
+                else:
+                    if field_value.default_factory is not MISSING:
+                        value = field_value.default_factory()
+                    else:
+                        value = field_value.default
 
             data[field_name] = value
 
