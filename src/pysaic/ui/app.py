@@ -36,7 +36,6 @@ HEIGHT = 550
 MIN_WIDTH = 400
 MIN_HEIGHT = 300
 
-BACKGROUND_COLOR = "gray30"
 TK_BREAK = "break"
 
 PATH = Path(os.path.abspath(os.path.dirname(__file__)))
@@ -79,42 +78,35 @@ class App(Tk):
         outgoing_queue: Queue,
     ):
         super().__init__()
+        self.pysaic_config = config
+        self.pysaic_state = state
         style = Style()
         style.theme_use("clam")
         style.configure(
             "TScrollbar",
             gripcount=0,
-            background=BACKGROUND_COLOR,
-            darkcolor="gray20",
-            lightcolor=self.pysaic_config.colors.background_light,
-            troughcolor="dim gray",
-            bordercolor=BACKGROUND_COLOR,
-            arrowcolor="floral white",
-            foreground="red",
+            background=self.pysaic_config.colors.background,  # The thumb color
+            troughcolor=self.pysaic_config.colors.background_light,  # The track color
+            bordercolor=self.pysaic_config.colors.background,
+            darkcolor=self.pysaic_config.colors.background,
+            lightcolor=self.pysaic_config.colors.background_in_between,
+            arrowcolor=self.pysaic_config.colors.slider_arrow,
             arrowsize=15,
-            disabledcolor=BACKGROUND_COLOR,
-            activebackground="red",
-            relief="flat",
-            deactivebackground="red",
         )
-        style.configure(
-            "TScrollbar.slider.lightcolor",
-            background="deep sky blue",
-            bordercolor="red",
-            troughcolor="green",
-            lightcolor="blue",
-            darkcolor="red",
-            arrowcolor="red",
-            arrowsize="red",
-            gripcount=5,
+        style.map(
+            "TScrollbar",
+            background=[
+                ("disabled", self.pysaic_config.colors.background_light),
+                ("pressed", self.pysaic_config.colors.pressed),
+                ("active", self.pysaic_config.colors.active_background),
+            ],
+            troughcolor=[
+                ("disabled", self.pysaic_config.colors.background_light)
+            ],
+            arrowcolor=[
+                ("disabled", self.pysaic_config.colors.slider_arrow_disabled)
+            ],
         )
-        style.configure(
-            "TScrollbar.thumb.arrowcolor",
-            background="deep sky blue",
-            # 'sliderlength'
-        )
-        self.pysaic_config = config
-        self.pysaic_state = state
         self.title(APP_IDENTITY)
         self.geometry(f"{WIDTH}x{HEIGHT}")
         self.minsize(MIN_WIDTH + 210, MIN_HEIGHT + 32)
@@ -147,8 +139,10 @@ class App(Tk):
         self.focus_force()
 
     def create_widgets(self):
-        self.configure(background=BACKGROUND_COLOR)
-        self.main_frame = Frame(self, background=BACKGROUND_COLOR)
+        self.configure(background=self.pysaic_config.colors.background)
+        self.main_frame = Frame(
+            self, background=self.pysaic_config.colors.background
+        )
         self.main_frame.pack(expand=True, fill="both")
 
         self._configure_grid()
@@ -169,7 +163,10 @@ class App(Tk):
 
     def _prepare_left_frame(self):
         left_frame = Frame(
-            self.main_frame, padx=3, pady=3, background=BACKGROUND_COLOR
+            self.main_frame,
+            padx=3,
+            pady=3,
+            background=self.pysaic_config.colors.background,
         )
         left_frame.grid(row=0, column=0, sticky="nsew")
         left_frame.columnconfigure(0, weight=1)
@@ -190,16 +187,23 @@ class App(Tk):
 
     def _prepare_right_frame(self):
         right_frame = Frame(
-            self.main_frame, padx=3, pady=3, background=BACKGROUND_COLOR
+            self.main_frame,
+            padx=3,
+            pady=3,
+            background=self.pysaic_config.colors.background,
         )
         right_frame.grid(row=0, column=1, sticky="nsew")
-        right_top_frame = Frame(right_frame, background=BACKGROUND_COLOR)
+        right_top_frame = Frame(
+            right_frame, background=self.pysaic_config.colors.background
+        )
         right_top_frame.pack(fill="x")
-        right_bottom_frame = Frame(right_frame, background=BACKGROUND_COLOR)
+        right_bottom_frame = Frame(
+            right_frame, background=self.pysaic_config.colors.background
+        )
         right_bottom_frame.pack(fill="both", expand=True)
 
         channels_and_option_section = Frame(
-            right_top_frame, background=BACKGROUND_COLOR
+            right_top_frame, background=self.pysaic_config.colors.background
         )
         channels_and_option_section.columnconfigure(0, weight=1)
         channels_and_option_section.columnconfigure(1, weight=1, minsize=10)
@@ -242,16 +246,16 @@ class App(Tk):
             ]
         )
         self.channels_dropbox.config(
-            bg=BACKGROUND_COLOR,
+            bg=self.pysaic_config.colors.background,
             fg=self.pysaic_config.colors.text,
-            activebackground=BACKGROUND_COLOR,
+            activebackground=self.pysaic_config.colors.background,
             activeforeground=self.pysaic_config.colors.text,
         )
         self.channels_dropbox["menu"].config(
-            bg=BACKGROUND_COLOR,
+            bg=self.pysaic_config.colors.background,
             fg=self.pysaic_config.colors.text,
-            activebackground="dim gray",
-            activeforeground="black",
+            activebackground=self.pysaic_config.colors.active_background,
+            activeforeground=self.pysaic_config.colors.active_foreground,
         )
         self.channels_dropbox.grid(row=0, column=0, sticky="ew")
 
@@ -259,7 +263,7 @@ class App(Tk):
             channels_and_option_section,
             text="Options",
             command=lambda: Options(self.pysaic_config, self).main(),
-            background=BACKGROUND_COLOR,
+            background=self.pysaic_config.colors.background,
             foreground=self.pysaic_config.colors.text,
             width=10,
         )
@@ -281,7 +285,9 @@ class App(Tk):
         self.users_list_scroll.pack(side="left", fill="y")
 
     def _prepare_bottom_frame(self):
-        self.bottom_frame = Frame(self.main_frame, background=BACKGROUND_COLOR)
+        self.bottom_frame = Frame(
+            self.main_frame, background=self.pysaic_config.colors.background
+        )
         self.bottom_frame.grid(row=1, column=0, columnspan=2, sticky="nsew")
         self.input_message = Entry(
             self.bottom_frame,
@@ -301,7 +307,7 @@ class App(Tk):
             text="Send",
             command=input_function,
             foreground=self.pysaic_config.colors.text,
-            background=BACKGROUND_COLOR,
+            background=self.pysaic_config.colors.background,
         )
         self.input_message.bind("<Tab>", self._nick_auto_complete)
         self.input_message.bind(
@@ -567,7 +573,9 @@ class App(Tk):
         self.irc_window.minsize(MIN_WIDTH, MIN_HEIGHT)
         self.irc_window.protocol("WM_DELETE_WINDOW", self.on_close)
         self.irc_window.iconbitmap(PATH / "crcr_icon_new.ico")
-        self.irc_window.configure(background=BACKGROUND_COLOR)
+        self.irc_window.configure(
+            background=self.pysaic_config.colors.background
+        )
         self.irc_messages_list = Text(
             self.irc_window,
             background=self.pysaic_config.colors.background_light,

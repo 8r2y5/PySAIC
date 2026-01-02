@@ -157,7 +157,13 @@ class ColorsConfig:
     offline: str = "red"
     afk: str = "yellow"
     background: str = "gray30"
+    background_in_between: str = "gray35"
     background_light: str = "gray40"
+    pressed: str = "gray45"
+    slider_arrow: str = "floral white"
+    slider_arrow_disabled: str = "dim gray"
+    active_background: str = "dim gray"
+    active_foreground: str = "black"
 
     @classmethod
     def load_from_config(cls, config: None | dict[str, str] = None):

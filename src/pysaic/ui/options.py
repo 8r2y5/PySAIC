@@ -50,7 +50,7 @@ class Options:
         self.options_window = Toplevel(self.main_window)
         self.options_window.title("Options")
         self.options_window.configure(bg=self.main_window.cget("bg"))
-        height = 550
+        height = 555
         width = 450
         self.options_window.geometry(f"{width}x{height}+100+100")
         self.options_window.minsize(width, height)
@@ -58,7 +58,7 @@ class Options:
         self.main_window.options_button.config(state="disabled")
 
         self.background_color = self.main_window.cget("bg")
-        self.text_color = "ghost white"
+        self.text_color = self.config.colors.text
         self.default_style_kwargs = {
             "background": self.background_color,
             "foreground": self.text_color,
@@ -96,13 +96,17 @@ class Options:
         self._create_account_details(main_frame, row_index)
         main_frame.grid_rowconfigure(row_index, weight=1)
         row_index += 1
-        self._add_separator(main_frame, row_index, "Client Configuration")
+        self._add_separator(
+            main_frame, row_index, "Client Configuration", pad_y_top=5
+        )
         main_frame.grid_rowconfigure(row_index, weight=1)
         row_index += 1
         self._create_client_config(main_frame, row_index)
         main_frame.grid_rowconfigure(row_index, weight=1)
         row_index += 1
-        self._add_separator(main_frame, row_index, "Display Options")
+        self._add_separator(
+            main_frame, row_index, "Display Options", pad_y_top=5
+        )
         main_frame.grid_rowconfigure(row_index, weight=1)
         row_index += 1
         self._create_display_options(main_frame, row_index)
@@ -124,9 +128,11 @@ class Options:
             arrowcolor=self.text_color,
         )
 
-    def _add_separator(self, master, row, section_name=""):
+    def _add_separator(self, master, row, section_name="", pad_y_top: int = 0):
         frame = Frame(master, background=self.background_color)
-        frame.grid(row=row, column=0, columnspan=2, sticky="ew", pady=(0, 5))
+        frame.grid(
+            row=row, column=0, columnspan=2, sticky="ew", pady=(pad_y_top, 5)
+        )
         frame.grid_columnconfigure(0, weight=1)
         frame.grid_columnconfigure(1, weight=0)
         frame.grid_columnconfigure(2, weight=1)

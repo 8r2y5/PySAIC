@@ -121,7 +121,7 @@ class AvatarOptions:
         style = Style()
         style.configure("white.TSeparator", background="white")
         background_color = self.main_window.cget("bg")
-        text_color = "ghost white"
+        text_color = self.config.colors.text
         default_style_kwargs = {
             "background": background_color,
             "foreground": text_color,

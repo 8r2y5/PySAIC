@@ -16,18 +16,18 @@ from PIL.Image import LANCZOS
 
 from pysaic.avatar.avatar_maker import generate_avatar
 
-BACKGROUND_COLOR = "gray30"
 RECT_W, RECT_H = 126, 56
 
 
 class PlayerAvatarEditor:
     def __init__(self, parent, master_window: Tk):
         self.parent = parent
+        self.config = parent.config
         self.master_window = master_window
         self.window = Toplevel()
         self.window.title("Player Avatar Editor")
         self.window.geometry("400x300")
-        self.window.configure(background=BACKGROUND_COLOR)
+        self.window.configure(background=self.config.colors.background)
         self.window.wm_minsize(400, 300)
         self.window.resizable(True, True)
         if master_window:
@@ -42,39 +42,8 @@ class PlayerAvatarEditor:
     def create_widgets(self):
         style = Style()
         style.theme_use("clam")
-        style.configure(
-            "TScrollbar",
-            gripcount=0,
-            background=BACKGROUND_COLOR,
-            darkcolor="gray20",
-            lightcolor="gray40",
-            troughcolor="dim gray",
-            bordercolor=BACKGROUND_COLOR,
-            arrowcolor="floral white",
-            foreground="red",
-            arrowsize=15,
-            disabledcolor=BACKGROUND_COLOR,
-            activebackground="red",
-            relief="flat",
-            deactivebackground="red",
-        )
-        style.configure(
-            "TScrollbar.slider.lightcolor",
-            background="deep sky blue",
-            bordercolor="red",
-            troughcolor="green",
-            lightcolor="blue",
-            darkcolor="red",
-            arrowcolor="red",
-            arrowsize="red",
-            gripcount=5,
-        )
-        style.configure(
-            "TScrollbar.thumb.arrowcolor",
-            background="deep sky blue",
-        )
-        background_color = BACKGROUND_COLOR
-        text_color = "ghost white"
+        background_color = self.config.colors.background
+        text_color = self.config.colors.text
 
         # Configure columns for proper button alignment
         self.window.grid_rowconfigure(0, weight=1)
@@ -129,7 +98,7 @@ class PlayerAvatarEditor:
         self.select_button.grid(row=2, column=0, padx=10, pady=10, sticky="w")
 
         # Create a Frame to hold Save and Close buttons
-        button_frame = Frame(self.window, bg=BACKGROUND_COLOR)
+        button_frame = Frame(self.window, bg=background_color)
         button_frame.grid(row=2, column=2, padx=10, pady=10, sticky="e")
 
         # Place Save and Close buttons inside the frame
@@ -146,7 +115,7 @@ class PlayerAvatarEditor:
             button_frame,
             text="Cancel",
             command=self.close_window,
-            background=BACKGROUND_COLOR,
+            background=background_color,
             foreground=text_color,
         )
         self.close_button.pack(side="left", padx=(5, 0))
