@@ -149,7 +149,7 @@ class AppEventEnum(Enum):
 
 
 class AvatarEnum(StrEnum):
-    faction_and_name_based = "faction_and_name_based"
+    faction_and_name_based = "faction and name based"
     static = "static"
     player = "player"
 

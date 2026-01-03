@@ -493,7 +493,7 @@ class AvatarOptions:
     def _save(self, incoming_queue: IncomingQueue):
         avatar_type = self.avatar_var.get()
         if avatar_type == AvatarEnum.faction_and_name_based.value:
-            self.config.avatar = AvatarEnum.faction_and_name_based.value
+            self.config.avatar = AvatarEnum.faction_and_name_based
             self.config.current_avatar = (
                 calculate_icon_based_on_faction_and_name(
                     self.config.current_faction.value, self.config.nick
@@ -528,10 +528,10 @@ class AvatarOptions:
                 icon_type = "pysaic_icon"
                 icon_id = f"{faction}_{avatar_number - crcr_factions[faction]}"
 
-            self.config.avatar = AvatarEnum.static.value
+            self.config.avatar = AvatarEnum.static
             self.config.current_avatar = f"{icon_type}_{icon_id}"
         elif avatar_type == AvatarEnum.player.value:
-            self.config.avatar = AvatarEnum.player.value
+            self.config.avatar = AvatarEnum.player
             self.config.current_avatar = "pysaic_icon_player"
         logger.debug(
             "Saving avatar type %s with current avatar %s",

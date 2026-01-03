@@ -1,7 +1,7 @@
 import logging
-from dataclasses import asdict, dataclass, field, MISSING
-from enum import StrEnum
-from typing import Optional, Callable, Any, Self
+from dataclasses import asdict, dataclass, field
+from enum import StrEnum, Enum
+from typing import Optional, Callable, Any, Self, Type
 
 import yaml
 
@@ -20,37 +20,6 @@ from pysaic.crc_strings.use_case import random_name
 
 logger = logging.getLogger(__name__)
 
-DEFAULT_STATIC_AVATAR = f"crc_icon_{FactionsEnum.Loner.value}_1"
-
-
-def config_field(
-    *,
-    default: Any = MISSING,
-    default_factory: Any = MISSING,
-    init=True,
-    repr=True,
-    hash=None,
-    compare=True,
-    kw_only=MISSING,
-    loading: None | Callable = None,
-    dumping: None | Callable = None,
-    own_save: bool = False,
-):
-    return field(
-        default=default,
-        default_factory=default_factory,
-        init=init,
-        repr=repr,
-        hash=hash,
-        compare=compare,
-        metadata={
-            "loading": loading,
-            "dumping": dumping,
-            "own_save": own_save,
-        },
-        kw_only=kw_only,
-    )
-
 
 class InGameUserDisplayEnum(StrEnum):
     CRCR = "CRCR"
@@ -59,7 +28,7 @@ class InGameUserDisplayEnum(StrEnum):
 
 
 class FactionSetting(StrEnum):
-    GameSynced = "GameSynced"
+    GameSynced = "Game Synced"
     Static = "Static"
 
 
@@ -181,7 +150,7 @@ class ColorsConfig:
 
 @dataclass
 class FontConfig:
-    name: str = "Segoe UI"
+    name: str = "Lato"
     size: int = 11
 
     @classmethod
@@ -195,125 +164,153 @@ class FontConfig:
             return cls()
 
 
-def to_enum(enum_class, value, default):
-    try:
-        return enum_class[value]
-    except (KeyError, TypeError):
-        return default
-
-
-def _to_bool(param: str | bool, default: bool = True) -> bool:
-    if isinstance(param, bool):
-        return param
-    try:
-        return param.lower() == "true"
-    except AttributeError:
-        return default
-
-
-def config_bool_field(field_name, default):
-    return config_field(
-        default=default, loading=lambda x: _to_bool(x.get(field_name), default)
-    )
-
-
-def config_enum_field(field_name, default):
-    return config_field(
-        default=default,
-        loading=lambda x: to_enum(
-            default.__class__,
-            x.get(field_name),
-            default=default,
-        ),
-        dumping=lambda x: getattr(x, field_name).name,
-    )
-
-
-def load_and_sanitize_nick(config):
+def load_and_sanitize_nick(nick):
     from pysaic.use_cases.nick import sanitize_nick
 
-    return sanitize_nick(config.get("nick") or random_name().replace(" ", "_"))
+    return sanitize_nick(nick or random_name().replace(" ", "_"))
+
+
+class ConfigField:
+    def __init__(
+        self,
+        default: Any = None,
+        default_factory: Optional[Callable] = None,
+        loading: Optional[Callable] = None,
+        dumping: Optional[Callable] = None,
+    ):
+        self.default = default
+        self.default_factory = default_factory
+        self.loading = loading
+        self.dumping = dumping
+        self.name: Optional[str] = None
+
+    def __set_name__(self, owner, name):
+        self.name = name
+
+    def __get__(self, instance, owner):
+        if instance is None:
+            return self
+
+        return instance.__dict__.get(
+            self.name,
+            self.default or self.default_factory and self.default_factory(),
+        )
+
+    def __set__(self, instance, value):
+        instance.__dict__[self.name] = value
+
+    def load_value(self, config: dict) -> Any:
+        value = config.get(self.name, self.default)
+        if self.loading and value is not None:
+            return self.loading(value)
+        return value
+
+    def dump_value(self, instance) -> Any:
+        return getattr(instance, self.name)
+
+
+class BoolField(ConfigField):
+    def load_value(self, config: dict) -> bool:
+        value = config.get(self.name, self.default)
+        if isinstance(value, bool):
+            return value
+        try:
+            return value.lower() == "true"
+        except AttributeError:
+            return self.default
+
+
+class EnumField(ConfigField):
+    def __init__(self, default: Enum):
+        super().__init__(default=default)
+        self.enum_cls = default.__class__
+
+    def load_value(self, config: dict) -> Enum:
+        name = config.get(self.name)
+        try:
+            return self.enum_cls[name] if name else self.default
+        except KeyError:
+            return self.default
+
+    def dump_value(self, instance) -> str:
+        value = getattr(instance, self.name)
+        return value.value if isinstance(value, Enum) else str(value)
+
+
+class NestedFileField(ConfigField):
+    def __init__(self, klass: Type):
+        super().__init__(default_factory=klass)
+        self.klass = klass
+
+    def load_value(self, raw_data: dict) -> Any:
+        return self.klass.load_config()
+
+    def save_value(self, instance) -> None:
+        obj = getattr(instance, self.name)
+        obj.save_config()
+
+
+class NestedObjectFiled(ConfigField):
+    def __init__(self, klass: Type):
+        super().__init__(default_factory=klass)
+        self.klass = klass
+
+    def load_value(self, raw_data: dict) -> Any:
+        return self.klass.load_from_config(raw_data.get(self.name))
+
+    def dump_value(self, instance) -> dict:
+        return asdict(getattr(instance, self.name))
 
 
 @dataclass
 class Config:
-    nick: str = config_field(
-        default=lambda x: random_name().replace(" ", "_"),
+    nick: str = ConfigField(
+        default_factory=lambda: random_name().replace(" ", "_"),
         loading=load_and_sanitize_nick,
     )
-    password: str = field(default="")
-    server: Server = config_field(
-        loading=lambda x: Server.load_config(),
-        dumping=lambda x: getattr(x, "server").save_config(),
-        own_save=True,
-        default_factory=Server,
+    password: str = ConfigField(default="")
+    server: Server = NestedFileField(Server)
+    faction_setting: FactionSetting = EnumField(
+        default=FactionSetting.GameSynced
     )
-    faction_setting: FactionSetting = config_enum_field(
-        field_name="faction_setting", default=FactionSetting.GameSynced
-    )
-    current_faction: FactionsEnum = config_enum_field(
-        field_name="current_faction", default=FactionsEnum.Loner
-    )
-    news_duration: int = config_field(
-        default=3250, loading=lambda x: int(x.get("news_duration") or 3250)
-    )
-    chat_key: str = "DIK_RETURN"
-    nick_auto_complete_key: str = "DIK_TAB"
-    news_sound: bool = config_bool_field("news_sound", True)
-    close_chat: bool = config_bool_field("close_chat", True)
+    current_faction: FactionsEnum = EnumField(default=FactionsEnum.Loner)
+    news_duration: int = ConfigField(default=3250)
+    chat_key: str = ConfigField(default="DIK_RETURN")
+    nick_auto_complete_key: str = ConfigField(default="DIK_TAB")
+    news_sound: bool = BoolField(default=True)
+    close_chat: bool = BoolField(default=True)
     disconnect_when_emission: DisconnectOnNetworkDestructionSetting = (
-        config_enum_field(
-            field_name="disconnect_when_emission",
+        EnumField(
             default=DisconnectOnNetworkDestructionSetting.MalformSignalOnly,
         )
     )
     disconnect_when_underground: DisconnectOnNetworkDestructionSetting = (
-        config_enum_field(
-            field_name="disconnect_when_underground",
+        EnumField(
             default=DisconnectOnNetworkDestructionSetting.MalformSignalOnly,
         )
     )
-    block_money_transfer: bool = config_bool_field(
-        "block_money_transfer", True
-    )
-    user_list_display: str = GroupByFactionWithCounter.name
-    accept_dms_from_not_in_the_channel: bool = config_bool_field(
-        "accept_dms_from_not_in_the_channel", False
-    )
-    avatar: str = AvatarEnum.faction_and_name_based.value
-    current_avatar: str = f"{FactionsEnum.Loner.value}_1"
-    blocked_users: dict[str, set[str]] = field(default_factory=dict)
-    blocked_words: list[str] = field(default_factory=list)
-    in_game_users_display: InGameUserDisplayEnum = config_enum_field(
-        field_name="in_game_users_display",
+    block_money_transfer: bool = BoolField(default=True)
+    user_list_display: str = ConfigField(GroupByFactionWithCounter.name)
+    accept_dms_from_not_in_the_channel: bool = BoolField(default=False)
+    avatar: str = EnumField(AvatarEnum.faction_and_name_based)
+    current_avatar: str = ConfigField(f"crc_icon_{FactionsEnum.Loner.value}_1")
+    blocked_users: dict[str, set[str]] = ConfigField(default_factory=dict)
+    blocked_words: list[str] = ConfigField(default_factory=list)
+    in_game_users_display: InGameUserDisplayEnum = EnumField(
         default=InGameUserDisplayEnum.PySAIC_Card,
     )
-    in_game_users_display_order: InGameUserDisplayOrderEnum = (
-        config_enum_field(
-            field_name="in_game_users_display_order",
-            default=InGameUserDisplayOrderEnum.Faction,
-        )
+    in_game_users_display_order: InGameUserDisplayOrderEnum = EnumField(
+        default=InGameUserDisplayOrderEnum.Faction
     )
-    faction_colored_nicks: bool = config_bool_field(
-        "faction_colored_nicks", True
-    )
-    death_report_type: DeathReportTypeEnum = config_enum_field(
-        field_name="death_report_type",
+    faction_colored_nicks: bool = BoolField(default=True)
+    death_report_type: DeathReportTypeEnum = EnumField(
         default=DeathReportTypeEnum.OnlineFactions,
     )
-    death_reports: bool = config_bool_field("death_reports", True)
-    pop_up_on_ping: bool = config_bool_field("pop_up_on_ping", False)
-    pop_up_sound: bool = config_bool_field("pop_up_sound", True)
-    font: FontConfig = config_field(
-        default_factory=FontConfig,
-        loading=lambda x: FontConfig.load_from_config(x.get("font")),
-        dumping=lambda x: asdict(x.font),
-    )
-    colors: ColorsConfig = config_field(
-        default_factory=ColorsConfig,
-        loading=lambda x: ColorsConfig.load_from_config(x.get("colors")),
-        dumping=lambda x: asdict(x.colors),
-    )
+    death_reports: bool = BoolField(default=True)
+    pop_up_on_ping: bool = BoolField(default=False)
+    pop_up_sound: bool = BoolField(default=True)
+    font: FontConfig = NestedObjectFiled(FontConfig)
+    colors: ColorsConfig = NestedObjectFiled(ColorsConfig)
 
     @classmethod
     def load_config(cls):
@@ -339,28 +336,23 @@ class Config:
 
     def save_config(self):
         data = {}
-        separate_save = []
-        for field_name, field_value in self.__dataclass_fields__.items():
-            if (
-                field_value.metadata
-                and field_value.metadata.get("own_save") is True
-            ):
-                separate_save.append(field_value.metadata["dumping"])
+        separate_save: list[NestedFileField] = []
+        for name, attr in self.__class__.__dict__.items():
+            if not isinstance(attr, ConfigField):
                 continue
 
-            if dump_function := (
-                field_value.metadata and field_value.metadata.get("dumping")
-            ):
-                value = dump_function(self)
-            else:
-                value = getattr(self, field_name)
+            if isinstance(attr, NestedFileField):
+                separate_save.append(attr)
+                continue
 
-            data[field_name] = value
+            value = attr.dump_value(self)
+            if value is not None:
+                data[name] = value
 
         with open("config.yml", "w") as f:
             yaml.dump(data, f)
-            for callable in separate_save:
-                callable(self)
+            for attr in separate_save:
+                attr.save_value(self)
 
     @classmethod
     def _default_config(cls) -> dict:
@@ -369,21 +361,9 @@ class Config:
     @classmethod
     def _create_instance_from_config(cls, config: dict) -> Self:
         data = {}
-        for field_name, field_value in cls.__dataclass_fields__.items():
-            if load_func := (
-                field_value.metadata and field_value.metadata.get("loading")
-            ):
-                value = load_func(config)
-            else:
-                if value := config.get(field_name):
-                    pass
-                else:
-                    if field_value.default_factory is not MISSING:
-                        value = field_value.default_factory()
-                    else:
-                        value = field_value.default
-
-            data[field_name] = value
+        for name, attr in cls.__dict__.items():
+            if isinstance(attr, ConfigField):
+                data[name] = attr.load_value(config)
 
         return cls(**data)
 
@@ -417,7 +397,7 @@ class Config:
             return AvatarEnum.faction_and_name_based.value
 
     def recalculate_avatar(self) -> bool:
-        if self.avatar == AvatarEnum.static.value:
+        if self.avatar == AvatarEnum.static:
             logger.debug(
                 "Validating static_avatar value: %r",
                 self.current_avatar,
@@ -433,7 +413,7 @@ class Config:
                 return True
             logger.debug("Static avatar is valid: %s", self.current_avatar)
             return False
-        elif self.avatar == AvatarEnum.faction_and_name_based.value:
+        elif self.avatar == AvatarEnum.faction_and_name_based:
             logger.debug(
                 "Recalculating faction and name based avatar for faction: %s",
                 self.current_faction,
@@ -451,7 +431,7 @@ class Config:
                 self.save_config()
                 return True
             return False
-        elif self.avatar == AvatarEnum.player.value:
+        elif self.avatar == AvatarEnum.player:
             logger.debug("Setting static_avatar to player avatar")
             if self.current_avatar != "pysaic_icon_player":
                 self.current_avatar = "pysaic_icon_player"

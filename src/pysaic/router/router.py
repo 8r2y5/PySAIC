@@ -305,7 +305,7 @@ class Router:
         self._update_ui_user_list()
 
     def _update_avatar(self):
-        if self.config.avatar != AvatarEnum.faction_and_name_based.value:
+        if self.config.avatar != AvatarEnum.faction_and_name_based:
             return
 
         logger.debug(
