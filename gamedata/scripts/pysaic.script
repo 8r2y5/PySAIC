@@ -75,7 +75,7 @@ local function getNewsSound(messageType)
     return newsSoundMap[messageType] or newsSoundMap["default"]
 end
 
-local function addMessage(icon, title, text, reputation, rank)
+local function add_message_to_history(icon, title, text, reputation, rank)
 	local messageLogLength = size_table(messageLog)
 	if messageLogLength > MAX_MESSAGE_LOG_LENGTH then
 		local toRemove = messageLogLength - MAX_MESSAGE_LOG_LENGTH
@@ -93,6 +93,10 @@ local function addMessage(icon, title, text, reputation, rank)
 			rank = rank
 		}
 	)
+end
+
+local function addMessage(icon, title, text, reputation, rank)
+	add_message_to_history(icon, title, text, reputation, rank)
 	db.actor:give_game_news(title, text, icon, 0, option.newsDuration)
 	if option.newsSound then
 		xr_sound.set_sound_play(db.actor:id(), getNewsSound(icon))
@@ -110,6 +114,72 @@ end
 function send_handshake(body)
     printf("Sending handshake with body: %s", body)
 	send("Handshake/%s/%s", SCRIPT_VERSION, body or "null")
+end
+
+local function _get_title_value(faction, user_type)
+    local title_value = ''
+    local faction_value = ''
+    if user_type == pysaic_constants.IRCUserModeEnum.Operator then
+        title_value = gt("pysaic_irc_operator")
+    elseif user_type == pysaic_constants.IRCUserModeEnum.HalfOp then
+        title_value = gt("pysaic_irc_halfop")
+    elseif user_type == pysaic_constants.IRCUserModeEnum.Voice then
+        title_value = gt("pysaic_irc_voice")
+    end
+    if title_value ~= '' then
+        title_value = title_value .. ', '
+    end
+    if faction then
+        faction_value = gt("crc_"..faction)
+    elseif gt("crc_actor_anonymous") then
+        faction_value = gt("crc_actor_anonymous")
+    else
+        faction_value = gt("crc_unknown")
+    end
+    return title_value .. faction_value
+end
+
+
+function historyChannelHandler(highlight, name, faction, icon_id, message_params, message, reputation, rank, user_type)
+	highlight = isTrue(highlight)
+	local icon = handle_icon(name, faction, icon_id)
+	title = name..', '.._get_title_value(faction, user_type)
+	text = ((highlight and HIGHLIGHT_COLOR) or MESSAGE_COLOR) .. message
+	add_message_to_history(icon, title, text, reputation, rank)
+end
+
+
+function historyPrivateHandler(highlight, name, faction, icon_id, message_params, message, reputation, rank, user_type)
+	highlight = isTrue(highlight)
+	local icon = handle_icon(name, faction, icon_id)
+	title = name .. " -> " .. message_params
+	text = QUERY_COLOR .. message
+	add_message_to_history(icon, title, text, reputation, rank)
+end
+
+
+historyHandlers = {
+	dm = historyPrivateHandler,
+	channel = historyChannelHandler
+}
+
+
+function parseHistoryMessage(body)
+	local faction, name, icon_id, reputation, rank, highlight, user_type, message_metadata, message = body:match("([^/]+)/([^/]+)/([^/]+)/([^/]+)/([^/]+)/([^/]+)/([^/]+)/([^/]+)/(.+)")
+	message_type, message_params = message_metadata:match("([^,]*),(.*)")
+	handler = historyHandlers[message_type]
+	if handler then
+		handler(highlight, name, faction, icon_id, message_params, message, reputation, rank)
+	else
+		addMessage(
+			crc_icons.error,
+			gt("crc_error"),
+			ERROR_COLOR .. "Cannot handle history type '" .. message_type .. "'",
+			nil,
+			nil
+		)
+	end
+	--add_message_to_history(icon, title, text, reputation, rank)
 end
 
 function parseInformationMessage(body)
@@ -139,29 +209,6 @@ function handle_icon(name, faction, icon_id)
 		icon = knownIcons[name]
 	end
 	return icon
-end
-
-local function _get_title_value(faction, user_type)
-    local title_value = ''
-    local faction_value = ''
-    if user_type == pysaic_constants.IRCUserModeEnum.Operator then
-        title_value = gt("pysaic_irc_operator")
-    elseif user_type == pysaic_constants.IRCUserModeEnum.HalfOp then
-        title_value = gt("pysaic_irc_halfop")
-    elseif user_type == pysaic_constants.IRCUserModeEnum.Voice then
-        title_value = gt("pysaic_irc_voice")
-    end
-    if title_value ~= '' then
-        title_value = title_value .. ', '
-    end
-    if faction then
-        faction_value = gt("crc_"..faction)
-    elseif gt("crc_actor_anonymous") then
-        faction_value = gt("crc_actor_anonymous")
-    else
-        faction_value = gt("crc_unknown")
-    end
-    return title_value .. faction_value
 end
 
 function parseChannelMessage (body)
@@ -211,7 +258,7 @@ function parseGettingMoney(body)
 	end
 	local title = from .. " " .. (gt("crc_money_recv"))
 	local text = MONEY_COLOR .. amount .. " RUB"
-	addMessage(pysaic_icons.info, title, text, nil, nil)
+	addMessage(pysaic_icons.info, title, text, reputation, rank)
 	db.actor:give_money(amount)
 end
 
@@ -363,6 +410,7 @@ local inputActions = {
 	Error = parseErrorMessage,
 	Message = parseChannelMessage,
 	Query = parsePrivateMessage,
+	History = parseHistoryMessage,
 	Money = parseSendingMoney,
 	MoneyRecv = parseGettingMoney,
 	Setting = parseSettings,

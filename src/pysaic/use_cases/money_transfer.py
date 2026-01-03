@@ -59,6 +59,7 @@ class IncomingMoneyTransferUseCase(UiUseCase):
             self.event.author.nick, self.chat_users[self.state.nick]
         )
 
+        # TODO: add to message history?
         add_money_to_user(
             self.event.author.nick, user.reputation, user.rank, amount
         )

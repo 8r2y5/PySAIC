@@ -17,6 +17,7 @@ from pysaic.controllers.game import (
     set_ingame_display_setting,
     set_ingame_display_setting_order_setting,
     add_faction_colored_nicks,
+    add_message_history,
 )
 from pysaic.crc_strings.use_case import DeathMessageUseCase
 from pysaic.entities import (
@@ -196,6 +197,7 @@ class GameHandshakeUseCase:
         )
         add_signal_state(str(self.state.fake_disconnect))
         add_faction_colored_nicks(self.config.faction_colored_nicks)
+        add_message_history(self.state.last_messages.copy())
 
 
 class GameChannelMessageUseCase:

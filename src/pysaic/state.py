@@ -125,6 +125,16 @@ class State:
     def money_enough(self, amount) -> bool:
         return self.player.money >= amount
 
+    def add_message(self, message_type: str, user: ChatUser, message: str):
+        self.last_messages.append(
+            (
+                message_type,
+                user.copy(),
+                self.player.create_chat_user(),
+                message,
+            )
+        )
+
     def set_not_in_channel(self):
         self.logger.info("Setting not in channel")
         self.is_in_channel.clear()

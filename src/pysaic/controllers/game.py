@@ -116,6 +116,38 @@ def add_faction_colored_nicks(enabled: bool):
     add_setting_to_game("FactionColoredNicks", str(enabled))
 
 
+def _get_clear_nick(user: ChatUser):
+    return user.name.lstrip("@%+")
+
+
+def _get_message_metadata(message_type: str, me: ChatUser):
+    if message_type == "dm":
+        return f"dm,{_get_clear_nick(me)}"
+    else:
+        return "channel,"
+
+
+@ensure_game_is_running
+def add_message_history(history: list[tuple[str, ChatUser, ChatUser, str]]):
+    for message_type, source, me, message_content in history:
+        add_to_crc_input_file(
+            "/".join(
+                (
+                    "History",
+                    str(_get_chat_user_faction(source.faction)),
+                    _get_clear_nick(source),
+                    str(source.avatar),
+                    source.reputation.value.title(),
+                    str(source.rank),
+                    str(me.name in message_content),
+                    parsed_mode_to_name(source.irc_mode),
+                    _get_message_metadata(message_type, me),
+                    message_content,
+                )
+            )
+        )
+
+
 def _get_chat_user_faction(faction: Optional[FactionsEnum]):
     return faction or FactionsEnum.Anonymous
 
@@ -123,7 +155,7 @@ def _get_chat_user_faction(faction: Optional[FactionsEnum]):
 def _get_chat_user_data(chat_user: ChatUser):
     return ",".join(
         (
-            chat_user.name.lstrip("@%+"),
+            _get_clear_nick(chat_user),
             str(_get_chat_user_faction(chat_user.faction)),
             str(chat_user.rank),
             chat_user.reputation.value.title(),

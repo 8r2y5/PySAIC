@@ -309,6 +309,7 @@ class IncomingRouter(Router):
                     faction_actor = FactionsEnum.Anonymous.value
 
         user = self.chat_users.get(author, ChatUser(name=author))
+        self.state.add_message("channel", user, content)
 
         add_channel_message_to_game(
             faction_actor=faction_actor,

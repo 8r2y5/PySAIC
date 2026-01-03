@@ -236,6 +236,14 @@ class ChatUser:
     avatar: str = "random"
     irc_user: Optional[IrcUser] = None
 
+    def copy(self):
+        return self.__class__(
+            **{
+                field_name: getattr(self, field_name)
+                for field_name in self.__dataclass_fields__.keys()
+            }
+        )
+
 
 @dataclass
 class DeathTimestamped:
