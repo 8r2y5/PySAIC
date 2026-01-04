@@ -192,13 +192,7 @@ function parseHistoryMessage(body)
 	if handler then
 		handler(message, highlight, name, faction, icon_id, message_params, reputation, rank, user_type)
 	else
-		addMessage(
-			crc_icons.error,
-			gt("crc_error"),
-			ERROR_COLOR .. "Cannot handle history type '" .. message_type .. "'",
-			nil,
-			nil
-		)
+		addErrorMessage("Cannot handle history type '" .. message_type .. "'")
 	end
 	--add_message_to_history(icon, title, text, reputation, rank)
 end
