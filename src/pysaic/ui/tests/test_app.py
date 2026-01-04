@@ -40,7 +40,7 @@ def mock_outgoing_queue():
     return Mock()
 
 
-@pytest.fixture()
+@pytest.fixture(scope="function")
 def ui_app(mock_state, mock_config, mock_incoming_queue, mock_outgoing_queue):
     from pysaic.ui.app import App
 
@@ -53,6 +53,7 @@ def ui_app(mock_state, mock_config, mock_incoming_queue, mock_outgoing_queue):
     app.enable_input()
     yield app
     app.quit()
+    app.destroy()
 
 
 def test_nick_autocomplete_empty_input(ui_app):
