@@ -1,4 +1,4 @@
-from unittest.mock import call, patch
+from unittest.mock import call, patch, ANY
 
 import pytest
 
@@ -21,9 +21,11 @@ def event(payload):
     )
 
 
+@patch("pysaic.use_cases.ui.mode_change.add_users_list_to_game")
 @patch("pysaic.use_cases.ui.mode_change.UpdateUsersUseCase")
 def test_adding_highest_rank_mode(
     mock_UpdateUsersUseCase,
+    mock_add_users_list_to_game,
     event,
     payload,
     chat_users,
@@ -38,16 +40,19 @@ def test_adding_highest_rank_mode(
     ModeChangeUseCase.handle(mock_state, mock_ui, chat_users, event)
 
     # then
-    assert user.irc_mode == "&"
+    assert user.irc_mode == "@"
     assert mock_UpdateUsersUseCase.mock_calls == [
         call(mock_state, mock_ui),
         call().execute(),
     ]
+    mock_add_users_list_to_game.assert_called_once_with(ANY)
 
 
+@patch("pysaic.use_cases.ui.mode_change.add_users_list_to_game")
 @patch("pysaic.use_cases.ui.mode_change.UpdateUsersUseCase")
 def test_removing_highest_rank_mode(
     mock_UpdateUsersUseCase,
+    mock_add_users_list_to_game,
     event,
     payload,
     chat_users,
@@ -68,11 +73,14 @@ def test_removing_highest_rank_mode(
         call(mock_state, mock_ui),
         call().execute(),
     ]
+    mock_add_users_list_to_game.assert_called_once_with(ANY)
 
 
+@patch("pysaic.use_cases.ui.mode_change.add_users_list_to_game")
 @patch("pysaic.use_cases.ui.mode_change.UpdateUsersUseCase")
 def test_lowering_rank_from_owner_to_op(
     mock_UpdateUserListUseCase,
+    mock_add_users_list_to_game,
     event,
     payload,
     chat_users,
@@ -93,11 +101,14 @@ def test_lowering_rank_from_owner_to_op(
         call(mock_state, mock_ui),
         call().execute(),
     ]
+    mock_add_users_list_to_game.assert_called_once_with(ANY)
 
 
+@patch("pysaic.use_cases.ui.mode_change.add_users_list_to_game")
 @patch("pysaic.use_cases.ui.mode_change.UpdateUsersUseCase")
 def test_lowering_current_rank_from_owner_to_op(
     mock_UpdateUserListUseCase,
+    mock_add_users_list_to_game,
     event,
     payload,
     chat_users,
@@ -118,11 +129,14 @@ def test_lowering_current_rank_from_owner_to_op(
         call(mock_state, mock_ui),
         call().execute(),
     ]
+    mock_add_users_list_to_game.assert_called_once_with(ANY)
 
 
+@patch("pysaic.use_cases.ui.mode_change.add_users_list_to_game")
 @patch("pysaic.use_cases.ui.mode_change.UpdateUsersUseCase")
 def test_trying_to_lower_higher_rank(
     mock_UpdateUserListUseCase,
+    mock_add_users_list_to_game,
     event,
     payload,
     chat_users,
@@ -143,3 +157,4 @@ def test_trying_to_lower_higher_rank(
         call(mock_state, mock_ui),
         call().execute(),
     ]
+    mock_add_users_list_to_game.assert_called_once_with(ANY)

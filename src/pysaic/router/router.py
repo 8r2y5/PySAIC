@@ -105,6 +105,9 @@ class Router:
             self._add_content_of_message(event.content, tags=["Information"])
 
         add_information_message_to_game(event.content)
+        self.state.add_message(
+            "info", self.state.player.create_chat_user(), event.content
+        )
 
     def _add_error_text(self, text):
         event = ErrorEvent(content=normalize_content(text))
@@ -113,6 +116,9 @@ class Router:
             self._add_date_to_message(event)
             self._add_content_of_message(event.content, tags=["Error"])
         add_error_message_to_game(event.content)
+        self.state.add_message(
+            "error", self.state.player.create_chat_user(), event.content
+        )
 
     def _add_date_to_message(
         self, event: object, additional_tags=None

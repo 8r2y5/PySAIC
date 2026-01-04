@@ -197,7 +197,7 @@ class GameHandshakeUseCase:
         )
         add_signal_state(str(self.state.fake_disconnect))
         add_faction_colored_nicks(self.config.faction_colored_nicks)
-        add_message_history(self.state.last_messages.copy())
+        add_message_history(tuple(self.state.last_messages))
 
 
 class GameChannelMessageUseCase:

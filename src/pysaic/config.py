@@ -221,20 +221,33 @@ class BoolField(ConfigField):
 
 
 class EnumField(ConfigField):
-    def __init__(self, default: Enum):
+    def __init__(self, default: Enum, reverse=False):
         super().__init__(default=default)
         self.enum_cls = default.__class__
+        self.reverse = reverse
 
     def load_value(self, config: dict) -> Enum:
         name = config.get(self.name)
         try:
-            return self.enum_cls[name] if name else self.default
+            return (
+                (
+                    self.enum_cls(name)
+                    if not self.reverse
+                    else self.enum_cls[name]
+                )
+                if name
+                else self.default
+            )
         except KeyError:
             return self.default
 
     def dump_value(self, instance) -> str:
         value = getattr(instance, self.name)
-        return value.value if isinstance(value, Enum) else str(value)
+        return (
+            (value.value if not self.reverse else value.name)
+            if isinstance(value, Enum)
+            else str(value)
+        )
 
 
 class NestedFileField(ConfigField):
@@ -273,7 +286,9 @@ class Config:
     faction_setting: FactionSetting = EnumField(
         default=FactionSetting.GameSynced
     )
-    current_faction: FactionsEnum = EnumField(default=FactionsEnum.Loner)
+    current_faction: FactionsEnum = EnumField(
+        default=FactionsEnum.Loner, reverse=True
+    )
     news_duration: int = ConfigField(default=3250)
     chat_key: str = ConfigField(default="DIK_RETURN")
     nick_auto_complete_key: str = ConfigField(default="DIK_TAB")

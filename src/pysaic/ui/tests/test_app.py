@@ -2,7 +2,7 @@ from unittest.mock import Mock, patch
 
 import pytest
 
-from pysaic.config import Channel, Config, Server
+from pysaic.config import Channel, Config, Server, ColorsConfig, FontConfig
 
 
 @pytest.fixture
@@ -24,6 +24,8 @@ def mock_config(mock_random_name, mock_server):
 
     config_dict = Config._default_config()
     config_dict["server"] = mock_server
+    config_dict["colors"] = ColorsConfig()
+    config_dict["font"] = FontConfig()
     config = Config(**config_dict)
     return config
 

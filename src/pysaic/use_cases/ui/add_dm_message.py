@@ -43,8 +43,11 @@ class AddDmMessage(UiUseCase):
             )
         except KeyError:
             user = self.state.player.create_chat_user()
-        user.name = self.event.author.nick
-        self.state.add_message("dm", user, content)
+
+        history_user = user.copy()
+        history_user.name = self.event.author.nick
+        self.state.add_message("dm", history_user, content)
+
         add_dm_message_to_game(
             author_faction_actor=get_faction_actor(user),
             user_type=parsed_mode_to_name(user.irc_mode),

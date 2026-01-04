@@ -112,7 +112,7 @@ class State:
         self._is_game_running: bool = False
         self.is_author_authorized = asyncio.Event()
         self.is_in_channel = asyncio.Event()
-        self.chat_users: ChatUsers[str, ChatUser] = ChatUsers({})
+        self.chat_users: ChatUsers = ChatUsers({})
         self.game_related_tasks: list[Task] = []
         self.player = Player.create_from_config(config)
         self.last_death: Optional[datetime] = None

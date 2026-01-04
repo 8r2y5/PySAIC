@@ -201,8 +201,7 @@ class GameEventRouter(Router):
     @inject.autoparams
     def _handle_new_achievement(self, loop: asyncio.AbstractEventLoop):
         async def _post_achievement_to_chat():
-            while not self.state.is_in_channel.is_set():
-                await asyncio.sleep(5)
+            await self.state.is_in_channel.wait()
             payload: Achievement = self.event.event.payload
             content = f'Just unlocked achievement "{payload.name}".'
             self.outgoing_queue.put_nowait(

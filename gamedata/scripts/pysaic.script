@@ -140,7 +140,7 @@ local function _get_title_value(faction, user_type)
 end
 
 
-function historyChannelHandler(highlight, name, faction, icon_id, message_params, message, reputation, rank, user_type)
+function historyChannelHandler(message, highlight, name, faction, icon_id, message_params, reputation, rank, user_type)
 	highlight = isTrue(highlight)
 	local icon = handle_icon(name, faction, icon_id)
 	title = name..', '.._get_title_value(faction, user_type)
@@ -149,7 +149,7 @@ function historyChannelHandler(highlight, name, faction, icon_id, message_params
 end
 
 
-function historyPrivateHandler(highlight, name, faction, icon_id, message_params, message, reputation, rank, user_type)
+function historyPrivateHandler(message, highlight, name, faction, icon_id, message_params, reputation, rank, user_type)
 	highlight = isTrue(highlight)
 	local icon = handle_icon(name, faction, icon_id)
 	title = name .. " -> " .. message_params
@@ -157,10 +157,31 @@ function historyPrivateHandler(highlight, name, faction, icon_id, message_params
 	add_message_to_history(icon, title, text, reputation, rank)
 end
 
+function addInformationMessage(body)
+	addMessage(
+		pysaic_icons.info,
+		gt("crc_info"),
+		body,
+		nil,
+		nil
+	)
+end
+
+function addErrorMessage(body)
+	addMessage(
+		pysaic_icons.error,
+		gt("crc_error"),
+		ERROR_COLOR .. body,
+		nil,
+		nil
+	)
+end
 
 historyHandlers = {
 	dm = historyPrivateHandler,
-	channel = historyChannelHandler
+	channel = historyChannelHandler,
+	info = addInformationMessage,
+	error = addErrorMessage
 }
 
 
@@ -169,7 +190,7 @@ function parseHistoryMessage(body)
 	message_type, message_params = message_metadata:match("([^,]*),(.*)")
 	handler = historyHandlers[message_type]
 	if handler then
-		handler(highlight, name, faction, icon_id, message_params, message, reputation, rank)
+		handler(message, highlight, name, faction, icon_id, message_params, reputation, rank, user_type)
 	else
 		addMessage(
 			crc_icons.error,
@@ -182,25 +203,7 @@ function parseHistoryMessage(body)
 	--add_message_to_history(icon, title, text, reputation, rank)
 end
 
-function parseInformationMessage(body)
-	addMessage(
-		pysaic_icons.info,
-		gt("crc_info"),
-		body,
-		nil,
-		nil
-	)
-end
 
-function parseErrorMessage(body)
-	addMessage(
-		pysaic_icons.error,
-		gt("crc_error"),
-		ERROR_COLOR .. body,
-		nil,
-		nil
-	)
-end
 
 function handle_icon(name, faction, icon_id)
 	if not knownIcons[name] then
@@ -406,8 +409,8 @@ function parseSignalState(body)
 end
 
 local inputActions = {
-	Information = parseInformationMessage,
-	Error = parseErrorMessage,
+	Information = addInformationMessage,
+	Error = addErrorMessage,
 	Message = parseChannelMessage,
 	Query = parsePrivateMessage,
 	History = parseHistoryMessage,
