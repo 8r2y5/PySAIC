@@ -1,16 +1,28 @@
 # Changelog
 
-## `0.3.0b8` — 2025-11-18
+## `0.3.0b8` — 2026-xx-xx
 ### Short summary
-- Add faction colored nicks in-game user list.
-  - You can toggle this option in settings. It is enabled by default.
-- Improved emission and underground detection.
-- Improved faction and avatar syncing in-game.
-- Made Clear Sky more distinguishable from Mercenary in user list.
-  - Their colors were too similar, Clear Sky is now a lighter shade of blue.
+- Add faction colored nicks in-game user list
+  - You can toggle this option in settings. It is enabled by default
+- Improved emission and underground detection
+- Improved faction and avatar syncing in-game
+- Made Clear Sky more distinguishable from Mercenary in user list
+  - Their colors were too similar, Clear Sky is now a lighter shade of blue
+- Colors:
+  - now you can configure everything you want, from faction colors to the button color
+    - how do to it:
+      - changing values in `config.yml`
+        - values accept hex values like `'#3B8ED0'`
+  - faction colors are hardcoded in the game, they are not synchronized, yet.
+- Font:
+  - all settings are configurable in the options
+  - Changed default font from `Microsoft Sarif Sans` to `Lato`
+  - default font size is `11`
+- Messages will stay on after loading the map
+  - Previously after loading into new map chat history in game was missing
 
 ### Do I need to do anything?
-You need to copy all the files and restart the game.
+You need to copy all the files and restart your game.
 
 ## `0.3.0b7` — 2025-11-14
 ### Short summary
