@@ -15,7 +15,7 @@ from pysaic.entities import (
     OutgoingMessage,
     OutgoingQueue,
 )
-from pysaic.enums import AppEventEnum, IrcEvents
+from pysaic.enums import AppEventEnum, IrcEvents, HistoryMessageEnum
 from pysaic.irc_protocol import PySaicIrcProtocol
 from pysaic.state import State
 from pysaic.ui.app import App
@@ -172,6 +172,11 @@ class CommandUseCase:
             self.state.chat_users[self.state.nick],
         ).execute()
         outgoing_queue.put_nowait(message)
+        history_user = (
+            self.chat_users.get(target) or self.state.player.create_chat_user()
+        )
+        history_user.name = target
+        self.state.add_message(HistoryMessageEnum.dm_to, history_user, content)
 
     @inject.autoparams()
     def handle_unknown(self, params, incoming_queue: IncomingQueue):

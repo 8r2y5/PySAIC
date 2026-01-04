@@ -15,6 +15,7 @@ from pysaic.enums import (
     RankEnum,
     ReputationEnum,
     AvatarEnum,
+    HistoryMessageEnum,
 )
 
 logger = logging.getLogger(__name__)
@@ -125,7 +126,9 @@ class State:
     def money_enough(self, amount) -> bool:
         return self.player.money >= amount
 
-    def add_message(self, message_type: str, user: ChatUser, message: str):
+    def add_message(
+        self, message_type: HistoryMessageEnum, user: ChatUser, message: str
+    ):
         self.last_messages.append(
             (
                 message_type,

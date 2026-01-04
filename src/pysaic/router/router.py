@@ -17,7 +17,7 @@ from pysaic.entities import (
     InformationEvent,
     OutgoingCTCP,
 )
-from pysaic.enums import AvatarEnum, FactionsEnum
+from pysaic.enums import AvatarEnum, FactionsEnum, HistoryMessageEnum
 from pysaic.router.utils import send_saic_avatar
 from pysaic.settings import END_OF_ACTOR_CHARACTER
 from pysaic.state import State
@@ -106,7 +106,9 @@ class Router:
 
         add_information_message_to_game(event.content)
         self.state.add_message(
-            "info", self.state.player.create_chat_user(), event.content
+            HistoryMessageEnum.info,
+            self.state.player.create_chat_user(),
+            event.content,
         )
 
     def _add_error_text(self, text):
@@ -117,7 +119,9 @@ class Router:
             self._add_content_of_message(event.content, tags=["Error"])
         add_error_message_to_game(event.content)
         self.state.add_message(
-            "error", self.state.player.create_chat_user(), event.content
+            HistoryMessageEnum.error,
+            self.state.player.create_chat_user(),
+            event.content,
         )
 
     def _add_date_to_message(

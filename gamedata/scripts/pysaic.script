@@ -149,10 +149,16 @@ function historyChannelHandler(message, highlight, name, faction, icon_id, messa
 end
 
 
-function historyPrivateHandler(message, highlight, name, faction, icon_id, message_params, reputation, rank, user_type)
-	highlight = isTrue(highlight)
+function historyFromPrivateHandler(message, highlight, name, faction, icon_id, message_params, reputation, rank, user_type)
 	local icon = handle_icon(name, faction, icon_id)
 	title = name .. " -> " .. message_params
+	text = QUERY_COLOR .. message
+	add_message_to_history(icon, title, text, reputation, rank)
+end
+
+function historyToPrivateHandler(message, highlight, name, faction, icon_id, message_params, reputation, rank, user_type)
+	local icon = handle_icon(name, faction, icon_id)
+	title = message_params .. " -> " .. name
 	text = QUERY_COLOR .. message
 	add_message_to_history(icon, title, text, reputation, rank)
 end
@@ -177,11 +183,28 @@ function addErrorMessage(body)
 	)
 end
 
+function historyMoneyFromHandler(message, highlight, name, faction, icon_id, message_params, reputation, rank, user_type)
+	local icon = handle_icon(name, faction, icon_id)
+	local title = name .. " " .. (gt("crc_money_recv"))
+	local text = MONEY_COLOR .. message .. " RUB"
+	add_message_to_history(icon, title, text, reputation, rank)
+end
+
+function historyMoneyToHandler(message, highlight, name, faction, icon_id, message_params, reputation, rank, user_type)
+	local icon = handle_icon(name, faction, icon_id)
+	local title = message_params .. " " .. (gt("crc_money")) .. " " .. name
+	local text = MONEY_COLOR .. message .. " RUB"
+	add_message_to_history(icon, title, text, reputation, rank)
+end
+
 historyHandlers = {
-	dm = historyPrivateHandler,
+	dm_from = historyFromPrivateHandler,
+	dm_to = historyToPrivateHandler,
 	channel = historyChannelHandler,
 	info = addInformationMessage,
-	error = addErrorMessage
+	error = addErrorMessage,
+	money_recv = historyMoneyFromHandler,
+	money_sent = historyMoneyToHandler,
 }
 
 

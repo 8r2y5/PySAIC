@@ -2,6 +2,7 @@ import logging
 from tkinter import END
 
 from pysaic.controllers.game import add_dm_message_to_game
+from pysaic.enums import HistoryMessageEnum
 from pysaic.settings import END_OF_ACTOR_CHARACTER
 from pysaic.use_cases.irc_mode_to_user_type import parsed_mode_to_name
 from pysaic.use_cases.ui.use_case import UiUseCase
@@ -46,7 +47,9 @@ class AddDmMessage(UiUseCase):
 
         history_user = user.copy()
         history_user.name = self.event.author.nick
-        self.state.add_message("dm", history_user, content)
+        self.state.add_message(
+            HistoryMessageEnum.dm_from, history_user, content
+        )
 
         add_dm_message_to_game(
             author_faction_actor=get_faction_actor(user),

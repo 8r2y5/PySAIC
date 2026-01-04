@@ -12,7 +12,7 @@ from pysaic.entities import (
     OutgoingMessage,
     OutgoingQueue,
 )
-from pysaic.enums import FactionsEnum
+from pysaic.enums import FactionsEnum, HistoryMessageEnum
 from pysaic.settings import END_OF_ACTOR_CHARACTER
 from pysaic.state import State
 from pysaic.use_cases.ui.use_case import UiUseCase
@@ -59,7 +59,12 @@ class IncomingMoneyTransferUseCase(UiUseCase):
             self.event.author.nick, self.chat_users[self.state.nick]
         )
 
-        # TODO: add to message history?
+        history_user = user.copy()
+        history_user.name = self.event.author.nick
+        self.state.add_message(
+            HistoryMessageEnum.money_recv, history_user, str(amount)
+        )
+
         add_money_to_user(
             self.event.author.nick, user.reputation, user.rank, amount
         )
@@ -128,5 +133,8 @@ def send_money_use_case(
             ),
         )
     )
+    user = state.chat_users.get(target) or state.player.create_chat_user()
+    user.name = target
+    state.add_message(HistoryMessageEnum.money_sent, user, str(amount))
     remove_money_from_player(state.player, target, amount)
     return True

@@ -4,7 +4,7 @@ from typing import Iterable, Optional
 import inject
 
 from pysaic.entities import ChatUser, IncomingEvent, IncomingQueue
-from pysaic.enums import FactionsEnum
+from pysaic.enums import FactionsEnum, HistoryMessageEnum
 from pysaic.state import State
 from pysaic.use_cases.irc_mode_to_user_type import parsed_mode_to_name
 
@@ -121,12 +121,12 @@ def _get_clear_nick(user: ChatUser):
 
 
 def _get_message_metadata(
-    message_type: str, me: ChatUser, param: str | None = None
+    message_type: HistoryMessageEnum, me: ChatUser, param: str | None = None
 ):
     match message_type:
-        case "dm":
-            return f"dm,{_get_clear_nick(me)}"
-        case "money_recv" | "money_send":
+        case HistoryMessageEnum.dm_to | HistoryMessageEnum.dm_from:
+            return f"{message_type},{_get_clear_nick(me)}"
+        case HistoryMessageEnum.money_recv | HistoryMessageEnum.money_sent:
             return f"{message_type},{param}"
         case _:
             return f"{message_type},"
@@ -134,7 +134,7 @@ def _get_message_metadata(
 
 @ensure_game_is_running
 def add_message_history(
-    history: Iterable[tuple[str, ChatUser, ChatUser, str]]
+    history: Iterable[tuple[HistoryMessageEnum, ChatUser, ChatUser, str]]
 ):
     for message_type, source, me, message_content in history:
         add_to_crc_input_file(

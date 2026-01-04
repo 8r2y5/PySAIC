@@ -232,3 +232,12 @@ LocationEnum = Enum(
     locations_data.items(),
 )
 logger.debug("Loaded locations: %s", list(LocationEnum.__members__.keys()))
+
+
+class HistoryMessageEnum(StrEnum):
+    info = auto()
+    error = auto()
+    dm_from = auto()
+    dm_to = auto()
+    money_recv = auto()
+    money_sent = auto()
