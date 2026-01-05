@@ -5,7 +5,7 @@ from collections import deque
 from dataclasses import dataclass
 from datetime import datetime
 from pathlib import Path
-from typing import Optional
+from typing import Optional, Self
 
 from pysaic.config import Config
 from pysaic.entities import ChatUser, ChatUsers
@@ -25,7 +25,7 @@ logger = logging.getLogger(__name__)
 class Player(ChatUser):
     money: int = 0
     config: Optional[Config] = None
-    logger = logger.getChild("player")
+    logger: logging.Logger = logger.getChild("player")
 
     def reset(self):
         self.location = LocationEnum.unknown
@@ -59,7 +59,7 @@ class Player(ChatUser):
         )
 
     @classmethod
-    def create_from_config(cls, config):
+    def create_from_config(cls, config: Config) -> Self:
         return cls(
             name=config.nick,
             faction=config.current_faction,
@@ -70,22 +70,22 @@ class Player(ChatUser):
 
 class State:
     @property
-    def nick(self):
+    def nick(self) -> str:
         return self.player.name
 
     @nick.setter
-    def nick(self, value):
+    def nick(self, value: str):
         self.logger.debug(
             'Changing nick from "%s" to "%s"', self.player.name, value
         )
         self.player.name = value
 
     @property
-    def is_game_running(self):
+    def is_game_running(self) -> bool:
         return self._is_game_running
 
     @is_game_running.setter
-    def is_game_running(self, value):
+    def is_game_running(self, value: bool):
         self.player.in_game = self._is_game_running = value
 
     @property
@@ -93,7 +93,7 @@ class State:
         return self._game_location
 
     @game_location.setter
-    def game_location(self, value):
+    def game_location(self, value: Optional[Path]):
         if isinstance(value, Path):
             self.crc_input_path = (
                 value / "gamedata" / "configs" / "crc_input.txt"
@@ -103,25 +103,29 @@ class State:
         self._game_location = value
 
     def __init__(self, config: Config):
-        self.id = str(id(self))
-        self.got_first_handshake = asyncio.Event()
-        self.logger = logger.getChild("instance").getChild(self.id)
-        self.config = config
-        self.got_welcome_message = asyncio.Event()
+        self.id: str = str(id(self))
+        self.got_first_handshake: asyncio.Event = asyncio.Event()
+        self.logger: logging.Logger = logger.getChild("instance").getChild(
+            self.id
+        )
+        self.config: Config = config
+        self.got_welcome_message: asyncio.Event = asyncio.Event()
         self._game_location: Optional[Path] = None
         self.crc_input_path: Optional[Path] = None
         self._is_game_running: bool = False
-        self.is_author_authorized = asyncio.Event()
-        self.is_in_channel = asyncio.Event()
+        self.is_author_authorized: asyncio.Event = asyncio.Event()
+        self.is_in_channel: asyncio.Event = asyncio.Event()
         self.chat_users: ChatUsers = ChatUsers({})
         self.game_related_tasks: list[Task] = []
-        self.player = Player.create_from_config(config)
+        self.player: Player = Player.create_from_config(config)
         self.last_death: Optional[datetime] = None
-        self.last_messages = deque(maxlen=20)
-        self.player_update_task = None
-        self.player_changed_values_queue = asyncio.Queue()
-        self.is_currently_under_network_destruction: str | None = None
-        self.last_private_message_from: str | None = None
+        self.last_messages: deque[
+            tuple[HistoryMessageEnum, ChatUser, ChatUser, str]
+        ] = deque(maxlen=20)
+        self.player_update_task: Optional[asyncio.Task] = None
+        self.player_changed_values_queue: asyncio.Queue = asyncio.Queue()
+        self.is_currently_under_network_destruction: Optional[str] = None
+        self.last_private_message_from: Optional[str] = None
 
     def money_enough(self, amount) -> bool:
         return self.player.money >= amount
