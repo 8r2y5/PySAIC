@@ -245,6 +245,7 @@ class Router:
     @send_only_when_connected
     def _send_saicsync_message(self):
         # SAIC: 1/location/avatar/rank/reputation/away<1/0>
+        # SAIC: 2/location/avatar/rank/reputation/away<1/0>/status<d>
         logger.info('Sending "SAICSYNC" message')
         user = self.chat_users[self.state.nick]
         saic_message = "/".join(

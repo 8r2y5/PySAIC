@@ -13,6 +13,7 @@ from pysaic.enums import (
     LocationEnum,
     RankEnum,
     ReputationEnum,
+    PySAICStatusEnum,
 )
 from pysaic.events.enum import GameEvents
 
@@ -220,21 +221,12 @@ class ChatUser:
     faction: FactionsEnum = field(default=FactionsEnum.Anonymous)
     rank: RankEnum = field(default=RankEnum.unknown)
     reputation: ReputationEnum = field(default=ReputationEnum.unknown)
-    # location: LocationEnum = field(
-    #     default_factory=lambda: choice(tuple(LocationEnum))
-    # )
-    # faction: FactionsEnum = field(
-    #     default_factory=lambda: choice(tuple(FactionsEnum))
-    # )
-    # rank: RankEnum = field(default_factory=lambda: choice(tuple(RankEnum)))
-    # reputation: ReputationEnum = field(
-    #     default_factory=lambda: choice(tuple(ReputationEnum))
-    # )
     afk: bool = False
     last_ask_update: Optional[datetime] = None
     irc_mode: str = ""
     avatar: str = "random"
     irc_user: Optional[IrcUser] = None
+    status: PySAICStatusEnum = PySAICStatusEnum.ok
 
     def copy(self):
         return self.__class__(

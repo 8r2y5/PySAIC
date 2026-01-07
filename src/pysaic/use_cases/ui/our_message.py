@@ -3,7 +3,7 @@ from tkinter import END
 
 from pysaic.controllers.game import add_channel_message_to_game
 from pysaic.entities import IncomingEvent, OutgoingMessage
-from pysaic.enums import FactionsEnum
+from pysaic.enums import FactionsEnum, HistoryMessageEnum
 from pysaic.use_cases.irc_mode_to_user_type import parsed_mode_to_name
 from pysaic.use_cases.text import make_content_malformed
 from pysaic.use_cases.ui.utils import (
@@ -98,6 +98,7 @@ class OurMessageUseCase:
         with enable_disable(self.messages_list):
             self._add_our_message(user, outgoing_message)
 
+        self.state.add_message(HistoryMessageEnum.channel, user, content)
         add_channel_message_to_game(
             faction_actor=get_faction_actor(user),
             author=user.name,

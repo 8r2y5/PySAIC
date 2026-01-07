@@ -21,6 +21,8 @@ from pysaic.enums import (
     RankEnum,
     ReputationEnum,
     AppEventEnum,
+    PySAICStatusEnum,
+    HistoryMessageEnum,
 )
 from pysaic.router.app_event_router import AppEventRouter
 from pysaic.router.game_event_router import GameEventRouter
@@ -48,7 +50,11 @@ from pysaic.use_cases.ui.utils import (
 logger = logging.getLogger(__name__)
 
 
-INVALID_VALUE = object()
+class _InvalidValue:
+    pass
+
+
+INVALID_VALUE = _InvalidValue()
 
 
 class IncomingRouter(Router):
@@ -210,6 +216,8 @@ class IncomingRouter(Router):
             self._parse_saicafk(event.author.nick, message)
         elif message.startswith("SAICAVATAR"):
             self._parse_saicavatar(event.author.nick, message)
+        elif message.startswith("SAICSTATE"):
+            self._parse_saicstate(event.author.nick, message)
         else:
             logger.warning("Unknown CTCP: %r", message)
 
@@ -309,7 +317,7 @@ class IncomingRouter(Router):
                     faction_actor = FactionsEnum.Anonymous.value
 
         user = self.chat_users.get(author, ChatUser(name=author))
-        self.state.add_message("channel", user, content)
+        self.state.add_message(HistoryMessageEnum.channel, user, content)
 
         add_channel_message_to_game(
             faction_actor=faction_actor,
@@ -334,6 +342,7 @@ class IncomingRouter(Router):
     def _parse_saicsync(self, author, content):
         # SAIC: 1/location/avatar/rank/reputation/afk
         logger.debug("Parsing SAICSYNC: %r", content)
+        location, avatar, rank, reputation, afk, status = [None] * 6
         try:
             sync_msg = content.split(" ", 1)[1]
             version, params = sync_msg.split("/", 1)
@@ -344,8 +353,8 @@ class IncomingRouter(Router):
             if version == "1":
                 location, avatar, rank, reputation, afk = params.split("/", 4)
             elif version == "2":
-                location, avatar, rank, reputation, afk, reception = (
-                    params.split("/", 5)
+                location, avatar, rank, reputation, afk, status = params.split(
+                    "/", 5
                 )
             else:
                 logger.error("Unsupported SAICSYNC version: %r", version)
@@ -361,11 +370,17 @@ class IncomingRouter(Router):
         reputation = self._parse_reputation(reputation)
         afk = self._parse_afk(afk)
 
-        if (
-            location is INVALID_VALUE
-            or rank is INVALID_VALUE
-            or reputation is INVALID_VALUE
-            or afk is INVALID_VALUE
+        if status is not None:
+            status = self._parse_status(status)
+
+        if any(
+            (
+                location is INVALID_VALUE,
+                rank is INVALID_VALUE,
+                reputation is INVALID_VALUE,
+                afk is INVALID_VALUE,
+                status is INVALID_VALUE,
+            )
         ):
             logger.error(
                 "Error parsing location %r, rank %r, reputation %r, afk %r",
@@ -391,6 +406,7 @@ class IncomingRouter(Router):
                 reputation=reputation,
                 afk=afk,
                 avatar=avatar,
+                status=status,
             )
             self.chat_users.set_user(author, user)
             self._update_crc_users_data()
@@ -416,6 +432,10 @@ class IncomingRouter(Router):
         if user.avatar != avatar:
             should_update = True
             user.avatar = avatar
+
+        if user.status != status:
+            should_update = True
+            user.status = status
 
         if not should_update:
             return
@@ -588,3 +608,16 @@ class IncomingRouter(Router):
         self.chat_users.set_user(nick, user)
         self._update_crc_users_data()
         self._update_ui_user_list()
+
+    def _parse_status(self, status: str) -> PySAICStatusEnum | _InvalidValue:
+        try:
+            return PySAICStatusEnum[status]
+        except Exception:
+            logger.warning("Could not parse status %r", status)
+            return INVALID_VALUE
+
+    def _parse_saicstate(self, nick, message):
+        _, status = message.split("/")
+        self._parse_saic_generic_update(
+            nick, self._parse_status, "status", status
+        )

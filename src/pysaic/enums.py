@@ -1,5 +1,5 @@
 import logging
-from enum import Enum, StrEnum, auto
+from enum import Enum, StrEnum, auto, IntEnum
 
 import yaml
 
@@ -241,3 +241,10 @@ class HistoryMessageEnum(StrEnum):
     dm_to = auto()
     money_recv = auto()
     money_sent = auto()
+    channel = auto()
+
+
+class PySAICStatusEnum(IntEnum):
+    ok = 0
+    emission = 1
+    underground = 2

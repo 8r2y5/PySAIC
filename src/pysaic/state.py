@@ -16,6 +16,7 @@ from pysaic.enums import (
     ReputationEnum,
     AvatarEnum,
     HistoryMessageEnum,
+    PySAICStatusEnum,
 )
 
 logger = logging.getLogger(__name__)
@@ -35,6 +36,7 @@ class Player(ChatUser):
         self.money = 0
         self.last_ask_update = None
         self.afk = False
+        self.status = PySAICStatusEnum.ok
 
     def create_chat_user(self) -> ChatUser:
         return ChatUser(
@@ -46,6 +48,7 @@ class Player(ChatUser):
             reputation=self.reputation,
             irc_mode=self.irc_mode,
             avatar=self.get_avatar(myself=True),
+            status=self.status,
         )
 
     def get_avatar(self, myself: bool = False) -> str:
