@@ -164,11 +164,15 @@ class App(Tk):
     def _prepare_left_frame(self):
         left_frame = Frame(
             self.main_frame,
-            padx=3,
-            pady=3,
             background=self.pysaic_config.colors.background,
         )
-        left_frame.grid(row=0, column=0, sticky="nsew")
+        left_frame.grid(
+            row=0,
+            column=0,
+            sticky="nsew",
+            padx=(3, 1),
+            pady=3,
+        )
         left_frame.columnconfigure(0, weight=1)
         left_frame.columnconfigure(1, weight=0, minsize=16)
         left_frame.rowconfigure(0, weight=1)
@@ -188,11 +192,15 @@ class App(Tk):
     def _prepare_right_frame(self):
         right_frame = Frame(
             self.main_frame,
-            padx=3,
-            pady=3,
             background=self.pysaic_config.colors.background,
         )
-        right_frame.grid(row=0, column=1, sticky="nsew")
+        right_frame.grid(
+            row=0,
+            column=1,
+            sticky="nsew",
+            padx=(0, 3),
+            pady=3,
+        )
         right_top_frame = Frame(
             right_frame, background=self.pysaic_config.colors.background
         )
@@ -296,7 +304,7 @@ class App(Tk):
             disabledbackground=self.pysaic_config.colors.background,
         )
         self.input_message.pack(
-            expand=True, fill="both", side="left", padx=3, pady=3
+            expand=True, fill="both", side="left", padx=3, pady=(0, 3)
         )
         input_function = partial(
             self._send_message, input_entry=self.input_message
@@ -318,7 +326,7 @@ class App(Tk):
             "<Control-BackSpace>", self._delete_till_previous_word
         )
 
-        self.send_button.pack(side="left", padx=3, pady=3)
+        self.send_button.pack(side="left", padx=3, pady=(0, 3), fill="both")
 
     def show_popup(self, title: str, message: str):
         logger.info("Showing popup: %r: %r", title, message)
@@ -557,6 +565,9 @@ class App(Tk):
         while cursor_position > 0 and text[cursor_position - 1] != " ":
             cursor_position -= 1
 
+        if cursor_position - 1 > 0:
+            cursor_position -= 1
+
         self.input_message.delete(cursor_position, "insert")
         return TK_BREAK
 
@@ -592,9 +603,9 @@ class App(Tk):
 
     def _update_fonts_on_widgets(self):
         for widget in (
-            AltFontSize(self.users_list, 1),
-            AltFontSize(self.messages_list, 1),
-            self.input_message,
+            self.users_list,
+            self.messages_list,
+            AltFontSize(self.input_message, -1),
             AltFontSize(self.send_button, -1),
             AltFontSize(self.channels_dropbox, -2),
             AltFontSize(self.options_button, -2),
