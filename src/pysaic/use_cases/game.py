@@ -312,6 +312,7 @@ class ConnectionLostUseCase:
         if self.entity.reason is None:
             logger.debug("No reason for reconnect, ignoring")
             add_signal_state(str(state.fake_disconnect))
+            state.is_currently_under_network_destruction = None
             return
 
         if state.is_currently_under_network_destruction == self.entity.reason:
