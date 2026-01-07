@@ -13,7 +13,7 @@ from tkinter import (
     StringVar,
     Toplevel,
 )
-from tkinter.ttk import Separator, Style, Spinbox
+from tkinter.ttk import Style, Spinbox
 
 import inject
 
@@ -32,15 +32,12 @@ from pysaic.enums import (
     DisconnectOnNetworkDestructionSetting,
 )
 from pysaic.ui.avatar_options import AvatarOptions
+from pysaic.ui.utils import add_separator
 from pysaic.use_cases.nick import sanitize_nick
 
 logger = logging.getLogger(__name__)
 
 PATH = Path(os.path.abspath(os.path.dirname(__file__)))
-
-
-def create_separator(frame):
-    return Separator(frame, orient="horizontal", style="white.TSeparator")
 
 
 class Options:
@@ -50,7 +47,7 @@ class Options:
         self.options_window = Toplevel(self.main_window)
         self.options_window.title("Options")
         self.options_window.configure(bg=self.main_window.cget("bg"))
-        height = 555
+        height = 580
         width = 450
         self.options_window.geometry(f"{width}x{height}+100+100")
         self.options_window.minsize(width, height)
@@ -84,35 +81,59 @@ class Options:
         main_frame.grid_columnconfigure(0, weight=1)
 
         row_index = 0
-        self._add_separator(main_frame, row_index, "Faction Settings")
+        add_separator(
+            main_frame,
+            self.background_color,
+            self.text_color,
+            row_index,
+            "Faction Settings",
+        )
         main_frame.grid_rowconfigure(row_index, weight=1)
         row_index += 1
         self._create_faction_settings(main_frame, row_index)
         main_frame.grid_rowconfigure(row_index, weight=1)
         row_index += 1
-        self._add_separator(main_frame, row_index, "Account Details")
+        add_separator(
+            main_frame,
+            self.background_color,
+            self.text_color,
+            row_index,
+            "Account Details",
+        )
         main_frame.grid_rowconfigure(row_index, weight=1)
         row_index += 1
         self._create_account_details(main_frame, row_index)
         main_frame.grid_rowconfigure(row_index, weight=1)
         row_index += 1
-        self._add_separator(
-            main_frame, row_index, "Client Configuration", pad_y_top=5
+        add_separator(
+            main_frame,
+            self.background_color,
+            self.text_color,
+            row_index,
+            "Client Configuration",
+            pad_y_top=5,
         )
         main_frame.grid_rowconfigure(row_index, weight=1)
         row_index += 1
         self._create_client_config(main_frame, row_index)
         main_frame.grid_rowconfigure(row_index, weight=1)
         row_index += 1
-        self._add_separator(
-            main_frame, row_index, "Display Options", pad_y_top=5
+        add_separator(
+            main_frame,
+            self.background_color,
+            self.text_color,
+            row_index,
+            "Display Options",
+            pad_y_top=5,
         )
         main_frame.grid_rowconfigure(row_index, weight=1)
         row_index += 1
         self._create_display_options(main_frame, row_index)
         main_frame.grid_rowconfigure(row_index, weight=1)
         row_index += 1
-        self._add_separator(main_frame, row_index)
+        add_separator(
+            main_frame, self.background_color, self.text_color, row_index
+        )
         main_frame.grid_rowconfigure(row_index, weight=1)
         row_index += 1
         self._create_buttons(main_frame, row_index)
@@ -127,31 +148,6 @@ class Options:
             foreground=self.text_color,
             arrowcolor=self.text_color,
         )
-
-    def _add_separator(self, master, row, section_name="", pad_y_top: int = 0):
-        frame = Frame(master, background=self.background_color)
-        frame.grid(
-            row=row, column=0, columnspan=2, sticky="ew", pady=(pad_y_top, 5)
-        )
-        frame.grid_columnconfigure(0, weight=1)
-        frame.grid_columnconfigure(1, weight=0)
-        frame.grid_columnconfigure(2, weight=1)
-
-        if section_name:
-            create_separator(frame).grid(row=0, column=0, sticky="ew")
-
-            Label(
-                frame,
-                text=section_name,
-                background=self.background_color,
-                foreground=self.text_color,
-            ).grid(row=0, column=1, padx=10, sticky="n")
-
-            create_separator(frame).grid(row=0, column=2, sticky="ew")
-        else:
-            create_separator(frame).grid(
-                row=0, column=0, sticky="ew", columnspan=3
-            )
 
     def _create_faction_settings(self, master, row):
         self.faction_var = StringVar(
@@ -377,6 +373,24 @@ class Options:
         self.news_duration_spinbox.delete(0, "end")
         self.news_duration_spinbox.insert(0, str(self.config.news_duration))
         self.news_duration_spinbox.grid(row=0, column=1, sticky="w")
+
+        colors_button = Button(
+            frame,
+            text="Colors Config",
+            background=self.background_color,
+            foreground=self.text_color,
+        )
+
+        colors_button.grid(row=5, column=0, sticky="w")
+
+        font_button = Button(
+            frame,
+            text="Font Config",
+            background=self.background_color,
+            foreground=self.text_color,
+        )
+
+        font_button.grid(row=5, column=1, sticky="w")
 
     def _create_display_options(self, master, row):
         frame = Frame(master, background=self.background_color)
