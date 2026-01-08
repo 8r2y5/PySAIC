@@ -38,6 +38,22 @@ def send_saic_avatar(
     )
 
 
+def send_saic_status(
+    state: State, outgoing_queue: OutgoingQueue, config: Config
+):
+    if not state.is_in_channel.is_set():
+        logger.debug("Not in channel, not sending SAICSTATUS message")
+        return
+
+    logger.info('Sending "SAICSTATUS" message')
+    outgoing_queue.put_nowait(
+        OutgoingCTCP(
+            target=config.server.previous_channel,
+            content=f"SAICSTATUS 1/{state.player.status.value}",
+        )
+    )
+
+
 def generic_send_saic_message(
     outgoing_queue: OutgoingQueue,
     previous_channel: str,
