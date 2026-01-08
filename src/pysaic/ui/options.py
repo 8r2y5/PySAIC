@@ -13,6 +13,7 @@ from tkinter import (
     StringVar,
     Toplevel,
 )
+from tkinter.font import Font
 from tkinter.ttk import Style, Spinbox
 
 import inject
@@ -56,12 +57,16 @@ class Options:
 
         self.background_color = self.main_window.cget("bg")
         self.text_color = self.config.colors.text
+        self.font_normal_size = Font(
+            family=self.config.font.name, size=self.config.font.size - 1
+        )
         self.default_style_kwargs = {
             "background": self.background_color,
             "foreground": self.text_color,
             "activebackground": self.background_color,
             "activeforeground": self.text_color,
             "selectcolor": self.background_color,
+            "font": self.font_normal_size,
         }
 
     def __del__(self):
@@ -87,6 +92,7 @@ class Options:
             self.text_color,
             row_index,
             "Faction Settings",
+            font=self.font_normal_size,
         )
         main_frame.grid_rowconfigure(row_index, weight=1)
         row_index += 1
@@ -99,6 +105,7 @@ class Options:
             self.text_color,
             row_index,
             "Account Details",
+            font=self.font_normal_size,
         )
         main_frame.grid_rowconfigure(row_index, weight=1)
         row_index += 1
@@ -112,6 +119,7 @@ class Options:
             row_index,
             "Client Configuration",
             pad_y_top=5,
+            font=self.font_normal_size,
         )
         main_frame.grid_rowconfigure(row_index, weight=1)
         row_index += 1
@@ -125,6 +133,7 @@ class Options:
             row_index,
             "Display Options",
             pad_y_top=5,
+            font=self.font_normal_size,
         )
         main_frame.grid_rowconfigure(row_index, weight=1)
         row_index += 1
@@ -200,6 +209,7 @@ class Options:
             activebackground=self.background_color,
             activeforeground=self.text_color,
             width=15,
+            font=self.font_normal_size,
         )
         self.faction_options_menu["menu"].config(
             bg=self.background_color,
@@ -233,11 +243,14 @@ class Options:
             text="Name:",
             background=self.background_color,
             foreground=self.text_color,
+            font=self.font_normal_size,
         ).grid(row=0, column=0, sticky="w")
         self.name_entry = Entry(
             frame,
             background=self.background_color,
             foreground=self.text_color,
+            font=self.font_normal_size,
+            insertbackground=self.config.colors.text,
         )
         self.name_entry.insert(0, self.config.nick)
         self.name_entry.grid(row=0, column=1, sticky="we", padx=5)
@@ -247,12 +260,15 @@ class Options:
             text="Password:",
             background=self.background_color,
             foreground=self.text_color,
+            font=self.font_normal_size,
         ).grid(row=0, column=2, sticky="w", padx=(10, 0))
         self.password_entry = Entry(
             frame,
             background=self.background_color,
             foreground=self.text_color,
             show="*",
+            font=self.font_normal_size,
+            insertbackground=self.config.colors.text,
         )
         self.password_entry.insert(0, self.config.password)
         self.password_entry.grid(row=0, column=3, sticky="we", padx=5)
@@ -276,6 +292,7 @@ class Options:
             text="Disconnect when emission",
             background=self.background_color,
             foreground=self.text_color,
+            font=self.font_normal_size,
         ).grid(row=0, column=0, sticky="w")
         self._disconnect_when_emission_var = StringVar(
             value=self.config.disconnect_when_emission
@@ -291,6 +308,7 @@ class Options:
             activebackground=self.background_color,
             activeforeground=self.text_color,
             width=22,
+            font=self.font_normal_size,
         )
         disconnect_when_network.grid(row=0, column=0, sticky="e")
         disconnect_when_network["menu"].config(
@@ -305,6 +323,7 @@ class Options:
             text="Disconnect when underground",
             background=self.background_color,
             foreground=self.text_color,
+            font=self.font_normal_size,
         ).grid(row=1, column=0, sticky="w")
         self._disconnect_when_underground_var = StringVar(
             value=self.config.disconnect_when_underground
@@ -327,6 +346,7 @@ class Options:
             activebackground=self.background_color,
             activeforeground=self.text_color,
             width=22,
+            font=self.font_normal_size,
         )
         disconnect_when_underground.grid(row=1, column=0, sticky="e")
         disconnect_when_underground["menu"].config(
@@ -362,6 +382,7 @@ class Options:
             text="Notification duration (in milliseconds):",
             background=self.background_color,
             foreground=self.text_color,
+            font=self.font_normal_size,
         ).grid(row=0, column=0, sticky="w")
         self.news_duration_spinbox = Spinbox(
             news_duration_frame,
@@ -369,6 +390,7 @@ class Options:
             to=20000,
             increment=25,
             width=10,
+            font=self.font_normal_size,
         )
         self.news_duration_spinbox.delete(0, "end")
         self.news_duration_spinbox.insert(0, str(self.config.news_duration))
@@ -379,6 +401,7 @@ class Options:
             text="Colors Config",
             background=self.background_color,
             foreground=self.text_color,
+            font=self.font_normal_size,
         )
 
         colors_button.grid(row=5, column=0, sticky="w")
@@ -388,6 +411,7 @@ class Options:
             text="Font Config",
             background=self.background_color,
             foreground=self.text_color,
+            font=self.font_normal_size,
         )
 
         font_button.grid(row=5, column=1, sticky="w")
@@ -410,6 +434,7 @@ class Options:
             text="Chat App list display",
             background=self.background_color,
             foreground=self.text_color,
+            font=self.font_normal_size,
         ).grid(row=0, column=0, sticky="w", pady=2)
         self.user_list_display_var = StringVar(
             frame, value=self.config.user_list_display
@@ -425,6 +450,7 @@ class Options:
             activebackground=self.background_color,
             activeforeground=self.text_color,
             width=32,
+            font=self.font_normal_size,
         )
         user_list_display_option["menu"].config(
             bg=self.background_color,
@@ -442,6 +468,7 @@ class Options:
             text="In-game list display type",
             background=self.background_color,
             foreground=self.text_color,
+            font=self.font_normal_size,
         ).grid(row=1, column=0, sticky="w", pady=2)
         self._faction_colored_nicks = BooleanVar(
             value=self.config.faction_colored_nicks
@@ -467,6 +494,7 @@ class Options:
             activebackground=self.background_color,
             activeforeground=self.text_color,
             width=15,
+            font=self.font_normal_size,
         )
         in_game_display_option["menu"].config(
             bg=self.background_color,
@@ -484,6 +512,7 @@ class Options:
             text="In-game list display order",
             background=self.background_color,
             foreground=self.text_color,
+            font=self.font_normal_size,
         ).grid(row=2, column=0, sticky="w", pady=2)
         self.in_game_display_order_var = StringVar(
             frame, value=self.config.in_game_users_display_order
@@ -504,6 +533,7 @@ class Options:
             activebackground=self.background_color,
             activeforeground=self.text_color,
             width=15,
+            font=self.font_normal_size,
         )
         in_game_display_order_option["menu"].config(
             bg=self.background_color,
@@ -521,6 +551,7 @@ class Options:
             text="Death report",
             background=self.background_color,
             foreground=self.text_color,
+            font=self.font_normal_size,
         ).grid(row=3, column=0, sticky="w", pady=2)
 
         self.report_death_var = BooleanVar(value=self.config.death_reports)
@@ -547,6 +578,7 @@ class Options:
             activebackground=self.background_color,
             activeforeground=self.text_color,
             width=15,
+            font=self.font_normal_size,
         )
         self.death_report_type_option["menu"].config(
             bg=self.background_color,
@@ -564,6 +596,7 @@ class Options:
             text="Popup settings",
             background=self.background_color,
             foreground=self.text_color,
+            font=self.font_normal_size,
         ).grid(row=4, column=0, sticky="w", pady=2)
         self.notification_on_ping_var = BooleanVar(
             value=self.config.pop_up_on_ping
@@ -609,6 +642,7 @@ class Options:
             command=lambda: os.system("start https://discord.gg/wqETk83bvh"),
             background=self.background_color,
             foreground=self.text_color,
+            font=self.font_normal_size,
         ).grid(row=0, column=0, sticky="w")
 
         Button(
@@ -619,6 +653,7 @@ class Options:
             ).main(),
             background=self.background_color,
             foreground=self.text_color,
+            font=self.font_normal_size,
         ).grid(row=0, column=1, sticky="n", padx=5)
 
         Button(
@@ -627,6 +662,7 @@ class Options:
             command=self.save_options,
             background=self.background_color,
             foreground=self.text_color,
+            font=self.font_normal_size,
         ).grid(row=0, column=2, sticky="e", padx=5)
 
         Button(
@@ -635,6 +671,7 @@ class Options:
             command=self._destroy_this_window,
             background=self.background_color,
             foreground=self.text_color,
+            font=self.font_normal_size,
         ).grid(row=0, column=3, sticky="e", padx=(5, 0))
 
     @inject.autoparams()
