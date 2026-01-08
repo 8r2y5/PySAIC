@@ -121,7 +121,7 @@ class GroupByFactionWithCounter(SortedMixin):
                 display_tag = faction_tag.replace("_", " ")
                 self.users_list.insert(END, f"{display_tag}", faction_tag)
                 self.users_list.insert(
-                    END, f" ({self.counter[chat_user.faction]})\n"
+                    END, f" ({self.counter[chat_user.faction]})\n", "Text"
                 )
                 last_group = faction_tag
 
