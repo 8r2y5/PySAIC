@@ -143,7 +143,7 @@ class App(Tk):
         self.main_frame = Frame(
             self, background=self.pysaic_config.colors.background
         )
-        self.main_frame.pack(expand=True, fill="both")
+        self.main_frame.pack(expand=True, fill="both", pady=(1, 0))
 
         self._configure_grid()
         self._prepare_left_frame()
@@ -170,7 +170,7 @@ class App(Tk):
             row=0,
             column=0,
             sticky="nsew",
-            padx=(3, 1),
+            padx=(4, 1),
             pady=3,
         )
         left_frame.columnconfigure(0, weight=1)
@@ -296,7 +296,9 @@ class App(Tk):
         self.bottom_frame = Frame(
             self.main_frame, background=self.pysaic_config.colors.background
         )
-        self.bottom_frame.grid(row=1, column=0, columnspan=2, sticky="nsew")
+        self.bottom_frame.grid(
+            row=1, column=0, columnspan=2, sticky="nsew", pady=(2, 1)
+        )
         self.input_message = Entry(
             self.bottom_frame,
             background=self.pysaic_config.colors.background_light,
