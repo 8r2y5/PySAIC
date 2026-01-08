@@ -40,6 +40,7 @@ TK_BREAK = "break"
 
 PATH = Path(os.path.abspath(os.path.dirname(__file__)))
 AUTO_COMPLETE_REGEXP = re.compile(r"[@]?\w+$")
+DELETION_STOP_CHARS = {" ", ",", ".", ":", ";", "@", "!", "(", ")"}
 
 
 class AltFontSize:
@@ -304,6 +305,7 @@ class App(Tk):
             background=self.pysaic_config.colors.background_light,
             foreground=self.pysaic_config.colors.text,
             disabledbackground=self.pysaic_config.colors.background,
+            insertbackground=self.pysaic_config.colors.text,
         )
         self.input_message.pack(
             expand=True, fill="both", side="left", padx=3, pady=(0, 3)
@@ -560,11 +562,14 @@ class App(Tk):
         if cursor_position == 0:
             return TK_BREAK
 
-        if text[cursor_position - 1] == " ":
+        if text[cursor_position - 1] in DELETION_STOP_CHARS:
             self.input_message.delete(cursor_position - 1, cursor_position)
             return TK_BREAK
 
-        while cursor_position > 0 and text[cursor_position - 1] != " ":
+        while (
+            cursor_position > 0
+            and text[cursor_position - 1] not in DELETION_STOP_CHARS
+        ):
             cursor_position -= 1
 
         if cursor_position - 1 > 0:
