@@ -4,7 +4,7 @@ info = "crc_icon_info"
 error = "crc_icon_error"
 unknown = "crc_icon_unknown"
 
-factions = {
+local factions = {
     actor_army = 16,
     actor_bandit = 18,
     actor_csky = 20,
@@ -20,7 +20,7 @@ factions = {
     actor_zombied = 18,
 }
 
-pysaic_factions = {
+local pysaic_factions = {
     actor_army = 35,
     actor_bandit = 42,
     actor_csky = 43,
@@ -66,15 +66,16 @@ function getIcon(name, faction, user_type)
     end
 end
 
-function _checkIconByMatch(icon_id, beginning_of_id, look_table)
-    icon = string.match(icon_id, "^(" .. beginning_of_id.. "_actor_[^_]+_[0-9]+)$")
+local function _checkIconByMatch(icon_id, beginning_of_id, look_table)
+    local string_match = string.match
+    local icon = string_match(icon_id, "^(" .. beginning_of_id.. "_actor_[^_]+_[0-9]+)$")
     if icon then
-        local faction = string.match(icon, "^" .. beginning_of_id .. "_(actor_[^_]+)")
+        local faction = string_match(icon, "^" .. beginning_of_id .. "_(actor_[^_]+)")
         if faction == nil then
             return false
         end
         if look_table[faction] then
-            local index = tonumber(string.match(icon, "_([0-9]+)$"))
+            local index = tonumber(string_match(icon, "_([0-9]+)$"))
             if index and index > 0 and index <= look_table[faction] then
                 return true
             end

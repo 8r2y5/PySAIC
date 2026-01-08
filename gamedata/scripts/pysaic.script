@@ -83,16 +83,13 @@ local function add_message_to_history(icon, title, text, reputation, rank)
 			table.remove(messageLog, 1)
 		end
 	end
-	table.insert(
-		messageLog,
-		{
-			title = title,
-			text = text,
-			icon = icon,
-			reputation = reputation,
-			rank = rank
-		}
-	)
+	messageLog[#messageLog +1 ] = {
+		title = title,
+		text = text,
+		icon = icon,
+		reputation = reputation,
+		rank = rank
+	}
 end
 
 local function addMessage(icon, title, text, reputation, rank)
@@ -108,7 +105,7 @@ end
 
 local function send(message, ...)
 	local line = message:format(...).."\n"
-	table.insert(sendQueue, line)
+	sendQueue[#sendQueue+1] = line
 end
 
 function send_handshake(body)
@@ -143,23 +140,23 @@ end
 function historyChannelHandler(message, highlight, name, faction, icon_id, message_params, reputation, rank, user_type)
 	highlight = isTrue(highlight)
 	local icon = handle_icon(name, faction, icon_id)
-	title = name..', '.._get_title_value(faction, user_type)
-	text = ((highlight and HIGHLIGHT_COLOR) or MESSAGE_COLOR) .. message
+	local title = name..', '.._get_title_value(faction, user_type)
+	local text = ((highlight and HIGHLIGHT_COLOR) or MESSAGE_COLOR) .. message
 	add_message_to_history(icon, title, text, reputation, rank)
 end
 
 
 function historyFromPrivateHandler(message, highlight, name, faction, icon_id, message_params, reputation, rank, user_type)
 	local icon = handle_icon(name, faction, icon_id)
-	title = name .. " -> " .. message_params
-	text = QUERY_COLOR .. message
+	local title = name .. " -> " .. message_params
+	local text = QUERY_COLOR .. message
 	add_message_to_history(icon, title, text, reputation, rank)
 end
 
 function historyToPrivateHandler(message, highlight, name, faction, icon_id, message_params, reputation, rank, user_type)
 	local icon = handle_icon(name, faction, icon_id)
-	title = message_params .. " -> " .. name
-	text = QUERY_COLOR .. message
+	local title = message_params .. " -> " .. name
+	local text = QUERY_COLOR .. message
 	add_message_to_history(icon, title, text, reputation, rank)
 end
 
@@ -210,8 +207,8 @@ historyHandlers = {
 
 function parseHistoryMessage(body)
 	local faction, name, icon_id, reputation, rank, highlight, user_type, message_metadata, message = body:match("([^/]+)/([^/]+)/([^/]+)/([^/]+)/([^/]+)/([^/]+)/([^/]+)/([^/]+)/(.+)")
-	message_type, message_params = message_metadata:match("([^,]*),(.*)")
-	handler = historyHandlers[message_type]
+	local message_type, message_params = message_metadata:match("([^,]*),(.*)")
+	local handler = historyHandlers[message_type]
 	if handler then
 		handler(message, highlight, name, faction, icon_id, message_params, reputation, rank, user_type)
 	else
@@ -223,6 +220,7 @@ end
 
 
 function handle_icon(name, faction, icon_id)
+	local icon
 	if not knownIcons[name] then
 		icon = pysaic_icons.getIconSafe(name, faction, icon_id)
 	else
@@ -250,7 +248,7 @@ end
 
 function parsePrivateMessage(body)
 	local faction, user_type, from, from_icon, reputation, rank, to, message = body:match("([^/]+)/([^/]+)/([^/]+)/([^/]+)/([^/]+)/([^/]+)/([^/]+)/(.+)")
-	icon = handle_icon(from, faction, from_icon, user_type)
+	local icon = handle_icon(from, faction, from_icon, user_type)
 	if chatBox then
 		chatBox:UpdateUsers()
 	end
@@ -325,7 +323,7 @@ function parseChannels(value)
 	table_channel = {}
 	for channel_tuple in value:gmatch("([^,]+)") do
 		for irc_name, description_name in channel_tuple:gmatch("([^/]+)%s=%s([^/]+)") do
-			table.insert(table_channel, irc_name)
+			table_channel[#table_channel+1] = irc_name
 			irc_name_to_description[irc_name] = description_name
 		end
 	end
@@ -503,7 +501,7 @@ local function update()
 	if input then
 		local receiveQueue = {}
 		for line in input:lines() do
-			table.insert(receiveQueue, line)
+			receiveQueue[#receiveQueue+1] = line
 		end
 		input:close()
 
@@ -688,7 +686,7 @@ function actorOnItemTake(item)
 end
 
 function on_game_start()
-    printf('CRC script started with version %s', SCRIPT_VERSION)
+    printf('PySAIC script started with version %s', SCRIPT_VERSION)
 	isDead = false
 	ChatBoxEnabled = true
     USER_LIST_ORDER = sort_by_nick
@@ -832,7 +830,7 @@ end
 function pairsByKeys(t, f)
 	local a = {}
 	for n in pairs(t) do
-		table.insert(a, n)
+		a[#a+1] = n
 	end
 	table.sort(a, f)
 	local i = 0
@@ -872,6 +870,7 @@ function ChatBox:_add_user_to_user_list(user_node_name, user_data)
             status:TextControl():SetTextColor(NOT_IN_GAME_ARGB)
         end
     else
+		local text
         if option.userDisplayStyle == "CRCR" then
             text = gt("crc_ingame")
         else
@@ -952,7 +951,7 @@ function ChatBox:UpdateMessages()
 		if option.userDisplayStyle == pysaic_constants.UserDisplayStyleEnum.PySAIC_Card then
 			self:setPySAICCardMessage(messageData, message)
 		end
-		table.insert(self.messages, message)
+		self.messages[#self.messages+1] = message
 	end
 end
 
