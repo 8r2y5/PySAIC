@@ -31,7 +31,6 @@ class AddDmMessage(UiUseCase):
             self._add_content_to_message(
                 self.event, show_popup=self.ui.should_show_popups
             )
-            self.messages_list.see(END)
 
     def _add_dm_message_to_game(self):
         try:

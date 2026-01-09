@@ -292,7 +292,7 @@ class IncomingRouter(Router):
         )
         self.messages_list.insert(
             END,
-            f": {content}{self._add_new_line_if_necessary(content)}",
+            f": {content}{self._strip_new_line(content)}",
             ["Text"] + additional_tags,
         )
 

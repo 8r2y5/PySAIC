@@ -72,7 +72,7 @@ class IncomingMoneyTransferUseCase(UiUseCase):
     def _add_content_to_message(self, content: str):
         self.messages_list.insert(
             END,
-            f": {normalize_content(content)}{self._add_new_line_if_necessary(content)}",
+            f": {normalize_content(content)}",
             "Information",
         )
 

@@ -72,8 +72,8 @@ class UiUseCase:
             )
 
     @staticmethod
-    def _add_new_line_if_necessary(content):
-        return "" if content.endswith("\n") else "\n"
+    def _strip_new_line(content):
+        return content.lstrip('\n')
 
     def _get_faction_color(self, author) -> str:
         if "NickServ" == author:

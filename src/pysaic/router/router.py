@@ -216,8 +216,8 @@ class Router:
             return FactionsEnum.Anonymous.name
 
     @staticmethod
-    def _add_new_line_if_necessary(content):
-        return "" if content.endswith("\n") else "\n"
+    def _strip_new_line(content):
+        return content.lstrip('\n')
 
     def _add_content_to_message(
         self, event, additional_tags=None, show_popup=False

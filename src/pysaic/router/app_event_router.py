@@ -436,7 +436,7 @@ class AppEventRouter(Router):
         date_time = datetime.fromtimestamp(record.created).strftime("%H:%M:%S")
         with enable_disable(self.ui.irc_messages_list):
             self.ui.irc_messages_list.insert(
-                END, f"[{date_time}] {content}\n", ["Text"]
+                END, f"[{date_time}] {content}", ["Text"]
             )
 
     def _handle_focus_window(self):

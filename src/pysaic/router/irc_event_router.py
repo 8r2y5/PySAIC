@@ -172,7 +172,6 @@ class IrcEventRouter(Router):
             self.messages_list.insert(END, " -> ", "DM")
             self._add_user_and_faction_color(self.event.target)
             self._add_content_to_message(self.event)
-            self.messages_list.see(END)
 
     def _handle_end_of_names(self):
         self._add_information_text("Connected to the channel.")

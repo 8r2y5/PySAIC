@@ -16,6 +16,8 @@ logger = logging.getLogger(__name__)
 @contextmanager
 def enable_disable(widget, *, tail=True):
     widget.config(state=NORMAL)
+    if widget.get("1.0", "end-1c") != "":
+        widget.insert(END, '\n')
     yield
     if tail is True:
         widget.see(END)
@@ -34,7 +36,7 @@ def normalize_content(content):
     return color_regex.sub(
         "",
         normalize("NFKD", content).encode("ascii", "replace").decode("ascii"),
-    )
+    ).lstrip('\n')
 
 
 def add_content_of_message_to_messages_list(
@@ -43,8 +45,7 @@ def add_content_of_message_to_messages_list(
     content: str,
     tags: list[str],
 ):
-    if not content.endswith("\n"):
-        content += "\n"
+    content = content.lstrip('\n')
     split_content = content.split(" ")
     count = len(split_content)
     for index, part in enumerate(split_content, start=1):
