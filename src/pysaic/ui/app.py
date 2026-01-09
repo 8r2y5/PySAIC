@@ -109,7 +109,6 @@ class App(Tk):
             ],
         )
         self.title(APP_IDENTITY)
-        self.geometry(f"{WIDTH}x{HEIGHT}")
         self.minsize(MIN_WIDTH + 210, MIN_HEIGHT + 32)
         # self.resizable(False, False)
         self.protocol("WM_DELETE_WINDOW", self.on_close)
@@ -259,12 +258,20 @@ class App(Tk):
             fg=self.pysaic_config.colors.text,
             activebackground=self.pysaic_config.colors.background,
             activeforeground=self.pysaic_config.colors.text,
+            highlightbackground=self.pysaic_config.colors.background,
+            highlightcolor=self.pysaic_config.colors.background,
+            highlightthickness=0,
+            width=22,
         )
         self.channels_dropbox["menu"].config(
             bg=self.pysaic_config.colors.background,
             fg=self.pysaic_config.colors.text,
             activebackground=self.pysaic_config.colors.active_background,
             activeforeground=self.pysaic_config.colors.active_foreground,
+            relief="flat",
+            borderwidth=1,
+            activeborderwidth=1,
+            selectcolor=self.pysaic_config.colors.background,
         )
         self.channels_dropbox.grid(row=0, column=0, sticky="ew")
 
@@ -276,7 +283,7 @@ class App(Tk):
             foreground=self.pysaic_config.colors.text,
             width=10,
         )
-        self.options_button.grid(row=0, column=1, sticky="ew")
+        self.options_button.grid(row=0, column=1, sticky="ew", padx=(5, 0))
 
         channels_and_option_section.pack(side="left", fill="x")
 

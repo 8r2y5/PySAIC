@@ -94,7 +94,6 @@ class AvatarOptions:
         self.main_window = main_window
         self.this_window = Toplevel(self.main_window)
         self.this_window.title("Avatar Options")
-        self.this_window.geometry("400x330")
         self.this_window.wm_minsize(400, 330)
         self.this_window.resizable(True, True)
         self.this_window.iconbitmap(PATH / "crcr_icon_new.ico")

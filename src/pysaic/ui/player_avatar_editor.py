@@ -26,7 +26,6 @@ class PlayerAvatarEditor:
         self.master_window = master_window
         self.window = Toplevel()
         self.window.title("Player Avatar Editor")
-        self.window.geometry("400x300")
         self.window.configure(background=self.config.colors.background)
         self.window.wm_minsize(400, 300)
         self.window.resizable(True, True)

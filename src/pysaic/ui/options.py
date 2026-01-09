@@ -50,7 +50,6 @@ class Options:
         self.options_window.configure(bg=self.main_window.cget("bg"))
         height = 580
         width = 450
-        self.options_window.geometry(f"{width}x{height}+100+100")
         self.options_window.minsize(width, height)
         self.options_window.iconbitmap(PATH / "crcr_icon_new.ico")
         self.main_window.options_button.config(state="disabled")
