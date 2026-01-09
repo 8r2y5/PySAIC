@@ -11,9 +11,9 @@ from pysaic.enums import (
     FactionsEnum,
     IrcEvents,
     LocationEnum,
+    PySAICStatusEnum,
     RankEnum,
     ReputationEnum,
-    PySAICStatusEnum,
 )
 from pysaic.events.enum import GameEvents
 

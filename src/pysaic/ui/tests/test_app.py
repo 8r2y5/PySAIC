@@ -2,7 +2,7 @@ from unittest.mock import Mock, patch
 
 import pytest
 
-from pysaic.config import Channel, Config, Server, ColorsConfig, FontConfig
+from pysaic.config import Channel, ColorsConfig, Config, FontConfig, Server
 
 
 @pytest.fixture

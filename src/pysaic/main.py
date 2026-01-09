@@ -13,22 +13,21 @@ from asyncirc.server import Server
 from pysaic.config import Config
 from pysaic.entities import IncomingEvent, IncomingQueue, OutgoingQueue
 from pysaic.enums import IrcEvents
-
 from pysaic.irc_protocol import PySaicIrcProtocol
 from pysaic.log.handlers import PySAICIRCLoggingHandler
-from pysaic.use_cases.local_server import (
-    get_pysaic_localserver,
-    ask_instance_to_focus,
-)
 from pysaic.settings import (
     APP_IDENTITY,
+    DEBUG,
     GAMEDATA_PATH,
     WORKDIR,
     get_log_config,
-    DEBUG,
 )
 from pysaic.state import State
 from pysaic.use_cases.get_user_for_irc import get_user_for_irc
+from pysaic.use_cases.local_server import (
+    ask_instance_to_focus,
+    get_pysaic_localserver,
+)
 from pysaic.use_cases.notification_registry import (
     check_and_register_uri_protocol,
 )
@@ -37,8 +36,7 @@ logger = logging.getLogger("pysaic")
 
 
 def set_up_irc_client(loop, config):
-    from pysaic.handlers import log_all_events
-    from pysaic.handlers import handle_nickname_in_use
+    from pysaic.handlers import handle_nickname_in_use, log_all_events
 
     logger.debug("Setting up irc client")
     irc = PySaicIrcProtocol(

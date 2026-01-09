@@ -10,13 +10,13 @@ from typing import Optional, Self
 from pysaic.config import Config
 from pysaic.entities import ChatUser, ChatUsers
 from pysaic.enums import (
+    AvatarEnum,
     DisconnectOnNetworkDestructionSetting,
+    HistoryMessageEnum,
     LocationEnum,
+    PySAICStatusEnum,
     RankEnum,
     ReputationEnum,
-    AvatarEnum,
-    HistoryMessageEnum,
-    PySAICStatusEnum,
 )
 
 logger = logging.getLogger(__name__)

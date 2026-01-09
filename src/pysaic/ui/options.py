@@ -14,7 +14,7 @@ from tkinter import (
     Toplevel,
 )
 from tkinter.font import Font
-from tkinter.ttk import Style, Spinbox
+from tkinter.ttk import Spinbox, Style
 
 import inject
 
@@ -29,8 +29,8 @@ from pysaic.entities import AppEvent, IncomingEvent, IncomingQueue
 from pysaic.enums import (
     AppEventEnum,
     DeathReportTypeEnum,
-    FactionsEnum,
     DisconnectOnNetworkDestructionSetting,
+    FactionsEnum,
 )
 from pysaic.ui.avatar_options import AvatarOptions
 from pysaic.ui.utils import add_separator

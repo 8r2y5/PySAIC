@@ -16,13 +16,13 @@ from pysaic.entities import (
     OutgoingCTCP,
 )
 from pysaic.enums import (
+    AppEventEnum,
     FactionsEnum,
+    HistoryMessageEnum,
     LocationEnum,
+    PySAICStatusEnum,
     RankEnum,
     ReputationEnum,
-    AppEventEnum,
-    PySAICStatusEnum,
-    HistoryMessageEnum,
 )
 from pysaic.router.app_event_router import AppEventRouter
 from pysaic.router.game_event_router import GameEventRouter

@@ -6,7 +6,7 @@ import inject
 from watchdog.events import FileSystemEvent, FileSystemEventHandler
 from watchdog.observers import Observer
 
-from pysaic.entities import IncomingQueue, IncomingEvent
+from pysaic.entities import IncomingEvent, IncomingQueue
 from pysaic.script_reader.router import parse_line
 
 logger = logging.getLogger(__name__)

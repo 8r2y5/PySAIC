@@ -217,7 +217,7 @@ class Router:
 
     @staticmethod
     def _strip_new_line(content):
-        return content.lstrip('\n')
+        return content.lstrip("\n")
 
     def _add_content_to_message(
         self, event, additional_tags=None, show_popup=False

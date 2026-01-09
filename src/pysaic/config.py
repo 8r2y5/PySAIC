@@ -1,22 +1,22 @@
 import logging
 from dataclasses import asdict, dataclass, field
-from enum import StrEnum, Enum
-from typing import Optional, Callable, Any, Self, Type
+from enum import Enum, StrEnum
+from typing import Any, Callable, Optional, Self, Type
 
 import yaml
 
 from pysaic.controllers.ui.user_list import GroupByFactionWithCounter
+from pysaic.crc_strings.use_case import random_name
 from pysaic.enums import (
     AvatarEnum,
     DeathReportTypeEnum,
-    FactionsEnum,
     DisconnectOnNetworkDestructionSetting,
+    FactionsEnum,
 )
 from pysaic.use_cases.avatar import (
     calculate_icon_based_on_faction_and_name,
     is_icon_valid,
 )
-from pysaic.crc_strings.use_case import random_name
 
 logger = logging.getLogger(__name__)
 
@@ -117,17 +117,17 @@ class ColorsConfig:
     mercenary: str = "dodgerblue"
     military: str = "PaleGreen3"
     renegade: str = "green yellow"
-    zombie: str = "black"
-    anonymous: str = "black"
+    zombie: str = "#573613"
+    anonymous: str = "#573613"
     unisg: str = "salmon"
     sin: str = "maroon4"
     direct_message: str = "hot pink"
     online: str = "green"
     offline: str = "red"
     afk: str = "yellow"
-    background: str = "gray30"
-    background_in_between: str = "gray35"
-    background_light: str = "gray40"
+    background: str = "#212121"
+    background_in_between: str = "#282a2c"
+    background_light: str = "#131313"
     pressed: str = "gray45"
     slider_arrow: str = "floral white"
     slider_arrow_disabled: str = "dim gray"
@@ -150,8 +150,8 @@ class ColorsConfig:
 
 @dataclass
 class FontConfig:
-    name: str = "Lato"
-    size: int = 11
+    name: str = "Jetbrains Mono"
+    size: int = 10
 
     @classmethod
     def load_from_config(cls, config: None | dict[str, int | str] = None):

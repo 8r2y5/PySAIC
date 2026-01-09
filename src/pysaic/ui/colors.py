@@ -2,16 +2,16 @@ import os
 from functools import partial
 from pathlib import Path
 from tkinter import (
-    Toplevel,
+    END,
+    Button,
+    Entry,
     Frame,
     Label,
-    Button,
     Tk,
+    Toplevel,
     colorchooser,
-    Entry,
-    END,
 )
-from tkinter.font import Font, BOLD
+from tkinter.font import BOLD, Font
 from tkinter.ttk import Scrollbar, Style
 
 from pysaic.config import Config

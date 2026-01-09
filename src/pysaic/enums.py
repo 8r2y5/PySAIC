@@ -1,5 +1,5 @@
 import logging
-from enum import Enum, StrEnum, auto, IntEnum
+from enum import Enum, IntEnum, StrEnum, auto
 
 import yaml
 

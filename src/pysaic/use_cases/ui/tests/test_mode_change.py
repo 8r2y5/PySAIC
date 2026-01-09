@@ -1,4 +1,4 @@
-from unittest.mock import call, patch, ANY
+from unittest.mock import ANY, call, patch
 
 import pytest
 

@@ -4,11 +4,11 @@ from logging import LogRecord
 from tkinter import END
 
 from pysaic.controllers.game import (
+    add_faction_colored_nicks,
     ask_for_actor_status,
     ask_for_handshake,
     set_ingame_display_setting,
     set_ingame_display_setting_order_setting,
-    add_faction_colored_nicks,
 )
 from pysaic.entities import (
     IncomingEvent,
@@ -20,7 +20,7 @@ from pysaic.enums import AppEventEnum
 from pysaic.log import escape_stand_and_end
 from pysaic.router.router import Router
 from pysaic.router.utils import send_saic_afk, send_saic_avatar
-from pysaic.settings import ANOMALY_DIR_PATH, GAMEDATA_PATH, WORKDIR, DEBUG
+from pysaic.settings import ANOMALY_DIR_PATH, DEBUG, GAMEDATA_PATH, WORKDIR
 from pysaic.tasks.afk import ensure_afk_tasks_are_running, stop_afk_tasks
 from pysaic.use_cases.command import CommandUseCase
 from pysaic.use_cases.common import join_previous_channel

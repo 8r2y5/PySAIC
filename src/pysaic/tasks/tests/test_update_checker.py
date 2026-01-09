@@ -1,10 +1,10 @@
+from unittest.mock import Mock, PropertyMock, patch
+
+import pytest
 from packaging.version import Version
 
 from pysaic.enums import AppEventEnum
 from pysaic.tasks.update_checker import _check_for_update
-from unittest.mock import Mock, patch, PropertyMock
-
-import pytest
 
 
 @pytest.fixture
