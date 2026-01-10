@@ -100,55 +100,6 @@ class Server:
 
 
 @dataclass
-class ColorsConfig:
-    time: str = "floral white"
-    text: str = "ghost white"
-    highlight: str = "gray50"
-    hyper_link: str = "#3B8ED0"
-    information: str = "lightblue"
-    error: str = "red3"
-    clear_sky: str = "deep sky blue"
-    loner: str = "light goldenrod"
-    ecologist: str = "darkorange"
-    bandit: str = "sienna3"
-    monolith: str = "DarkOrchid3"
-    duty: str = "firebrick1"
-    freedom: str = "spring green"
-    mercenary: str = "dodgerblue"
-    military: str = "PaleGreen3"
-    renegade: str = "green yellow"
-    zombie: str = "#573613"
-    anonymous: str = "#573613"
-    unisg: str = "salmon"
-    sin: str = "maroon4"
-    direct_message: str = "hot pink"
-    online: str = "green"
-    offline: str = "red"
-    afk: str = "yellow"
-    background: str = "#212121"
-    background_in_between: str = "#282a2c"
-    background_light: str = "#131313"
-    pressed: str = "gray45"
-    slider_arrow: str = "floral white"
-    slider_arrow_disabled: str = "dim gray"
-    active_background: str = "dim gray"
-    active_foreground: str = "black"
-
-    @classmethod
-    def load_from_config(cls, config: None | dict[str, str] = None):
-        try:
-            return cls(
-                **{
-                    field: config.get(field) or value.default
-                    for field, value in cls.__dataclass_fields__.items()
-                }
-            )
-        except Exception:
-            logger.exception("Cannot load config for colors, creating default")
-            return cls()
-
-
-@dataclass
 class FontConfig:
     name: str = "Jetbrains Mono"
     size: int = 10
@@ -273,6 +224,80 @@ class NestedObjectFiled(ConfigField):
 
     def dump_value(self, instance) -> dict:
         return asdict(getattr(instance, self.name))
+
+
+class Colors:
+    @classmethod
+    def load_from_config(cls, config: None | dict[str, str] = None):
+        try:
+            return cls(
+                **{
+                    field: cls._load_field(field, value, config)
+                    for field, value in cls.__dataclass_fields__.items()
+                }
+            )
+        except Exception:
+            logger.exception("Cannot load config for colors, creating default")
+            return cls.load_from_config({})
+
+    @classmethod
+    def _load_field(cls, field, value, config):
+        config_value = config.get(field)
+        field_value = cls.__dict__[field]
+        if isinstance(field_value, NestedObjectFiled):
+            return field_value.load_value(config_value or {})
+        return config_value or value.default
+
+
+@dataclass
+class BackgroundColors(Colors):
+    app: str = "#212121"
+    in_between: str = "#282a2c"
+    content: str = "#131313"
+    active_background: str = "dim gray"
+    active_foreground: str = "black"
+
+
+@dataclass()
+class ContentColors(Colors):
+    time: str = "floral white"
+    text: str = "ghost white"
+    highlight: str = "gray50"
+    hyper_link: str = "#3B8ED0"
+    information: str = "lightblue"
+    error: str = "red3"
+    direct_message: str = "hot pink"
+    online: str = "green"
+    offline: str = "red"
+    afk: str = "yellow"
+
+
+@dataclass
+class FactionColors(Colors):
+    clear_sky: str = "deep sky blue"
+    loner: str = "light goldenrod"
+    ecologist: str = "darkorange"
+    bandit: str = "sienna3"
+    monolith: str = "DarkOrchid3"
+    duty: str = "firebrick1"
+    freedom: str = "spring green"
+    mercenary: str = "dodgerblue"
+    military: str = "PaleGreen3"
+    renegade: str = "green yellow"
+    zombie: str = "#573613"
+    anonymous: str = "#573613"
+    unisg: str = "salmon"
+    sin: str = "maroon4"
+
+
+@dataclass
+class ColorsConfig(Colors):
+    content: ContentColors = NestedObjectFiled(ContentColors)
+    factions: FactionColors = NestedObjectFiled(FactionColors)
+    background: BackgroundColors = NestedObjectFiled(BackgroundColors)
+    pressed: str = "gray45"
+    slider_arrow: str = "floral white"
+    slider_arrow_disabled: str = "dim gray"
 
 
 @dataclass
@@ -463,6 +488,7 @@ class Config:
 
 
 if __name__ == "__main__":
+    logging.basicConfig(level=logging.DEBUG)
     config = Config.load_config()
     print(config)
     config.save_config()

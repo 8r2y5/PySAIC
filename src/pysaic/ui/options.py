@@ -55,7 +55,7 @@ class Options:
         self.main_window.options_button.config(state="disabled")
 
         self.background_color = self.main_window.cget("bg")
-        self.text_color = self.config.colors.text
+        self.text_color = self.config.colors.content.text
         self.font_normal_size = Font(
             family=self.config.font.name, size=self.config.font.size - 1
         )
@@ -249,7 +249,7 @@ class Options:
             background=self.background_color,
             foreground=self.text_color,
             font=self.font_normal_size,
-            insertbackground=self.config.colors.text,
+            insertbackground=self.config.colors.content.text,
         )
         self.name_entry.insert(0, self.config.nick)
         self.name_entry.grid(row=0, column=1, sticky="we", padx=5)
@@ -267,7 +267,7 @@ class Options:
             foreground=self.text_color,
             show="*",
             font=self.font_normal_size,
-            insertbackground=self.config.colors.text,
+            insertbackground=self.config.colors.content.text,
         )
         self.password_entry.insert(0, self.config.password)
         self.password_entry.grid(row=0, column=3, sticky="we", padx=5)
