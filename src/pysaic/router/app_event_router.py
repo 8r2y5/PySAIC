@@ -317,7 +317,7 @@ class AppEventRouter(Router):
             stop_afk_tasks()
             if not self.state.is_in_channel.is_set():
                 ask_for_actor_status()
-                self.state.is_currently_under_network_destruction = False
+                self.state.is_currently_under_network_destruction = None
                 logger.debug("Joining previous channel")
                 join_previous_channel()
 
