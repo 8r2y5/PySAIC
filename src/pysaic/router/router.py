@@ -199,13 +199,14 @@ class Router:
             additional_tags = []
         additional_tags = additional_tags + [self._get_faction_color(user)]
         additional_tags = list(set(additional_tags))
+        line_num = self.messages_list.index("end-1c").split(".")[0]
         self.messages_list.insert(
             END,
             user,
             additional_tags,
         )
         if service is True or "Highlight" in additional_tags:
-            self.messages_list.tag_add("Highlight", "end-1c linestart", "end")
+            self.messages_list.tag_add("Highlight", f"{line_num}.0", "end")
 
     def _get_faction_color(self, author) -> str:
         if "NickServ" == author:

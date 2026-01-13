@@ -18,6 +18,7 @@ def enable_disable(widget, *, tail=True):
     widget.config(state=NORMAL)
     if widget.get("1.0", "end-1c") != "":
         widget.insert(END, "\n")
+    widget.tag_remove("Highlight", "end-1c", "end")
     yield
     if tail is True:
         widget.see(END)
