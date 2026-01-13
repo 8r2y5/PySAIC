@@ -34,6 +34,7 @@ from pysaic.entities import (
 from pysaic.enums import AppEventEnum
 from pysaic.events.enum import GameEvents
 from pysaic.handlers import join_previous_channel
+from pysaic.router.utils import send_saic_state
 from pysaic.script_reader.entities import (
     Achievement,
     ConnectionLost,
@@ -321,6 +322,7 @@ class ConnectionLostUseCase:
             )
             return
         state.is_currently_under_network_destruction = self.entity.reason
+        send_saic_state()
         if self.entity.lost is True:
             if state.fake_disconnect:
                 self._do_full_disconnect()

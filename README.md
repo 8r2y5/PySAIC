@@ -187,5 +187,8 @@ commands:
   - "MODE {nick} +B"
 ```
 
+# Font
+Thanks to [JetBrains](https://www.jetbrains.com/lp/mono) for the great font!
+
 # What changed?
 See [CHANGELOG.md](CHANGELOG.md) for details.

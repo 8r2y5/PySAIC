@@ -20,6 +20,8 @@ from pysaic.use_cases.avatar import (
 
 logger = logging.getLogger(__name__)
 
+NOT_SET = object()
+
 
 class InGameUserDisplayEnum(StrEnum):
     CRCR = "CRCR"
@@ -101,7 +103,7 @@ class Server:
 
 @dataclass
 class FontConfig:
-    name: str = "Jetbrains Mono"
+    name: str = "JetBrains Mono"
     size: int = 10
 
     @classmethod
@@ -151,7 +153,12 @@ class ConfigField:
         instance.__dict__[self.name] = value
 
     def load_value(self, config: dict) -> Any:
-        value = config.get(self.name, self.default)
+        value = config.get(self.name, NOT_SET)
+        if value is NOT_SET:
+            if self.default_factory:
+                value = self.default_factory()
+            else:
+                value = self.default
         if self.loading and value is not None:
             return self.loading(value)
         return value
@@ -189,7 +196,7 @@ class EnumField(ConfigField):
                 if name
                 else self.default
             )
-        except KeyError:
+        except (ValueError, KeyError):
             return self.default
 
     def dump_value(self, instance) -> str:
@@ -242,11 +249,10 @@ class Colors:
 
     @classmethod
     def _load_field(cls, field, value, config):
-        config_value = config.get(field)
         field_value = cls.__dict__[field]
         if isinstance(field_value, NestedObjectFiled):
-            return field_value.load_value(config_value or {})
-        return config_value or value.default
+            return field_value.load_value(config)
+        return config.get(field) or value.default
 
 
 @dataclass
@@ -254,40 +260,40 @@ class BackgroundColors(Colors):
     app: str = "#212121"
     in_between: str = "#282a2c"
     content: str = "#131313"
-    active_background: str = "dim gray"
-    active_foreground: str = "black"
+    active_background: str = "#696969"
+    active_foreground: str = "#000000"
 
 
 @dataclass()
 class ContentColors(Colors):
-    time: str = "floral white"
-    text: str = "ghost white"
-    highlight: str = "gray50"
-    hyper_link: str = "#3B8ED0"
-    information: str = "lightblue"
-    error: str = "red3"
-    direct_message: str = "hot pink"
-    online: str = "green"
-    offline: str = "red"
-    afk: str = "yellow"
+    time: str = "#fffaf0"
+    text: str = "#f8f8ff"
+    highlight: str = "#7f7f7f"
+    hyper_link: str = "#3b8ed0"
+    information: str = "#add8e6"
+    error: str = "#cd0000"
+    direct_message: str = "#ff69b4"
+    online: str = "#008000"
+    offline: str = "#ff0000"
+    afk: str = "#ffff00"
 
 
 @dataclass
 class FactionColors(Colors):
-    clear_sky: str = "deep sky blue"
-    loner: str = "light goldenrod"
-    ecologist: str = "darkorange"
-    bandit: str = "sienna3"
-    monolith: str = "DarkOrchid3"
-    duty: str = "firebrick1"
-    freedom: str = "spring green"
-    mercenary: str = "dodgerblue"
-    military: str = "PaleGreen3"
-    renegade: str = "green yellow"
+    clear_sky: str = "#00bfff"
+    loner: str = "#eedd82"
+    ecologist: str = "#ff8c00"
+    bandit: str = "#cd6839"
+    monolith: str = "#9a32cd"
+    duty: str = "#ff3030"
+    freedom: str = "#00ff7f"
+    mercenary: str = "#1e90ff"
+    military: str = "#7ccd7c"
+    renegade: str = "#adff2f"
     zombie: str = "#573613"
     anonymous: str = "#573613"
-    unisg: str = "salmon"
-    sin: str = "maroon4"
+    unisg: str = "#fa8072"
+    sin: str = "#8b1c62"
 
 
 @dataclass
@@ -295,9 +301,9 @@ class ColorsConfig(Colors):
     content: ContentColors = NestedObjectFiled(ContentColors)
     factions: FactionColors = NestedObjectFiled(FactionColors)
     background: BackgroundColors = NestedObjectFiled(BackgroundColors)
-    pressed: str = "gray45"
-    slider_arrow: str = "floral white"
-    slider_arrow_disabled: str = "dim gray"
+    pressed: str = "#737373"
+    slider_arrow: str = "#fffaf0"
+    slider_arrow_disabled: str = "#696969"
 
 
 @dataclass

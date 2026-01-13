@@ -92,6 +92,6 @@ def generate_avatar(
 
 
 if __name__ == "__main__":
-    filename = Path(__file__) / ".." / ".." / "ui" / "crcr_icon_new.ico"
+    filename = Path(__file__) / ".." / ".." / "ui" / "pysaic_icon.ico"
     filename = filename.resolve()
     generate_avatar(filename)

@@ -1,9 +1,12 @@
+import asyncio
 import logging
 from asyncio import Queue
 from dataclasses import asdict
 from functools import partial
 from pprint import pprint
 from random import choice
+
+from pysaic.tasks.common import close_everything_callback
 
 import inject
 
@@ -27,8 +30,12 @@ from pysaic.router.incoming_router import IncomingRouter
 from pysaic.script_reader.entities import Death
 from pysaic.settings import APP_IDENTITY
 from pysaic.state import State
+from pysaic.tasks.app import update_app
+from pysaic.tasks.incoming_queue import incoming_queue_processing
 from pysaic.ui.app import App
 from pysaic.use_cases.ui.update_users import UpdateUsersUseCase
+
+logger = logging.getLogger(__name__)
 
 
 def gen_chat_users():
@@ -188,8 +195,21 @@ def mock_ui():
     get_travel_message(state, config, app)
     UpdateUsersUseCase(state, app).execute()
     pprint(asdict(config))
+    loop = asyncio.get_event_loop()
+    prepared_callback = partial(close_everything_callback)
+    app_update_task = loop.create_task(update_app(app), name="AppUpdateTask")
+    app_update_task.add_done_callback(prepared_callback)
+    incoming_queue_processing_task = loop.create_task(
+        incoming_queue_processing(state, incoming_queue, app, config),
+        name="IncomingQueueProcessingTask",
+    )
+    incoming_queue_processing_task.add_done_callback(prepared_callback)
     app.enable_input()
-    app.mainloop()
+    try:
+        loop.run_until_complete(app_update_task)
+    except KeyboardInterrupt:
+        pass
+
     while incoming_queue.qsize():
         print(incoming_queue.get_nowait())
 

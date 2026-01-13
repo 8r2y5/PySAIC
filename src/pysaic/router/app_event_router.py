@@ -22,6 +22,7 @@ from pysaic.router.router import Router
 from pysaic.router.utils import send_saic_afk, send_saic_avatar
 from pysaic.settings import ANOMALY_DIR_PATH, DEBUG, GAMEDATA_PATH, WORKDIR
 from pysaic.tasks.afk import ensure_afk_tasks_are_running, stop_afk_tasks
+from pysaic.ui.utils import apply_style_to_tkinter
 from pysaic.use_cases.command import CommandUseCase
 from pysaic.use_cases.common import join_previous_channel
 from pysaic.use_cases.ui.our_message import OurMessageUseCase
@@ -41,18 +42,16 @@ class AppEventRouter(Router):
             self._handle_actor_update()
         elif self.event.event.what == AppEventEnum.IN_GAME:
             self._handle_in_game()
-
-        # TODO: fix this mess
-        # TODO: i dont even know if this is correct or what to change
         elif (
             self.event.event.what == AppEventEnum.DISCONNECTED_FROM_PDA_NETWORK
         ):
             self._handle_disconnected_from_channel()
-
         elif self.event.event.what == AppEventEnum.UPDATE_UI_USERS_LIST:
             self._handle_update_ui_users_list()
         elif self.event.event.what == AppEventEnum.OPTIONS_UPDATED:
             self._handle_options_updated()
+        elif self.event.event.what == AppEventEnum.COLORS_UPDATED:
+            self._handler_colors_updated()
         elif self.event.event.what == AppEventEnum.OUR_MESSAGE:
             OurMessageUseCase(
                 self.state,
@@ -187,6 +186,8 @@ class AppEventRouter(Router):
         self._update_crc_users_data()
         self._update_ingame_display_setting()
         self._update_ui_user_list()
+        self._handler_colors_updated()
+        apply_style_to_tkinter(self.ui, self.config)
 
         if self.state.nick != self.config.nick:
             self._update_nick_from_options()
@@ -291,7 +292,7 @@ class AppEventRouter(Router):
         )
 
     def _handle_afk_check(self):
-        logger.debug("Handling AFK check, status is %r", self.state.player.afk)
+        logger.debug("Handling AFK check, state is %r", self.state.player.afk)
         if (
             not self.state.player.last_ask_update
             or (self.state.player.last_ask_update + timedelta(minutes=10))
@@ -430,9 +431,9 @@ class AppEventRouter(Router):
             return
 
         record: LogRecord = self.event.event.payload
-        content = normalize_content(
-            escape_stand_and_end(record.message)
-        ).replace(self.config.password, "********")
+        content = normalize_content(escape_stand_and_end(record.message))
+        if self.config.password:
+            content = content.replace(self.config.password, "********")
         date_time = datetime.fromtimestamp(record.created).strftime("%H:%M:%S")
         with enable_disable(self.ui.irc_messages_list):
             self.ui.irc_messages_list.insert(
@@ -442,3 +443,7 @@ class AppEventRouter(Router):
     def _handle_focus_window(self):
         logger.info("Focusing main window")
         self.ui.lift_and_focus()
+
+    def _handler_colors_updated(self):
+        logger.info("Updating colors")
+        self.ui.update_colors()

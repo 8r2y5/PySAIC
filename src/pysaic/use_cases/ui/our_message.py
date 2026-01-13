@@ -95,8 +95,7 @@ class OurMessageUseCase:
             user = self.state.player.create_chat_user()
             self.chat_users.add_user(user.name, user)
 
-        with enable_disable(self.messages_list):
-            self._add_our_message(user, outgoing_message)
+        self._add_our_message(user, outgoing_message)
 
         self.state.add_message(HistoryMessageEnum.channel, user, content)
         add_channel_message_to_game(

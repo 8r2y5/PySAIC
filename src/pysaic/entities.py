@@ -11,7 +11,7 @@ from pysaic.enums import (
     FactionsEnum,
     IrcEvents,
     LocationEnum,
-    PySAICStatusEnum,
+    SAICStateEnum,
     RankEnum,
     ReputationEnum,
 )
@@ -226,7 +226,7 @@ class ChatUser:
     irc_mode: str = ""
     avatar: str = "random"
     irc_user: Optional[IrcUser] = None
-    status: PySAICStatusEnum = PySAICStatusEnum.ok
+    state: SAICStateEnum = SAICStateEnum.ok
 
     def copy(self):
         return self.__class__(

@@ -71,10 +71,6 @@ class UiUseCase:
                 f"{prepare_date(event)}: {normalized_content}",
             )
 
-    @staticmethod
-    def _strip_new_line(content):
-        return content.lstrip("\n")
-
     def _get_faction_color(self, author) -> str:
         if "NickServ" == author:
             try:

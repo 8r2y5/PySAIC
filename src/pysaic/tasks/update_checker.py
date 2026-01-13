@@ -34,7 +34,7 @@ async def _check_url(incoming_queue: IncomingQueue, url: str):
                     _check_for_update(incoming_queue, response.url)
                 else:
                     logger.warning(
-                        "Failed to get release on %r. Http status: %d",
+                        "Failed to get release on %r. Http state: %d",
                         url,
                         response.status,
                     )

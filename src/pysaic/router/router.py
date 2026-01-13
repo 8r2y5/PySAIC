@@ -1,6 +1,6 @@
 import logging
 from functools import wraps
-from tkinter import END
+from tkinter import END, Text
 
 from pysaic.config import Config, FactionSetting
 from pysaic.controllers.game import (
@@ -75,7 +75,7 @@ class Router:
         return self.state.chat_users
 
     @property
-    def messages_list(self):
+    def messages_list(self) -> Text:
         return self.ui.messages_list
 
     @property
@@ -197,8 +197,6 @@ class Router:
     ):
         if additional_tags is None:
             additional_tags = []
-        if service:
-            additional_tags.append("Highlight")
         additional_tags = additional_tags + [self._get_faction_color(user)]
         additional_tags = list(set(additional_tags))
         self.messages_list.insert(
@@ -206,6 +204,8 @@ class Router:
             user,
             additional_tags,
         )
+        if service is True or "Highlight" in additional_tags:
+            self.messages_list.tag_add("Highlight", "end-1c linestart", "end")
 
     def _get_faction_color(self, author) -> str:
         if "NickServ" == author:
@@ -245,17 +245,18 @@ class Router:
     @send_only_when_connected
     def _send_saicsync_message(self):
         # SAIC: 1/location/avatar/rank/reputation/away<1/0>
-        # SAIC: 2/location/avatar/rank/reputation/away<1/0>/status<d>
+        # SAIC: 2/location/avatar/rank/reputation/away<1/0>/state<d>
         logger.info('Sending "SAICSYNC" message')
         user = self.chat_users[self.state.nick]
         saic_message = "/".join(
             (
-                "1",  # version
+                "2",  # version
                 user.location.name,
                 self.state.player.get_avatar(),
                 user.rank,
                 str(user.reputation),
-                "0",
+                "1" if self.state.player.afk else "0",
+                self.state.get_player_state(),
             )
         )
         self.outgoing_queue.put_nowait(

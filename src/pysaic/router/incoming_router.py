@@ -1,4 +1,5 @@
 import logging
+from dataclasses import dataclass
 from itertools import chain
 from tkinter import END
 from typing import Callable, Union
@@ -20,7 +21,7 @@ from pysaic.enums import (
     FactionsEnum,
     HistoryMessageEnum,
     LocationEnum,
-    PySAICStatusEnum,
+    SAICStateEnum,
     RankEnum,
     ReputationEnum,
 )
@@ -55,6 +56,52 @@ class _InvalidValue:
 
 
 INVALID_VALUE = _InvalidValue()
+
+
+@dataclass
+class SaicSyncEntity:
+    location: None | str = None
+    avatar: None | str = None
+    rank: None | str = None
+    reputation: None | str = None
+    afk: None | str = None
+    state: None | str = None
+    rest: None | str = None
+
+
+def parse_saic_sync_v1(line) -> SaicSyncEntity:
+    location, avatar, rank, reputation, afk = line.split("/", 4)
+    return SaicSyncEntity(
+        location=location,
+        avatar=avatar,
+        rank=rank,
+        reputation=reputation,
+        afk=afk,
+    )
+
+
+def parse_saic_sync_v2(line) -> SaicSyncEntity:
+    location, avatar, rank, reputation, afk, state = line.split("/", 5)
+    return SaicSyncEntity(
+        location=location,
+        avatar=avatar,
+        rank=rank,
+        reputation=reputation,
+        afk=afk,
+        state=state,
+    )
+
+
+def parse_saic_sync_v3(line) -> SaicSyncEntity:
+    location, avatar, rank, reputation, afk, state, _ = line.split("/", 6)
+    return SaicSyncEntity(
+        location=location,
+        avatar=avatar,
+        rank=rank,
+        reputation=reputation,
+        afk=afk,
+        state=state,
+    )
 
 
 class IncomingRouter(Router):
@@ -292,7 +339,7 @@ class IncomingRouter(Router):
         )
         self.messages_list.insert(
             END,
-            f": {content}{self._strip_new_line(content)}",
+            f": {self._strip_new_line(content)}",
             ["Text"] + additional_tags,
         )
 
@@ -342,7 +389,6 @@ class IncomingRouter(Router):
     def _parse_saicsync(self, author, content):
         # SAIC: 1/location/avatar/rank/reputation/afk
         logger.debug("Parsing SAICSYNC: %r", content)
-        location, avatar, rank, reputation, afk, status = [None] * 6
         try:
             sync_msg = content.split(" ", 1)[1]
             version, params = sync_msg.split("/", 1)
@@ -351,11 +397,11 @@ class IncomingRouter(Router):
             return
         try:
             if version == "1":
-                location, avatar, rank, reputation, afk = params.split("/", 4)
+                saic_sync = parse_saic_sync_v1(params)
             elif version == "2":
-                location, avatar, rank, reputation, afk, status = params.split(
-                    "/", 5
-                )
+                saic_sync = parse_saic_sync_v2(params)
+            elif version == "3":
+                saic_sync = parse_saic_sync_v3(params)
             else:
                 logger.error("Unsupported SAICSYNC version: %r", version)
                 return
@@ -365,13 +411,15 @@ class IncomingRouter(Router):
 
         should_update = False
 
-        location = self._parse_location(location)
-        rank = self._parse_rank(rank)
-        reputation = self._parse_reputation(reputation)
-        afk = self._parse_afk(afk)
+        location = self._parse_location(saic_sync.location)
+        rank = self._parse_rank(saic_sync.rank)
+        reputation = self._parse_reputation(saic_sync.reputation)
+        afk = self._parse_afk(saic_sync.afk)
 
-        if status is not None:
-            status = self._parse_status(status)
+        if saic_sync.state is not None:
+            state = self._parse_state(saic_sync.state)
+        else:
+            state = None
 
         if any(
             (
@@ -379,7 +427,7 @@ class IncomingRouter(Router):
                 rank is INVALID_VALUE,
                 reputation is INVALID_VALUE,
                 afk is INVALID_VALUE,
-                status is INVALID_VALUE,
+                state is INVALID_VALUE,
             )
         ):
             logger.error(
@@ -391,11 +439,15 @@ class IncomingRouter(Router):
             )
             return
 
-        if not is_icon_valid(avatar):
+        if not is_icon_valid(saic_sync.avatar):
             logger.warning(
-                "Invalid avatar icon: %r, for user %s", avatar, author
+                "Invalid avatar icon: %r, for user %s",
+                saic_sync.avatar,
+                author,
             )
             avatar = "random"
+        else:
+            avatar = saic_sync.avatar
 
         user = self.chat_users.get(author)
         if user is None:
@@ -406,7 +458,7 @@ class IncomingRouter(Router):
                 reputation=reputation,
                 afk=afk,
                 avatar=avatar,
-                status=status,
+                state=state,
             )
             self.chat_users.set_user(author, user)
             self._update_crc_users_data()
@@ -433,9 +485,9 @@ class IncomingRouter(Router):
             should_update = True
             user.avatar = avatar
 
-        if user.status != status:
+        if user.state != state:
             should_update = True
-            user.status = status
+            user.state = state
 
         if not should_update:
             return
@@ -572,7 +624,7 @@ class IncomingRouter(Router):
         try:
             return bool(int(afk))
         except ValueError:
-            logger.exception("Error parsing AFK status - %r", afk)
+            logger.exception("Error parsing AFK state - %r", afk)
             return INVALID_VALUE
 
     def _parse_saicavatar(self, nick, message):
@@ -609,15 +661,15 @@ class IncomingRouter(Router):
         self._update_crc_users_data()
         self._update_ui_user_list()
 
-    def _parse_status(self, status: str) -> PySAICStatusEnum | _InvalidValue:
+    def _parse_state(self, state: str) -> SAICStateEnum | _InvalidValue:
         try:
-            return PySAICStatusEnum[status]
+            return SAICStateEnum(state)
         except Exception:
-            logger.warning("Could not parse status %r", status)
+            logger.warning("Could not parse state %r", state)
             return INVALID_VALUE
 
     def _parse_saicstate(self, nick, message):
-        _, status = message.split("/")
+        _, state = message.split("/")
         self._parse_saic_generic_update(
-            nick, self._parse_status, "status", status
+            nick, self._parse_state, "state", state
         )

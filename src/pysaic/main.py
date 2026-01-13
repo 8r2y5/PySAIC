@@ -4,7 +4,6 @@ import logging
 import logging.config
 import sys
 import traceback
-from asyncio import CancelledError
 from functools import partial
 
 import inject
@@ -23,6 +22,8 @@ from pysaic.settings import (
     get_log_config,
 )
 from pysaic.state import State
+from pysaic.tasks.app import update_app
+from pysaic.tasks.common import close_everything_callback
 from pysaic.use_cases.get_user_for_irc import get_user_for_irc
 from pysaic.use_cases.local_server import (
     ask_instance_to_focus,
@@ -62,17 +63,6 @@ def set_up_irc_client(loop, config):
     )
 
     return irc
-
-
-async def update_app(app):
-    logger.debug("Starting ui update task")
-    while True:
-        app.update()
-        try:
-            await asyncio.sleep(0.01)
-        except CancelledError:
-            break
-    logger.debug("Stopping ui update task")
 
 
 def bind_incoming_queue(irc, incoming_queue, config, state, outgoing_queue):
@@ -214,26 +204,6 @@ def setup_inject(
     binder.bind(Config, config)
     binder.bind(asyncio.AbstractEventLoop, loop)
     binder.bind(PySaicIrcProtocol, irc)
-
-
-@inject.autoparams()
-def close_everything_callback(
-    task, outgoing_queue: OutgoingQueue, incoming_queue: IncomingQueue
-):
-    logger.info("Closing everything because of %r", task)
-    incoming_queue.put_nowait(None)
-    outgoing_queue.put_nowait(None)
-    error = task.exception()
-
-    try:
-        task.result()
-    except Exception as e:
-        logger.error("error while getting task result: %s", e, exc_info=True)
-
-    if error:
-        logger.warning("error in task: %s", error, exc_info=True)
-    else:
-        logger.info("task %s finished, there was no error", task.get_name())
 
 
 def initialize_logging():

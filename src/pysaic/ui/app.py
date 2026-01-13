@@ -1,3 +1,4 @@
+import ctypes
 import logging
 import os
 import re
@@ -15,14 +16,15 @@ from tkinter import (
     Tk,
     Toplevel,
 )
-from tkinter.font import Font
-from tkinter.ttk import Scrollbar, Style
+from tkinter.ttk import Scrollbar
 
+from pysaic.ui.constants import WM_DELETE_WINDOW
+from pysaic.ui.utils import update_style, apply_color_tags_to_text
 from winotify import Notification, audio
 
 from pysaic.config import Config
 from pysaic.entities import AppEvent, IncomingEvent
-from pysaic.enums import AppEventEnum, FactionsEnum
+from pysaic.enums import AppEventEnum
 from pysaic.settings import APP_IDENTITY, DEBUG
 from pysaic.state import State
 from pysaic.ui.hyper_links import HyperlinkManager
@@ -78,50 +80,25 @@ class App(Tk):
         incoming_queue: Queue,
         outgoing_queue: Queue,
     ):
+        ctypes.windll.gdi32.AddFontResourceExW(
+            str(PATH / "JetBrainsMono-Regular.ttf"), 0x10, 0
+        )
         super().__init__()
         self.pysaic_config = config
         self.pysaic_state = state
-        style = Style()
-        style.theme_use("clam")
-        style.configure(
-            "TScrollbar",
-            gripcount=0,
-            background=self.pysaic_config.colors.background.app,  # The thumb color
-            troughcolor=self.pysaic_config.colors.background.content,  # The track color
-            bordercolor=self.pysaic_config.colors.background.app,
-            darkcolor=self.pysaic_config.colors.background.app,
-            lightcolor=self.pysaic_config.colors.background.in_between,
-            arrowcolor=self.pysaic_config.colors.slider_arrow,
-            arrowsize=15,
-        )
-        style.map(
-            "TScrollbar",
-            background=[
-                ("disabled", self.pysaic_config.colors.background.content),
-                ("pressed", self.pysaic_config.colors.pressed),
-                (
-                    "active",
-                    self.pysaic_config.colors.background.active_background,
-                ),
-            ],
-            troughcolor=[
-                ("disabled", self.pysaic_config.colors.background.content)
-            ],
-            arrowcolor=[
-                ("disabled", self.pysaic_config.colors.slider_arrow_disabled)
-            ],
-        )
         self.title(APP_IDENTITY)
         self.minsize(MIN_WIDTH + 210, MIN_HEIGHT + 32)
         # self.resizable(False, False)
-        self.protocol("WM_DELETE_WINDOW", self.on_close)
+        self.protocol(WM_DELETE_WINDOW, self.on_close)
         self.incoming_queue = incoming_queue
         self.outgoing_queue = outgoing_queue
         self.hyperlinks = None
         self.create_widgets()
+        update_style(self, config)
         # self.after(250, self.process_incoming_events)
-        self.iconbitmap(PATH / "crcr_icon_new.ico")
+        self.iconbitmap(PATH / "pysaic_icon.ico")
         self.disable_input()
+        self._options_window: None | Options = None
 
     def on_close(self):
         self.destroy()
@@ -282,7 +259,7 @@ class App(Tk):
         self.options_button = Button(
             channels_and_option_section,
             text="Options",
-            command=lambda: Options(self.pysaic_config, self).main(),
+            command=self._spawn_options,
             background=self.pysaic_config.colors.background.app,
             foreground=self.pysaic_config.colors.content.text,
             width=10,
@@ -351,7 +328,7 @@ class App(Tk):
             title=title,
             msg=message,
             duration="long",
-            icon=str(PATH / "crcr_icon_new.ico"),
+            icon=str(PATH / "pysaic_icon.ico"),
             launch="pysaic://open",
         )
         logger.debug(
@@ -443,125 +420,6 @@ class App(Tk):
 
         input_entry.delete(0, "end")
 
-    def set_color_tags(self):
-        # TODO: Load values from config
-        for widget in (self.messages_list, self.users_list):
-            bold_font = Font(widget, widget.cget("font"))
-            bold_font.configure(weight="bold")
-            widget.tag_config(
-                "Time", foreground=self.pysaic_config.colors.content.time
-            )
-            widget.tag_config(
-                "Text", foreground=self.pysaic_config.colors.content.text
-            )
-            widget.tag_config(
-                "Highlight",
-                background=self.pysaic_config.colors.content.highlight,
-            )
-            widget.tag_config(
-                "hyper",
-                foreground=self.pysaic_config.colors.content.hyper_link,
-                underline=True,
-            )
-            widget.tag_raise("sel", aboveThis="Highlight")
-            widget.tag_config(
-                "Information",
-                foreground=self.pysaic_config.colors.content.information,
-            )
-            widget.tag_config(
-                "Error", foreground=self.pysaic_config.colors.content.error
-            )
-            widget.tag_config(
-                FactionsEnum.Clear_Sky.name,
-                foreground=self.pysaic_config.colors.factions.clear_sky,
-                font=bold_font,
-            )
-            widget.tag_config(
-                FactionsEnum.Loner.name,
-                foreground=self.pysaic_config.colors.factions.loner,
-                font=bold_font,
-            )
-            widget.tag_config(
-                FactionsEnum.Ecologist.name,
-                foreground=self.pysaic_config.colors.factions.ecologist,
-                font=bold_font,
-            )
-            widget.tag_config(
-                FactionsEnum.Bandit.name,
-                foreground=self.pysaic_config.colors.factions.bandit,
-                font=bold_font,
-            )
-            widget.tag_config(
-                FactionsEnum.Monolith.name,
-                foreground=self.pysaic_config.colors.factions.monolith,
-                font=bold_font,
-            )
-            widget.tag_config(
-                FactionsEnum.Duty.name,
-                foreground=self.pysaic_config.colors.factions.duty,
-                font=bold_font,
-            )
-            widget.tag_config(
-                FactionsEnum.Freedom.name,
-                foreground=self.pysaic_config.colors.factions.freedom,
-                font=bold_font,
-            )
-            widget.tag_config(
-                FactionsEnum.Mercenary.name,
-                foreground=self.pysaic_config.colors.factions.mercenary,
-                font=bold_font,
-            )
-            widget.tag_config(
-                FactionsEnum.Military.name,
-                foreground=self.pysaic_config.colors.factions.military,
-                font=bold_font,
-            )
-            widget.tag_config(
-                FactionsEnum.Renegade.name,
-                foreground=self.pysaic_config.colors.factions.renegade,
-                font=bold_font,
-            )
-            widget.tag_config(
-                FactionsEnum.Zombie.name,
-                foreground=self.pysaic_config.colors.factions.zombie,
-                font=bold_font,
-            )
-            widget.tag_config(
-                FactionsEnum.Anonymous.name,
-                foreground=self.pysaic_config.colors.factions.anonymous,
-                font=bold_font,
-            )
-            widget.tag_config(
-                FactionsEnum.UNISG.name,
-                foreground=self.pysaic_config.colors.factions.unisg,
-                font=bold_font,
-            )
-            widget.tag_config(
-                FactionsEnum.SIN.name,
-                foreground=self.pysaic_config.colors.factions.sin,
-                font=bold_font,
-            )
-            widget.tag_config(
-                "DM",
-                foreground=self.pysaic_config.colors.content.direct_message,
-                font=bold_font,
-            )
-            widget.tag_config(
-                "online",
-                foreground=self.pysaic_config.colors.content.online,
-                font=bold_font,
-            )
-            widget.tag_config(
-                "offline",
-                foreground=self.pysaic_config.colors.content.offline,
-                font=bold_font,
-            )
-            widget.tag_config(
-                "afk",
-                foreground=self.pysaic_config.colors.content.afk,
-                font=bold_font,
-            )
-
     def _cycle_through_users(self, users, characters) -> str:
         users_gen = iter(users)
         user = next(users_gen)
@@ -605,8 +463,8 @@ class App(Tk):
         self.irc_window.title("IRC Window")
         self.irc_window.geometry(f"{WIDTH}x{HEIGHT}")
         self.irc_window.minsize(MIN_WIDTH, MIN_HEIGHT)
-        self.irc_window.protocol("WM_DELETE_WINDOW", self.on_close)
-        self.irc_window.iconbitmap(PATH / "crcr_icon_new.ico")
+        self.irc_window.protocol(WM_DELETE_WINDOW, self.on_close)
+        self.irc_window.iconbitmap(PATH / "pysaic_icon.ico")
         self.irc_window.configure(
             background=self.pysaic_config.colors.background.app
         )
@@ -639,3 +497,16 @@ class App(Tk):
                     self.pysaic_config.font.size,
                 )
             )
+
+    def set_color_tags(self):
+        apply_color_tags_to_text(self.messages_list, self.pysaic_config.colors)
+        apply_color_tags_to_text(self.users_list, self.pysaic_config.colors)
+
+    def update_colors(self):
+        update_style(self, self.pysaic_config)
+        if self._options_window:
+            self._options_window.update_colors()
+
+    def _spawn_options(self):
+        self._options_window = Options(self.pysaic_config, self)
+        self._options_window.main()

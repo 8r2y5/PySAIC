@@ -1,6 +1,8 @@
 import logging
 from typing import Callable
 
+import inject
+
 from pysaic.config import Config
 from pysaic.entities import ChatUsers, OutgoingCTCP, OutgoingQueue
 from pysaic.state import State
@@ -38,7 +40,8 @@ def send_saic_avatar(
     )
 
 
-def send_saic_status(
+@inject.autoparams()
+def send_saic_state(
     state: State, outgoing_queue: OutgoingQueue, config: Config
 ):
     if not state.is_in_channel.is_set():
@@ -49,7 +52,7 @@ def send_saic_status(
     outgoing_queue.put_nowait(
         OutgoingCTCP(
             target=config.server.previous_channel,
-            content=f"SAICSTATUS 1/{state.player.status.value}",
+            content=f"SAICSTATUS 1/{state.get_player_state()}",
         )
     )
 

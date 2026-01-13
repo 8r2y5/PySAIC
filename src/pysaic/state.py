@@ -1,10 +1,12 @@
 import asyncio
 import logging
+from abc import ABC, abstractmethod
 from asyncio import Task
 from collections import deque
 from dataclasses import dataclass
 from datetime import datetime
 from pathlib import Path
+from random import choice
 from typing import Optional, Self
 
 from pysaic.config import Config
@@ -14,9 +16,10 @@ from pysaic.enums import (
     DisconnectOnNetworkDestructionSetting,
     HistoryMessageEnum,
     LocationEnum,
-    PySAICStatusEnum,
+    SAICStateEnum,
     RankEnum,
     ReputationEnum,
+    NetworkDestroyReasonEnum,
 )
 
 logger = logging.getLogger(__name__)
@@ -36,7 +39,7 @@ class Player(ChatUser):
         self.money = 0
         self.last_ask_update = None
         self.afk = False
-        self.status = PySAICStatusEnum.ok
+        self.state = SAICStateEnum.ok
 
     def create_chat_user(self) -> ChatUser:
         return ChatUser(
@@ -48,7 +51,7 @@ class Player(ChatUser):
             reputation=self.reputation,
             irc_mode=self.irc_mode,
             avatar=self.get_avatar(myself=True),
-            status=self.status,
+            state=self.state,
         )
 
     def get_avatar(self, myself: bool = False) -> str:
@@ -71,6 +74,71 @@ class Player(ChatUser):
         )
 
 
+class NetworkDestructionStrategy(ABC):
+    def __init__(self):
+        self.logger = logger.getChild("network_destruction").getChild(
+            self.__class__.__name__
+        )
+        self.logger.debug("Initiating instance")
+
+    @abstractmethod
+    def should_disconnect(self) -> bool: ...
+
+    @abstractmethod
+    def should_malform(self) -> bool: ...
+
+
+class NeverNetworkDestructionStrategy(NetworkDestructionStrategy):
+    def should_disconnect(self) -> bool:
+        return False
+
+    def should_malform(self) -> bool:
+        return False
+
+
+class AlwaysNetworkDestructionStrategy(NetworkDestructionStrategy):
+    def should_disconnect(self) -> bool:
+        return True
+
+    def should_malform(self) -> bool:
+        return False
+
+
+class MalformOnlyNetworkDestructionStrategy(NetworkDestructionStrategy):
+    def should_malform(self) -> bool:
+        return True
+
+    def should_disconnect(self) -> bool:
+        return False
+
+
+class RandomNetworkDestructionStrategy(NetworkDestructionStrategy):
+    def __init__(self):
+        super().__init__()
+        random_cls = choice(
+            (
+                NeverNetworkDestructionStrategy,
+                AlwaysNetworkDestructionStrategy,
+                MalformOnlyNetworkDestructionStrategy,
+            )
+        )
+        self.setting_instance = random_cls()
+
+    def should_disconnect(self) -> bool:
+        return self.setting_instance.should_disconnect()
+
+    def should_malform(self) -> bool:
+        return self.setting_instance.should_malform()
+
+
+NETWORK_DESTRUCTION_MAP = {
+    DisconnectOnNetworkDestructionSetting.Always: AlwaysNetworkDestructionStrategy,
+    DisconnectOnNetworkDestructionSetting.Never: NetworkDestructionStrategy,
+    DisconnectOnNetworkDestructionSetting.MalformSignalOnly: MalformOnlyNetworkDestructionStrategy,
+    DisconnectOnNetworkDestructionSetting.Random: RandomNetworkDestructionStrategy,
+}
+
+
 class State:
     @property
     def nick(self) -> str:
@@ -90,6 +158,9 @@ class State:
     @is_game_running.setter
     def is_game_running(self, value: bool):
         self.player.in_game = self._is_game_running = value
+        if not value:
+            self.is_currently_under_network_destruction = None
+            self.network_destruction_handler = None
 
     @property
     def game_location(self) -> Optional[Path]:
@@ -104,6 +175,27 @@ class State:
         else:
             self.crc_input_path = None
         self._game_location = value
+
+    @property
+    def is_currently_under_network_destruction(
+        self,
+    ) -> NetworkDestroyReasonEnum:
+        return self._is_currently_under_network_destruction
+
+    @is_currently_under_network_destruction.setter
+    def is_currently_under_network_destruction(self, value: str | None):
+        reason = NetworkDestroyReasonEnum(str(value).lower())
+        self._is_currently_under_network_destruction = reason
+        if value == NetworkDestroyReasonEnum.surge:
+            config_value = self.config.disconnect_when_emission
+        elif value == NetworkDestroyReasonEnum.underground:
+            config_value = self.config.disconnect_when_underground
+        else:
+            self.network_destruction_handler = None
+            return
+        self.network_destruction_handler = NETWORK_DESTRUCTION_MAP[
+            config_value
+        ]()
 
     def __init__(self, config: Config):
         self.id: str = str(id(self))
@@ -127,7 +219,12 @@ class State:
         ] = deque(maxlen=20)
         self.player_update_task: Optional[asyncio.Task] = None
         self.player_changed_values_queue: asyncio.Queue = asyncio.Queue()
-        self.is_currently_under_network_destruction: Optional[str] = None
+        self._is_currently_under_network_destruction: Optional[
+            NetworkDestroyReasonEnum
+        ] = None
+        self.network_destruction_handler: Optional[
+            NetworkDestructionStrategy
+        ] = None
         self.last_private_message_from: Optional[str] = None
 
     def money_enough(self, amount) -> bool:
@@ -161,38 +258,49 @@ class State:
 
     @property
     def should_malform_messages(self) -> bool:
-        if not self.is_currently_under_network_destruction:
+        if not self.network_destruction_handler:
             return False
-        if (
-            self.is_currently_under_network_destruction == "Surge"
-            and self.config.disconnect_when_emission
-            in (
-                DisconnectOnNetworkDestructionSetting.MalformSignalOnly,
-                DisconnectOnNetworkDestructionSetting.Always,
-            )
-        ):
-            return True
-        return (
-            self.is_currently_under_network_destruction == "Underground"
-            and self.config.disconnect_when_underground
-            in (
-                DisconnectOnNetworkDestructionSetting.MalformSignalOnly,
-                DisconnectOnNetworkDestructionSetting.Always,
-            )
-        )
+        return self.network_destruction_handler.should_malform()
+        # if (
+        #     self.is_currently_under_network_destruction == "Surge"
+        #     and self.config.disconnect_when_emission
+        #     in (
+        #         DisconnectOnNetworkDestructionSetting.MalformSignalOnly,
+        #         DisconnectOnNetworkDestructionSetting.Always,
+        #     )
+        # ):
+        #     return True
+        # return (
+        #     self.is_currently_under_network_destruction == "Underground"
+        #     and self.config.disconnect_when_underground
+        #     in (
+        #         DisconnectOnNetworkDestructionSetting.MalformSignalOnly,
+        #         DisconnectOnNetworkDestructionSetting.Always,
+        #     )
+        # )
 
     @property
     def fake_disconnect(self) -> bool:
-        if not self.is_currently_under_network_destruction:
+        if not self.network_destruction_handler:
             return False
-        if (
-            self.is_currently_under_network_destruction == "Surge"
-            and self.config.disconnect_when_emission
-            in (DisconnectOnNetworkDestructionSetting.Always,)
-        ):
-            return True
-        return (
-            self.is_currently_under_network_destruction == "Underground"
-            and self.config.disconnect_when_underground
-            in (DisconnectOnNetworkDestructionSetting.Always,)
-        )
+        return self.network_destruction_handler.should_disconnect()
+        # if (
+        #     self.is_currently_under_network_destruction == "Surge"
+        #     and self.config.disconnect_when_emission
+        #     in (DisconnectOnNetworkDestructionSetting.Always,)
+        # ):
+        #     return True
+        # return (
+        #     self.is_currently_under_network_destruction == "Underground"
+        #     and self.config.disconnect_when_underground
+        #     in (DisconnectOnNetworkDestructionSetting.Always,)
+        # )
+
+    def get_player_state(self):
+        match self.is_currently_under_network_destruction:
+            case NetworkDestroyReasonEnum.surge:
+                return SAICStateEnum.emission
+            case NetworkDestroyReasonEnum.underground:
+                return SAICStateEnum.underground
+            case _:
+                return SAICStateEnum.ok

@@ -1,5 +1,5 @@
 import logging
-from enum import Enum, IntEnum, StrEnum, auto
+from enum import Enum, StrEnum, auto
 
 import yaml
 
@@ -126,6 +126,7 @@ class FactionsEnum(Enum):
 
 
 class AppEventEnum(Enum):
+    COLORS_UPDATED = auto()
     FOCUS = auto()
     RAW_IRC_MESSAGE = auto()
     SET_NOT_AFK = auto()
@@ -164,6 +165,7 @@ class DisconnectOnNetworkDestructionSetting(StrEnum):
     Never = "Never"
     Always = "Always"
     MalformSignalOnly = "Malform Signal Only"
+    Random = "Random"
 
 
 def _recreate_locations_yaml(locations_data):
@@ -244,7 +246,13 @@ class HistoryMessageEnum(StrEnum):
     channel = auto()
 
 
-class PySAICStatusEnum(IntEnum):
-    ok = 0
-    emission = 1
-    underground = 2
+class SAICStateEnum(StrEnum):
+    ok = "0"
+    emission = "1"
+    underground = "2"
+
+
+class NetworkDestroyReasonEnum(StrEnum):
+    none = auto()
+    surge = auto()
+    underground = auto()

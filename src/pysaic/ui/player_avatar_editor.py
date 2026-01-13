@@ -15,6 +15,7 @@ from PIL import Image, ImageDraw, ImageTk
 from PIL.Image import LANCZOS
 
 from pysaic.avatar.avatar_maker import generate_avatar
+from pysaic.ui.constants import WM_DELETE_WINDOW
 
 RECT_W, RECT_H = 126, 56
 
@@ -25,6 +26,7 @@ class PlayerAvatarEditor:
         self.config = parent.config
         self.master_window = master_window
         self.window = Toplevel()
+        self.this_window.protocol(WM_DELETE_WINDOW, self.close_window)
         self.window.title("Player Avatar Editor")
         self.window.configure(background=self.config.colors.background)
         self.window.wm_minsize(400, 300)

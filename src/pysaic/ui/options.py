@@ -12,9 +12,11 @@ from tkinter import (
     Radiobutton,
     StringVar,
     Toplevel,
+    DISABLED,
+    NORMAL,
 )
 from tkinter.font import Font
-from tkinter.ttk import Spinbox, Style
+from tkinter.ttk import Spinbox
 
 import inject
 
@@ -33,7 +35,10 @@ from pysaic.enums import (
     FactionsEnum,
 )
 from pysaic.ui.avatar_options import AvatarOptions
-from pysaic.ui.utils import add_separator
+from pysaic.ui.colors import ColorsOptions
+from pysaic.ui.constants import WM_DELETE_WINDOW
+from pysaic.ui.font import FontOptions
+from pysaic.ui.utils import add_separator, apply_style_to_tkinter, update_style
 from pysaic.use_cases.nick import sanitize_nick
 
 logger = logging.getLogger(__name__)
@@ -45,14 +50,18 @@ class Options:
     def __init__(self, config: Config, main_window):
         self.config = config
         self.main_window = main_window
-        self.options_window = Toplevel(self.main_window)
-        self.options_window.title("Options")
-        self.options_window.configure(bg=self.main_window.cget("bg"))
+        self._avatar_options: None | AvatarOptions = None
+        self._colors_options: None | ColorsOptions = None
+        self._font_options: None | FontOptions = None
+        self.this_window = Toplevel(self.main_window)
+        self.this_window.protocol(WM_DELETE_WINDOW, self._destroy_this_window)
+        self.this_window.title("Options")
+        self.this_window.configure(bg=self.main_window.cget("bg"))
         height = 580
         width = 450
-        self.options_window.minsize(width, height)
-        self.options_window.iconbitmap(PATH / "crcr_icon_new.ico")
-        self.main_window.options_button.config(state="disabled")
+        self.this_window.minsize(width, height)
+        self.this_window.iconbitmap(PATH / "pysaic_icon.ico")
+        self.main_window.options_button.config(state=DISABLED)
 
         self.background_color = self.main_window.cget("bg")
         self.text_color = self.config.colors.content.text
@@ -68,18 +77,13 @@ class Options:
             "font": self.font_normal_size,
         }
 
-    def __del__(self):
-        self.main_window.options_button.config(state="normal")
-
     def main(self):
-        self.options_window.grid_columnconfigure(0, weight=1)
-        self.options_window.grid_rowconfigure(0, weight=1)
+        self.this_window.grid_columnconfigure(0, weight=1)
+        self.this_window.grid_rowconfigure(0, weight=1)
 
         self._configure_style()
 
-        main_frame = Frame(
-            self.options_window, background=self.background_color
-        )
+        main_frame = Frame(self.this_window, background=self.background_color)
         main_frame.grid(row=0, column=0, sticky="nsew", padx=10, pady=5)
 
         main_frame.grid_columnconfigure(0, weight=1)
@@ -145,17 +149,10 @@ class Options:
         main_frame.grid_rowconfigure(row_index, weight=1)
         row_index += 1
         self._create_buttons(main_frame, row_index)
+        apply_style_to_tkinter(self.this_window, self.config)
 
     def _configure_style(self):
-        style = Style()
-        style.configure("white.TSeparator", background="white")
-        style.configure(
-            "TSpinbox",
-            fieldbackground=self.background_color,
-            background=self.background_color,
-            foreground=self.text_color,
-            arrowcolor=self.text_color,
-        )
+        update_style(self.this_window, self.config)
 
     def _create_faction_settings(self, master, row):
         self.faction_var = StringVar(
@@ -213,8 +210,8 @@ class Options:
         self.faction_options_menu["menu"].config(
             bg=self.background_color,
             fg=self.text_color,
-            activebackground="dim gray",
-            activeforeground="black",
+            activebackground=self.config.colors.background.active_background,
+            activeforeground=self.config.colors.background.active_foreground,
         )
         self.faction_options_menu.grid(
             row=0, column=1, sticky="e", padx=(5, 0)
@@ -226,9 +223,9 @@ class Options:
         selection = self.faction_var.get()
         logger.debug("Setting faction to %r", selection)
         if selection == FactionSetting.GameSynced.value:
-            self.faction_options_menu["state"] = "disabled"
+            self.faction_options_menu["state"] = DISABLED
         else:
-            self.faction_options_menu["state"] = "normal"
+            self.faction_options_menu["state"] = NORMAL
 
     def _create_account_details(self, master, row):
         frame = Frame(master, background=self.background_color)
@@ -284,6 +281,7 @@ class Options:
                 DisconnectOnNetworkDestructionSetting.Never,
                 DisconnectOnNetworkDestructionSetting.MalformSignalOnly,
                 DisconnectOnNetworkDestructionSetting.Always,
+                DisconnectOnNetworkDestructionSetting.Random,
             )
         ]
         Label(
@@ -292,7 +290,7 @@ class Options:
             background=self.background_color,
             foreground=self.text_color,
             font=self.font_normal_size,
-        ).grid(row=0, column=0, sticky="w")
+        ).grid(row=0, column=0, sticky="w", pady=3)
         self._disconnect_when_emission_var = StringVar(
             value=self.config.disconnect_when_emission
         )
@@ -309,12 +307,12 @@ class Options:
             width=22,
             font=self.font_normal_size,
         )
-        disconnect_when_network.grid(row=0, column=0, sticky="e")
+        disconnect_when_network.grid(row=0, column=1, sticky="e", pady=2)
         disconnect_when_network["menu"].config(
             bg=self.background_color,
             fg=self.text_color,
-            activebackground="dim gray",
-            activeforeground="black",
+            activebackground=self.config.colors.background.active_background,
+            activeforeground=self.config.colors.background.active_foreground,
         )
 
         Label(
@@ -323,7 +321,7 @@ class Options:
             background=self.background_color,
             foreground=self.text_color,
             font=self.font_normal_size,
-        ).grid(row=1, column=0, sticky="w")
+        ).grid(row=1, column=0, sticky="w", pady=2)
         self._disconnect_when_underground_var = StringVar(
             value=self.config.disconnect_when_underground
         )
@@ -347,12 +345,12 @@ class Options:
             width=22,
             font=self.font_normal_size,
         )
-        disconnect_when_underground.grid(row=1, column=0, sticky="e")
+        disconnect_when_underground.grid(row=1, column=1, sticky="e", pady=2)
         disconnect_when_underground["menu"].config(
             bg=self.background_color,
             fg=self.text_color,
-            activebackground="dim gray",
-            activeforeground="black",
+            activebackground=self.config.colors.background.active_background,
+            activeforeground=self.config.colors.background.active_foreground,
         )
 
         self.block_money_transfer_var = BooleanVar(
@@ -395,25 +393,41 @@ class Options:
         self.news_duration_spinbox.insert(0, str(self.config.news_duration))
         self.news_duration_spinbox.grid(row=0, column=1, sticky="w")
 
-        colors_button = Button(
+        Label(
+            frame,
+            text="Theme Colors",
+            background=self.background_color,
+            foreground=self.text_color,
+            font=self.font_normal_size,
+        ).grid(row=5, column=0, sticky="w", pady=(5, 0))
+        self._colors_button = Button(
             frame,
             text="Colors Config",
             background=self.background_color,
             foreground=self.text_color,
             font=self.font_normal_size,
+            command=self._spawn_colors_options,
         )
 
-        colors_button.grid(row=5, column=0, sticky="w")
+        self._colors_button.grid(row=5, column=1, sticky="e", pady=(5, 0))
 
-        font_button = Button(
+        Label(
+            frame,
+            text="Text Styling",
+            background=self.background_color,
+            foreground=self.text_color,
+            font=self.font_normal_size,
+        ).grid(row=6, column=0, sticky="w", pady=(5, 0))
+        self._font_button = Button(
             frame,
             text="Font Config",
             background=self.background_color,
             foreground=self.text_color,
             font=self.font_normal_size,
+            command=self._spawn_font_options,
         )
 
-        font_button.grid(row=5, column=1, sticky="w")
+        self._font_button.grid(row=6, column=1, sticky="e", pady=(5, 0))
 
     def _create_display_options(self, master, row):
         frame = Frame(master, background=self.background_color)
@@ -454,8 +468,8 @@ class Options:
         user_list_display_option["menu"].config(
             bg=self.background_color,
             fg=self.text_color,
-            activebackground="dim gray",
-            activeforeground="black",
+            activebackground=self.config.colors.background.active_background,
+            activeforeground=self.config.colors.background.active_foreground,
         )
         user_list_display_option.grid(
             row=0, column=1, sticky="e", pady=2, padx=(5, 0), columnspan=2
@@ -498,8 +512,8 @@ class Options:
         in_game_display_option["menu"].config(
             bg=self.background_color,
             fg=self.text_color,
-            activebackground="dim gray",
-            activeforeground="black",
+            activebackground=self.config.colors.background.active_background,
+            activeforeground=self.config.colors.background.active_foreground,
         )
         in_game_display_option.grid(
             row=1, column=2, sticky="e", pady=2, padx=(5, 0)
@@ -537,8 +551,8 @@ class Options:
         in_game_display_order_option["menu"].config(
             bg=self.background_color,
             fg=self.text_color,
-            activebackground="dim gray",
-            activeforeground="black",
+            activebackground=self.config.colors.background.active_background,
+            activeforeground=self.config.colors.background.active_foreground,
         )
         in_game_display_order_option.grid(
             row=2, column=2, sticky="e", pady=2, padx=(5, 0)
@@ -582,8 +596,8 @@ class Options:
         self.death_report_type_option["menu"].config(
             bg=self.background_color,
             fg=self.text_color,
-            activebackground="dim gray",
-            activeforeground="black",
+            activebackground=self.config.colors.background.active_background,
+            activeforeground=self.config.colors.background.active_foreground,
         )
         self.death_report_type_option.grid(row=3, column=2, sticky="e", pady=2)
 
@@ -644,16 +658,15 @@ class Options:
             font=self.font_normal_size,
         ).grid(row=0, column=0, sticky="w")
 
-        Button(
+        self._avatar_button = Button(
             frame,
             text="Avatar Creator",
-            command=lambda: AvatarOptions(
-                self.config, self.main_window
-            ).main(),
+            command=self._spawn_avatar_options,
             background=self.background_color,
             foreground=self.text_color,
             font=self.font_normal_size,
-        ).grid(row=0, column=1, sticky="n", padx=5)
+        )
+        self._avatar_button.grid(row=0, column=1, sticky="n", padx=5)
 
         Button(
             frame,
@@ -796,5 +809,49 @@ class Options:
 
     def _destroy_this_window(self):
         logger.debug("Destroying options window")
-        self.options_window.destroy()
+        for sub in (
+            self._avatar_options,
+            self._colors_options,
+            self._font_options,
+        ):
+            if sub:
+                sub._destroy_this_window()
+        self.this_window.destroy()
+        self.main_window.options_button.config(state=NORMAL)
         self.main_window.focus()
+
+    def _spawn_avatar_options(self):
+        self._avatar_button.config(state=DISABLED)
+        self._avatar_options = AvatarOptions(self.config, self)
+        self._avatar_options.main()
+
+    def _spawn_colors_options(self):
+        self._colors_button.config(state=DISABLED)
+        self._colors_options = ColorsOptions(self, self.config)
+
+    def _spawn_font_options(self):
+        self._font_button.config(state=DISABLED)
+        self._font_options = FontOptions(self, self.config)
+
+    def update_colors(self):
+        for sub in (
+            self._avatar_options,
+            # self._colors_options,
+            self._font_options,
+        ):
+            if sub:
+                apply_style_to_tkinter(sub.this_window, self.config)
+
+    def clear(self, name):
+        match name:
+            case "colors":
+                self._colors_options = None
+                self._colors_button.config(state=NORMAL)
+            case "font":
+                self._font_options = None
+                self._font_button.config(state=NORMAL)
+            case "avatar":
+                self._avatar_options = None
+                self._avatar_button.config(state=NORMAL)
+            case _:
+                logger.error("%r unexpected name to clear", name)

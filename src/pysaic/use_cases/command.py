@@ -190,7 +190,7 @@ class CommandUseCase:
     @inject.autoparams()
     def handle_afk(self, params, incoming_queue: IncomingQueue):
         """
-        Toggles AFK status. Usage: /afk
+        Toggles AFK state. Usage: /afk
         """
         logger.info("Handling AFK command with params: %r", params)
         incoming_queue.put_nowait(

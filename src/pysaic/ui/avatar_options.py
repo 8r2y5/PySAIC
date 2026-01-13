@@ -8,11 +8,10 @@ from tkinter import (
     Label,
     OptionMenu,
     Radiobutton,
-    Spinbox,
     StringVar,
     Toplevel,
 )
-from tkinter.ttk import Style
+from tkinter.ttk import Spinbox
 
 import inject
 from PIL import Image, ImageTk
@@ -23,7 +22,9 @@ from pysaic.entities import IncomingEvent, IncomingQueue
 from pysaic.enums import AppEventEnum, AvatarEnum, FactionsEnum
 from pysaic.settings import GAMEDATA_PATH
 from pysaic.state import State
+from pysaic.ui.constants import WM_DELETE_WINDOW
 from pysaic.ui.player_avatar_editor import PlayerAvatarEditor
+from pysaic.ui.utils import apply_style_to_tkinter
 from pysaic.use_cases.avatar import (
     calculate_icon_based_on_faction_and_name,
     get_valid_icon_from_icon_id,
@@ -60,7 +61,7 @@ def show_custom_info_dialog(parent, title, message, bg_color, text_color):
     dialog = Toplevel()
     dialog.title(title)
     dialog.config(bg=bg_color)
-    dialog.iconbitmap(PATH / "crcr_icon_new.ico")
+    dialog.iconbitmap(PATH / "pysaic_icon.ico")
 
     label = Label(
         dialog, text=message, bg=bg_color, fg=text_color, wraplength=600
@@ -90,19 +91,19 @@ def show_custom_info_dialog(parent, title, message, bg_color, text_color):
 
 
 class AvatarOptions:
-    def __init__(self, config, main_window):
-        self.main_window = main_window
-        self.this_window = Toplevel(self.main_window)
-        self.this_window.title("Avatar Options")
-        self.this_window.wm_minsize(400, 330)
-        self.this_window.resizable(True, True)
-        self.this_window.iconbitmap(PATH / "crcr_icon_new.ico")
-        self.config = config
-        self.avatar_data = {}
-        self._parse_avatar_data()
+    def __init__(self, config, parent):
+        self.parent = parent
+        self.this_window = Toplevel(self.parent.this_window)
         self.this_window.protocol(
             "WM_DELETE_WINDOW", self._destroy_this_window
         )
+        self.this_window.title("Avatar Options")
+        self.this_window.resizable(True, True)
+        self.this_window.iconbitmap(PATH / "pysaic_icon.ico")
+        self.config = config
+        self.avatar_data = {}
+        self._parse_avatar_data()
+        self.this_window.protocol(WM_DELETE_WINDOW, self._destroy_this_window)
 
     def _reload_label_image(self):
         image_path = GAMEDATA_PATH / "textures" / "ui" / "pysaic_player.dds"
@@ -117,9 +118,7 @@ class AvatarOptions:
         self._load_image_using_xy_values(image_path, 0, 0)
 
     def main(self):
-        style = Style()
-        style.configure("white.TSeparator", background="white")
-        background_color = self.main_window.cget("bg")
+        background_color = self.config.colors.background.app
         text_color = self.config.colors.content.text
         default_style_kwargs = {
             "background": background_color,
@@ -183,6 +182,7 @@ class AvatarOptions:
         button_save.pack(side="right")
         buttons_frame.pack(side="bottom", fill="x", padx=10)
         main_frame.pack(fill="both", expand=True)
+        apply_style_to_tkinter(self.this_window, self.config)
 
     def select_file(self):
         self.avatar_picker = PlayerAvatarEditor(self, self.this_window)
@@ -202,7 +202,7 @@ class AvatarOptions:
             self.this_window,
             "Avatar Saved",
             message,
-            self.main_window.cget("bg"),
+            self.config.colors.background.app,
             "ghost white",
         )
         self._reload_label_image()
@@ -248,7 +248,7 @@ class AvatarOptions:
                 self.button_select_file["state"] = "normal"
                 self._reload_label_image()
 
-        self.avatar_var = StringVar(self.main_window, value=self.config.avatar)
+        self.avatar_var = StringVar(self.this_window, value=self.config.avatar)
         bigger_faction_frame = Frame(
             self.this_window, background=background_color
         )
@@ -275,7 +275,7 @@ class AvatarOptions:
         static_avatar_radio_button.pack(side="left")
 
         self.static_faction_var = StringVar(
-            self.main_window,
+            self.this_window,
         )
         icon_type, static_faction_value, avatar_number = (
             get_valid_icon_from_icon_id(self.config.current_avatar)
@@ -324,7 +324,7 @@ class AvatarOptions:
             static_faction_actor,
             max_value,
         )
-        self.spinbox_var = StringVar(self.main_window)
+        self.spinbox_var = StringVar(self.this_window)
         self.spinbox_var.set(str(avatar_number))
         self.static_avatar_number_spinbox = Spinbox(
             static_avatar_radio_button_frame,
@@ -548,4 +548,5 @@ class AvatarOptions:
     def _destroy_this_window(self):
         logger.debug("Destroying avatar options window")
         self.this_window.destroy()
-        self.main_window.focus()
+        self.parent.clear("avatar")
+        self.parent.this_window.focus()
