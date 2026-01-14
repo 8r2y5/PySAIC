@@ -4,7 +4,7 @@ from datetime import datetime
 from functools import partial, wraps
 from typing import List, Optional
 
-from pysaic.enums import FactionsEnum
+from pysaic.enums import FactionsEnum, NetworkDestroyReasonEnum
 
 main_logger = logging.getLogger(__name__)
 
@@ -177,7 +177,7 @@ class ConnectionLost:
         lost, reason = value.split("/", 1)
         return cls(
             lost=lost.lower() == "true",
-            reason=None if reason.lower() == "none" else reason,
+            reason=NetworkDestroyReasonEnum(reason.lower()),
         )
 
 

@@ -1,8 +1,9 @@
+from dataclasses import asdict
 from unittest.mock import Mock, patch
 
 import pytest
 
-from pysaic.config import Channel, ColorsConfig, Config, FontConfig, Server
+from pysaic.config import Channel, Config, Server, FontConfig, ColorsConfig
 
 
 @pytest.fixture
@@ -10,24 +11,19 @@ def mock_state():
     return Mock()
 
 
-@pytest.fixture
-def mock_server():
-    config = Server.create_default()
-    config["channels"] = [Channel(**data) for data in config["channels"]]
-    return Server(**config)
+@pytest.fixture(scope="session")
+def mock_config(mock_server):
+    with patch("pysaic.config.random_name") as mock_random_name:
+        mock_random_name.return_value = "test_user"
 
+        with patch.object(Config, 'save_config', return_value=None):
+            config_dict = Config.default_config()
+            config_dict["server"] = mock_server
+            config_dict["colors"] = asdict(ColorsConfig())
+            config_dict["font"] = asdict(FontConfig())
 
-@pytest.fixture
-@patch("pysaic.config.random_name")
-def mock_config(mock_random_name, mock_server):
-    mock_random_name.return_value = "test_user"
-
-    config_dict = Config._default_config()
-    config_dict["server"] = mock_server
-    config_dict["colors"] = ColorsConfig()
-    config_dict["font"] = FontConfig()
-    config = Config(**config_dict)
-    return config
+            config = Config.create_instance_from_config(config_dict)
+            yield config
 
 
 @pytest.fixture

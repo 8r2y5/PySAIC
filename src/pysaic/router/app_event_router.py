@@ -16,7 +16,7 @@ from pysaic.entities import (
     OutgoingJoin,
     OutgoingPart,
 )
-from pysaic.enums import AppEventEnum
+from pysaic.enums import AppEventEnum, NetworkDestroyReasonEnum
 from pysaic.log import escape_stand_and_end
 from pysaic.router.router import Router
 from pysaic.router.utils import send_saic_afk, send_saic_avatar
@@ -318,7 +318,9 @@ class AppEventRouter(Router):
             stop_afk_tasks()
             if not self.state.is_in_channel.is_set():
                 ask_for_actor_status()
-                self.state.is_currently_under_network_destruction = None
+                self.state.is_currently_under_network_destruction = (
+                    NetworkDestroyReasonEnum.none
+                )
                 logger.debug("Joining previous channel")
                 join_previous_channel()
 

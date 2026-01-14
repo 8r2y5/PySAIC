@@ -364,6 +364,6 @@ class ColorsOptions:
 
 if __name__ == "__main__":
     root = Tk()
-    config = Config._create_instance_from_config({})
+    config = Config.create_instance_from_config({})
     c_o = ColorsOptions(root, config)
     root.mainloop()

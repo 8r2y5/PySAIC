@@ -144,10 +144,7 @@ class ConfigField:
         if instance is None:
             return self
 
-        return instance.__dict__.get(
-            self.name,
-            self.default or self.default_factory and self.default_factory(),
-        )
+        return instance.__dict__.get(self.name)
 
     def __set__(self, instance, value):
         instance.__dict__[self.name] = value
@@ -366,14 +363,14 @@ class Config:
                 config = yaml.safe_load(f)
         except Exception:
             logger.exception("Error loading config file")
-            config = cls._default_config()
+            config = cls.default_config()
             should_save = True
         else:
             if not config:
-                config = cls._default_config()
+                config = cls.default_config()
                 should_save = True
 
-        instance = cls._create_instance_from_config(config)
+        instance = cls.create_instance_from_config(config)
         changed_avatar = instance.recalculate_avatar()
         if any((should_save, changed_avatar)):
             instance.save_config()
@@ -401,11 +398,11 @@ class Config:
                 attr.save_value(self)
 
     @classmethod
-    def _default_config(cls) -> dict:
+    def default_config(cls) -> dict:
         return {}
 
     @classmethod
-    def _create_instance_from_config(cls, config: dict) -> Self:
+    def create_instance_from_config(cls, config: dict) -> Self:
         data = {}
         for name, attr in cls.__dict__.items():
             if isinstance(attr, ConfigField):

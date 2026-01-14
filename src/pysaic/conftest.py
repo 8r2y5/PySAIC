@@ -1,9 +1,9 @@
-from unittest.mock import Mock
+from unittest.mock import Mock, patch
 
 import inject
 import pytest
 
-from pysaic.config import Config
+from pysaic.config import Config, Server, Channel
 from pysaic.entities import ChatUser, ChatUsers, IncomingQueue, OutgoingQueue
 from pysaic.state import State
 from pysaic.ui.app import App
@@ -42,6 +42,14 @@ def mock_incoming_queue():
 @pytest.fixture()
 def mock_outgoing_queue():
     return Mock()
+
+
+@pytest.fixture(scope="session")
+def mock_server():
+    with patch.object(Server, 'save_config', return_value=None):
+        config = Server.create_default()
+        config["channels"] = [Channel(**data) for data in config["channels"]]
+        yield Server(**config)
 
 
 @pytest.fixture()

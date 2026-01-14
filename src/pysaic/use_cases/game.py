@@ -31,7 +31,7 @@ from pysaic.entities import (
     OutgoingPart,
     OutgoingQueue,
 )
-from pysaic.enums import AppEventEnum
+from pysaic.enums import AppEventEnum, NetworkDestroyReasonEnum
 from pysaic.events.enum import GameEvents
 from pysaic.handlers import join_previous_channel
 from pysaic.router.utils import send_saic_state
@@ -217,6 +217,20 @@ class GameChannelMessageUseCase:
 
     @inject.autoparams()
     async def execute(self, state: State):
+        if state.fake_disconnect:
+            add_signal_state("True")
+            await self.outgoing_queue.put(
+                OutgoingPart(
+                    channel=self.config.server.previous_channel,
+                    content=(
+                        state.is_currently_under_network_destruction.title()
+                        if state.is_currently_under_network_destruction
+                        else "None"
+                    ),
+                )
+            )
+            return
+
         self.logger.info("Channel message: %r", self.channel_message)
 
         await self.incoming_queue.put(
@@ -311,13 +325,13 @@ class ConnectionLostUseCase:
             self.entity,
         )
         if self.entity.reason is None:
-            logger.debug("No reason for reconnect, ignoring")
+            logger.info("No reason for reconnect, ignoring")
             add_signal_state(str(state.fake_disconnect))
             state.is_currently_under_network_destruction = None
             return
 
         if state.is_currently_under_network_destruction == self.entity.reason:
-            logger.debug(
+            logger.info(
                 "Already in the desired state, ignoring",
             )
             return
@@ -338,7 +352,7 @@ class ConnectionLostUseCase:
             return
 
         async def _task(reason):
-            if reason == "Surge":
+            if reason == NetworkDestroyReasonEnum.surge:
                 logger.debug(
                     "Waiting for %d seconds before disconnecting",
                     SLEEP_TIME_BEFORE_DISCONNECT,
@@ -349,7 +363,7 @@ class ConnectionLostUseCase:
             await self.outgoing_queue.put(
                 OutgoingPart(
                     channel=self.config.server.previous_channel,
-                    content=reason,
+                    content=reason.title(),
                 )
             )
 

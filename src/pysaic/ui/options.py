@@ -275,14 +275,14 @@ class Options:
 
         frame.grid_columnconfigure(0, weight=1)
 
+        disconnect_tuple = (
+            DisconnectOnNetworkDestructionSetting.Never,
+            DisconnectOnNetworkDestructionSetting.MalformSignalOnly,
+            DisconnectOnNetworkDestructionSetting.Always,
+            DisconnectOnNetworkDestructionSetting.Random,
+        )
         disconnect_config_values = [
-            record.value
-            for record in (
-                DisconnectOnNetworkDestructionSetting.Never,
-                DisconnectOnNetworkDestructionSetting.MalformSignalOnly,
-                DisconnectOnNetworkDestructionSetting.Always,
-                DisconnectOnNetworkDestructionSetting.Random,
-            )
+            record.value for record in disconnect_tuple
         ]
         Label(
             frame,
@@ -328,14 +328,7 @@ class Options:
         disconnect_when_underground = OptionMenu(
             frame,
             self._disconnect_when_underground_var,
-            *[
-                record.value
-                for record in (
-                    DisconnectOnNetworkDestructionSetting.Never,
-                    DisconnectOnNetworkDestructionSetting.MalformSignalOnly,
-                    DisconnectOnNetworkDestructionSetting.Always,
-                )
-            ],
+            *[record.value for record in disconnect_tuple],
         )
         disconnect_when_underground.config(
             bg=self.background_color,

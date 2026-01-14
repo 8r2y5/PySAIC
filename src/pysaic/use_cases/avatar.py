@@ -1,3 +1,4 @@
+import hashlib
 import logging
 import math
 import random
@@ -16,14 +17,13 @@ ICON_REGEXP = re.compile(
 
 
 def calculate_icon_based_on_faction_and_name(faction, nick):
-    old_random = random.random()
-    seed = sum([ord(char) for char in nick])
-    seed /= len(nick)
-    seed = math.floor(seed - math.floor(seed))
-    random.seed(seed)
+    seed_value = int(hashlib.md5(nick.encode("utf-8")).hexdigest(), 16)
+
+    local_random = random.Random(seed_value)
+
     count = crcr_factions.get(faction)
     if count:
-        index = random.randint(
+        index = local_random.randint(
             1, crcr_factions[faction] + pysaic_factions[faction] + 1
         )
         if index <= crcr_factions[faction]:
@@ -37,7 +37,6 @@ def calculate_icon_based_on_faction_and_name(faction, nick):
             faction,
         )
         avatar_id = "crc_icon_unknown"
-    random.seed(old_random)
 
     return avatar_id
 

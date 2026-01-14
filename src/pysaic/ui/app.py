@@ -93,6 +93,7 @@ class App(Tk):
         self.incoming_queue = incoming_queue
         self.outgoing_queue = outgoing_queue
         self.hyperlinks = None
+        print(self.pysaic_config)
         self.create_widgets()
         update_style(self, config)
         # self.after(250, self.process_incoming_events)
