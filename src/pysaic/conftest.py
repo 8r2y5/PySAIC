@@ -46,7 +46,7 @@ def mock_outgoing_queue():
 
 @pytest.fixture(scope="session")
 def mock_server():
-    with patch.object(Server, 'save_config', return_value=None):
+    with patch.object(Server, "save_config", return_value=None):
         config = Server.create_default()
         config["channels"] = [Channel(**data) for data in config["channels"]]
         yield Server(**config)

@@ -3,7 +3,7 @@ from unittest.mock import Mock, patch
 
 import pytest
 
-from pysaic.config import Channel, Config, Server, FontConfig, ColorsConfig
+from pysaic.config import Config, FontConfig, ColorsConfig
 
 
 @pytest.fixture
@@ -16,7 +16,7 @@ def mock_config(mock_server):
     with patch("pysaic.config.random_name") as mock_random_name:
         mock_random_name.return_value = "test_user"
 
-        with patch.object(Config, 'save_config', return_value=None):
+        with patch.object(Config, "save_config", return_value=None):
             config_dict = Config.default_config()
             config_dict["server"] = mock_server
             config_dict["colors"] = asdict(ColorsConfig())

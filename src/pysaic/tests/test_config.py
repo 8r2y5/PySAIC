@@ -46,11 +46,13 @@ from pysaic.enums import FactionsEnum
 def test_avatar_based_on_name(name, faction, expected_avatar, mock_server):
     # given
     config = Config.create_instance_from_config(
-        {"nick": name, "current_faction": faction, 'server': mock_server}
+        {"nick": name, "current_faction": faction, "server": mock_server}
     )
 
     # when
-    with patch.object(Config, 'save_config', return_value=None) as mock_save_config:
+    with patch.object(
+        Config, "save_config", return_value=None
+    ) as mock_save_config:
         config.recalculate_avatar()
 
     # then

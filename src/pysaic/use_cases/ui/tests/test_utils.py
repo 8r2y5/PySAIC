@@ -1,4 +1,3 @@
-from tkinter import END
 from unittest.mock import Mock, call
 
 from pysaic.use_cases.ui.utils import add_content_of_message_to_messages_list
