@@ -31,7 +31,6 @@ class UpdateUsersUseCase:
     @inject.autoparams()
     def execute(self, config: Config):
         self.ui.position = self.scroll_bar.get()
-        logger.debug("Updating users list")
         with enable_disable(self.users_list, tail=False):
             self.users_list.delete("0.0", END)
 
