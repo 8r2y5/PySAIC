@@ -256,3 +256,11 @@ class NetworkDestroyReasonEnum(StrEnum):
     none = auto()
     surge = auto()
     underground = auto()
+
+
+class UserListDisplayModeEnum(StrEnum):
+    NamesInAlphabeticalOrder = "Names in alphabetical order"
+    NamesInReverseAlphabeticalOrder = "Names in reverse alphabetical order"
+    OnlineFirstInAlphabeticalOrder = "Online first in alphabetical order"
+    GroupByFactionAndName = "Group by faction and name"
+    GroupByFactionWithCounter = "Group by faction with counter"

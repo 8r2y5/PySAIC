@@ -3,7 +3,7 @@ from collections import Counter
 from tkinter import END
 
 from pysaic.entities import ChatUser
-from pysaic.enums import FactionsEnum
+from pysaic.enums import FactionsEnum, UserListDisplayModeEnum
 
 ONLINE_ICON = "⦿"
 OFFLINE_ICON = "⦾"
@@ -39,8 +39,6 @@ class SortedMixin:
 
 
 class NamesInAlphabeticalOrder(SortedMixin):
-    name = "Names in alphabetical order"
-
     @property
     def sorted_users(self):
         return sorted(
@@ -53,8 +51,6 @@ class NamesInAlphabeticalOrder(SortedMixin):
 
 
 class OnlineFirstInAlphabeticalOrder(NamesInAlphabeticalOrder):
-    name = "Online first in alphabetical order"
-
     @property
     def sorted_users(self):
         return sorted(
@@ -64,8 +60,6 @@ class OnlineFirstInAlphabeticalOrder(NamesInAlphabeticalOrder):
 
 
 class NamesInReverseAlphabeticalOrder(NamesInAlphabeticalOrder):
-    name = "Names in reverse alphabetical order"
-
     @property
     def sorted_users(self):
         return sorted(
@@ -76,8 +70,6 @@ class NamesInReverseAlphabeticalOrder(NamesInAlphabeticalOrder):
 
 
 class GroupByFactionAndName(SortedMixin):
-    name = "Group by faction and name"
-
     def sort_by(self, chat_user: ChatUser):
         faction = get_faction_tag(chat_user.faction)
         return (
@@ -92,8 +84,6 @@ class GroupByFactionAndName(SortedMixin):
 
 
 class GroupByFactionWithCounter(SortedMixin):
-    name = "Group by faction with counter"
-
     def __init__(self, users_list, users):
         super().__init__(users_list, users)
         self.counter = Counter(
@@ -129,9 +119,15 @@ class GroupByFactionWithCounter(SortedMixin):
 
 
 DISPLAY_MODES_MAP = {
-    NamesInAlphabeticalOrder.name: NamesInAlphabeticalOrder,
-    NamesInReverseAlphabeticalOrder.name: NamesInReverseAlphabeticalOrder,
-    OnlineFirstInAlphabeticalOrder.name: OnlineFirstInAlphabeticalOrder,
-    GroupByFactionAndName.name: GroupByFactionAndName,
-    GroupByFactionWithCounter.name: GroupByFactionWithCounter,
+    UserListDisplayModeEnum.NamesInAlphabeticalOrder: NamesInAlphabeticalOrder,
+    UserListDisplayModeEnum.NamesInReverseAlphabeticalOrder: (
+        NamesInReverseAlphabeticalOrder
+    ),
+    UserListDisplayModeEnum.OnlineFirstInAlphabeticalOrder: (
+        OnlineFirstInAlphabeticalOrder
+    ),
+    UserListDisplayModeEnum.GroupByFactionAndName: GroupByFactionAndName,
+    UserListDisplayModeEnum.GroupByFactionWithCounter: (
+        GroupByFactionWithCounter
+    ),
 }

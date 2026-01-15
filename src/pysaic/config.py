@@ -5,13 +5,13 @@ from typing import Any, Callable, Optional, Self, Type
 
 import yaml
 
-from pysaic.controllers.ui.user_list import GroupByFactionWithCounter
 from pysaic.crc_strings.use_case import random_name
 from pysaic.enums import (
     AvatarEnum,
     DeathReportTypeEnum,
     DisconnectOnNetworkDestructionSetting,
     FactionsEnum,
+    UserListDisplayModeEnum,
 )
 from pysaic.use_cases.avatar import (
     calculate_icon_based_on_faction_and_name,
@@ -193,7 +193,7 @@ class EnumField(ConfigField):
                 if name
                 else self.default
             )
-        except (ValueError, KeyError):
+        except (ValueError, KeyError, TypeError):
             return self.default
 
     def dump_value(self, instance) -> str:
@@ -333,7 +333,9 @@ class Config:
         )
     )
     block_money_transfer: bool = BoolField(default=True)
-    user_list_display: str = ConfigField(GroupByFactionWithCounter.name)
+    user_list_display: str = EnumField(
+        UserListDisplayModeEnum.GroupByFactionWithCounter
+    )
     accept_dms_from_not_in_the_channel: bool = BoolField(default=False)
     avatar: str = EnumField(AvatarEnum.faction_and_name_based)
     current_avatar: str = ConfigField(f"crc_icon_{FactionsEnum.Loner.value}_1")

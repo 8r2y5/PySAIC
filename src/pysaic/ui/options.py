@@ -33,6 +33,7 @@ from pysaic.enums import (
     DeathReportTypeEnum,
     DisconnectOnNetworkDestructionSetting,
     FactionsEnum,
+    UserListDisplayModeEnum,
 )
 from pysaic.ui.avatar_options import AvatarOptions
 from pysaic.ui.colors import ColorsOptions
@@ -448,7 +449,7 @@ class Options:
         user_list_display_option = OptionMenu(
             frame,
             self.user_list_display_var,
-            *DISPLAY_MODES_MAP.keys(),
+            *(x.value for x in DISPLAY_MODES_MAP.keys()),
         )
         user_list_display_option.config(
             bg=self.background_color,
@@ -759,7 +760,9 @@ class Options:
             )
 
         logger.debug("user_list_display: %r", self.user_list_display_var.get())
-        self.config.user_list_display = self.user_list_display_var.get()
+        self.config.user_list_display = UserListDisplayModeEnum(
+            self.user_list_display_var.get()
+        )
 
         logger.debug(
             "in_game_users_display: %r", self.in_game_display_var.get()
