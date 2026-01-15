@@ -336,7 +336,6 @@ class ConnectionLostUseCase:
             )
             return
         state.is_currently_under_network_destruction = self.entity.reason
-        send_saic_state()
         if self.entity.lost is True:
             if state.fake_disconnect:
                 self._do_full_disconnect()
@@ -375,6 +374,7 @@ class ConnectionLostUseCase:
         logger.debug("Connection lost is False, not faking disconnect")
 
         add_signal_state(str(state.fake_disconnect))
+        send_saic_state()
         join_previous_channel()
 
     @inject.autoparams()
@@ -391,6 +391,7 @@ class ConnectionLostUseCase:
             self.incoming_queue.create_error_event(content)
 
         add_signal_state(str(state.fake_disconnect))
+        send_saic_state()
         logger.debug("Set fake disconnect to False for malforming messages")
         loop.create_task(
             _task(self.entity.reason), name="malform_only_disconnect"
