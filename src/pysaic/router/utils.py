@@ -45,14 +45,14 @@ def send_saic_state(
     state: State, outgoing_queue: OutgoingQueue, config: Config
 ):
     if not state.is_in_channel.is_set():
-        logger.debug("Not in channel, not sending SAICSTATUS message")
+        logger.debug("Not in channel, not sending SAICSTATE message")
         return
 
-    logger.info('Sending "SAICSTATUS" message')
+    logger.info('Sending "SAICSTATE" message')
     outgoing_queue.put_nowait(
         OutgoingCTCP(
             target=config.server.previous_channel,
-            content=f"SAICSTATUS 1/{state.get_player_state()}",
+            content=f"SAICSTATE 1/{state.get_player_state()}",
         )
     )
 
