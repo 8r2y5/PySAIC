@@ -1,11 +1,13 @@
 # Changelog
 
-## `0.3.0b8` — 2026-xx-xx
+## `0.3.0b8` — 2026-01-15
 ### Short summary
 - Add faction colored nicks in-game user list
   - you can toggle this option in settings. It is enabled by default
 - Improved emission and underground detection
 - Improved faction and avatar syncing in-game
+- New option for the disconnect: Random
+  - Depending on the setting, it will each time choose if you client will stay in/disconnect/malform text during emission or going underground
 - Made Clear Sky more distinguishable from Mercenary in user list
   - their colors were too similar, Clear Sky is now a lighter shade of blue
 - Colors:
