@@ -1,7 +1,7 @@
 import logging
 from datetime import UTC, datetime, timedelta
 from logging import LogRecord
-from tkinter import END
+from tkinter import END, TclError
 
 from pysaic.controllers.game import (
     add_faction_colored_nicks,
@@ -448,4 +448,7 @@ class AppEventRouter(Router):
 
     def _handler_colors_updated(self):
         logger.info("Updating colors")
-        self.ui.update_colors()
+        try:
+            self.ui.update_colors()
+        except TclError:
+            logger.exception("Could not update colors on the fly")
