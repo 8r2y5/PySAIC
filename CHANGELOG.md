@@ -1,12 +1,20 @@
 # Changelog
 
+## `0.3.0b10` - 2016-01-xx
+### Short summary
+- Improved performance
+- Made synchronization more robust
+- Restored back `compatibility` with Mags Redux fix that was broken since `0.3.0b8`
+  - later on that fix will be included in PySAIC
+
+
 ## `0.3.0b9` — 2026-01-15
 ### Short summary
 - Fix error that might occur when applying colors in preview mode
 - Fix typos
 
 ### Do I need to do anything?
-- if you are updating from 0.3.0b8
+- if you are updating from `0.3.0b8`
   - you only need to turn off client and update PySAIC, no game restart is required
 - if you are updating from anything else
   - You need to copy all the files and restart your game.
