@@ -2,6 +2,7 @@ import hashlib
 import logging
 import random
 import re
+from functools import lru_cache
 from typing import Optional
 
 from pysaic.constants import crcr_factions, pysaic_factions
@@ -15,6 +16,7 @@ ICON_REGEXP = re.compile(
 )
 
 
+@lru_cache()
 def calculate_icon_based_on_faction_and_name(faction, nick):
     seed_value = int(hashlib.md5(nick.encode("utf-8")).hexdigest(), 16)
 
@@ -40,6 +42,7 @@ def calculate_icon_based_on_faction_and_name(faction, nick):
     return avatar_id
 
 
+@lru_cache()
 def parse_icon_id(
     avatar_id: str,
 ) -> tuple[Optional[str], Optional[str], Optional[int], bool]:

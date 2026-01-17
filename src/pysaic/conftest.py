@@ -1,3 +1,6 @@
+import asyncio
+import sys
+import threading
 from unittest.mock import Mock, patch
 
 import inject
@@ -7,6 +10,22 @@ from pysaic.config import Config, Server, Channel
 from pysaic.entities import ChatUser, ChatUsers, IncomingQueue, OutgoingQueue
 from pysaic.state import State
 from pysaic.ui.app import App
+
+
+@pytest.fixture(scope="session")
+def event_loop_policy():
+    if sys.platform == "win32":
+        return asyncio.WindowsSelectorEventLoopPolicy()
+    return asyncio.get_event_loop_policy()
+
+
+# This ensures the loop is properly initialized for thread-safe calls
+@pytest.fixture
+def event_loop(event_loop_policy):
+    loop = event_loop_policy.new_event_loop()
+    asyncio.set_event_loop(loop)
+    yield loop
+    loop.close()
 
 
 @pytest.fixture()
@@ -24,6 +43,11 @@ def mock_state(chat_users):
     mock_state = Mock()
     mock_state.nick = "test nick"
     mock_state.chat_users = chat_users
+    mock_state.is_in_channel.is_set.return_value = True
+    mock_state.pending_updates = {}
+    mock_state.game_location = None
+    mock_state.player_update_task = None
+    mock_state.state_lock = threading.Lock()
     return mock_state
 
 

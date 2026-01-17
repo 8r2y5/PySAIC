@@ -5,6 +5,7 @@ import inject
 
 from pysaic.config import Config
 from pysaic.entities import ChatUsers, OutgoingCTCP, OutgoingQueue
+from pysaic.enums import SAICCTCPEnum
 from pysaic.state import State
 
 logger = logging.getLogger(__name__)
@@ -12,14 +13,18 @@ logger = logging.getLogger(__name__)
 
 def send_saic_afk(state: State, outgoing_queue: OutgoingQueue, config: Config):
     if not state.is_in_channel.is_set():
-        logger.debug("Not in channel, not sending SAICAFK message")
+        logger.debug(
+            "Not in channel, not sending %s message", SAICCTCPEnum.SAICAFK
+        )
         return
 
-    logger.info('Sending "SAICAFK" message, %r', state.player.afk)
+    logger.info(
+        'Sending "%s" message, %r', SAICCTCPEnum.SAICAFK, state.player.afk
+    )
     outgoing_queue.put_nowait(
         OutgoingCTCP(
             target=config.server.previous_channel,
-            content=f"SAICAFK 1/{int(state.player.afk)}",
+            content=f"{SAICCTCPEnum.SAICAFK} 1/{int(state.player.afk)}",
         )
     )
 
@@ -28,14 +33,20 @@ def send_saic_avatar(
     state: State, outgoing_queue: OutgoingQueue, config: Config
 ):
     if not state.is_in_channel.is_set():
-        logger.debug("Not in channel, not sending SAICAVATAR message")
+        logger.debug(
+            "Not in channel, not sending %s message", SAICCTCPEnum.SAICAVATAR
+        )
         return
 
-    logger.info('Sending "SAICAVATAR" message, %r', state.player.get_avatar())
+    logger.info(
+        'Sending "%s" message, %r',
+        SAICCTCPEnum.SAICAVATAR,
+        state.player.get_avatar(),
+    )
     outgoing_queue.put_nowait(
         OutgoingCTCP(
             target=config.server.previous_channel,
-            content=f"SAICAVATAR 1/{state.player.get_avatar()}",
+            content=f"{SAICCTCPEnum.SAICAVATAR} 1/{state.player.get_avatar()}",
         )
     )
 
@@ -45,14 +56,16 @@ def send_saic_state(
     state: State, outgoing_queue: OutgoingQueue, config: Config
 ):
     if not state.is_in_channel.is_set():
-        logger.debug("Not in channel, not sending SAICSTATE message")
+        logger.debug(
+            "Not in channel, not sending %s message", SAICCTCPEnum.SAICSTATE
+        )
         return
 
-    logger.info('Sending "SAICSTATE" message')
+    logger.info('Sending "%s" message', SAICCTCPEnum.SAICSTATE)
     outgoing_queue.put_nowait(
         OutgoingCTCP(
             target=config.server.previous_channel,
-            content=f"SAICSTATE 1/{state.get_player_state()}",
+            content=f"{SAICCTCPEnum.SAICSTATE} 1/{state.get_player_state()}",
         )
     )
 

@@ -24,6 +24,7 @@ from pysaic.enums import (
     SAICStateEnum,
     RankEnum,
     ReputationEnum,
+    SAICCTCPEnum,
 )
 from pysaic.router.app_event_router import AppEventRouter
 from pysaic.router.game_event_router import GameEventRouter
@@ -243,30 +244,31 @@ class IncomingRouter(Router):
     def _handle_ctcp(self, event: IncomingMessage):
         message = event.content[1:-1]
         logger.debug("Handling CTCP: %r", message)
-        if message in ("VERSION", "CLIENTINFO"):
-            self._send_ctcp_version(event)
-        elif message.startswith("PING"):
-            self._send_ctcp_ping(event)
-        elif message.startswith("USERDATA"):
-            self._send_user_data()
-        elif message.startswith("AMOGUS"):
-            self._parse_amogus(event.author.nick, message)
-        elif message.startswith("SAICSYNC"):
-            self._parse_saicsync(event.author.nick, message)
-        elif message.startswith("SAICREP"):
-            self._parse_saicrep(event.author.nick, message)
-        elif message.startswith("SAICRANK"):
-            self._parse_saicrank(event.author.nick, message)
-        elif message.startswith("SAICLOC"):
-            self._parse_saicloc(event.author.nick, message)
-        elif message.startswith("SAICAFK"):
-            self._parse_saicafk(event.author.nick, message)
-        elif message.startswith("SAICAVATAR"):
-            self._parse_saicavatar(event.author.nick, message)
-        elif message.startswith("SAICSTATE"):
-            self._parse_saicstate(event.author.nick, message)
-        else:
-            logger.warning("Unknown CTCP: %r", message)
+        match ctcp := message.split(" ")[0]:
+            case SAICCTCPEnum.VERSION | SAICCTCPEnum.CLIENTINFO:
+                self._send_ctcp_version(event)
+            case SAICCTCPEnum.PING:
+                self._send_ctcp_ping(event)
+            case SAICCTCPEnum.USERDATA:
+                self._send_user_data()
+            case SAICCTCPEnum.AMOGUS:
+                self._parse_amogus(event.author.nick, message)
+            case SAICCTCPEnum.SAICSYNC:
+                self._parse_saicsync(event.author.nick, message)
+            case SAICCTCPEnum.SAICREP:
+                self._parse_saicrep(event.author.nick, message)
+            case SAICCTCPEnum.SAICRANK:
+                self._parse_saicrank(event.author.nick, message)
+            case SAICCTCPEnum.SAICLOC:
+                self._parse_saicloc(event.author.nick, message)
+            case SAICCTCPEnum.SAICAFK:
+                self._parse_saicafk(event.author.nick, message)
+            case SAICCTCPEnum.SAICAVATAR:
+                self._parse_saicavatar(event.author.nick, message)
+            case SAICCTCPEnum.SAICSTATE:
+                self._parse_saicstate(event.author.nick, message)
+            case _:
+                logger.warning("Unknown CTCP: %r", ctcp)
 
     def _send_ctcp_version(self, event):
         logger.debug("Sending CTCP VERSION")
@@ -585,7 +587,7 @@ class IncomingRouter(Router):
         self._add_channel_message_to_game(event)
 
     def _parse_saicafk(self, nick, message):
-        logger.debug("Parsing SAICAFK: %r %r", nick, message)
+        logger.debug("Parsing %s: %r %r", SAICCTCPEnum.SAICAFK, nick, message)
         _, afk = message.split(" ", 1)[1].split("/")
 
         if not afk.isdigit():

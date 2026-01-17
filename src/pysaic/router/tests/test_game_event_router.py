@@ -1,14 +1,40 @@
 import asyncio
+import contextlib
 from datetime import UTC
 from unittest.mock import Mock, call, patch
 
 import pytest
 
 from pysaic.entities import IncomingEvent, IrcUser
-from pysaic.enums import AppEventEnum, LocationEnum, RankEnum, ReputationEnum
+from pysaic.enums import (
+    AppEventEnum,
+    LocationEnum,
+    RankEnum,
+    ReputationEnum,
+    SAICCTCPEnum,
+)
 from pysaic.events.enum import GameEvents
 from pysaic.script_reader.entities import Achievement, Handshake
 from pysaic.settings import LOCATIONS_FOR_ENUM_PATH
+
+
+@contextlib.contextmanager
+def threadsafe_coroutine():
+    with patch("asyncio.run_coroutine_threadsafe") as mock_threadsafe:
+
+        def side_effect(coro, loop):
+            return asyncio.create_task(coro)
+
+        mock_threadsafe.side_effect = side_effect
+        yield
+
+
+@contextlib.contextmanager
+def patch_saicsync(game_event_router):
+    with patch.object(
+        game_event_router, "_send_saicsync_message"
+    ) as mock_full_sync:
+        yield mock_full_sync
 
 
 @pytest.fixture
@@ -104,7 +130,9 @@ def test__send_saic_location(
     game_event_router._send_saic_location()
 
     # then
-    mock_logger.info.assert_called_once_with('Sending "SAICLOC" message')
+    mock_logger.info.assert_called_once_with(
+        'Sending "%s" message', SAICCTCPEnum.SAICLOC
+    )
     mock_OutgoingCTCP.assert_called_once_with(
         target=mock_config.server.previous_channel,
         content=f"SAICLOC 1/{LocationEnum.k02_trucks_cemetery.name}",
@@ -157,12 +185,13 @@ def test__handle_player_location_unknown_or_invalid_location(
     assert chat_users["test nick"].location == previous_user_location
 
 
+@pytest.mark.asyncio
 @patch("pysaic.router.game_event_router.logger")
 @patch(
     "pysaic.router.game_event_router.GameEventRouter._update_crc_users_data"
 )
 @patch("pysaic.router.game_event_router.GameEventRouter._add_error_text")
-def test__handle_player_location_happy_path_with_callback(
+async def test__handle_player_location_happy_path_with_callback(
     mock__add_error_text,
     mock__update_crc_users_data,
     mock_logger,
@@ -178,11 +207,27 @@ def test__handle_player_location_happy_path_with_callback(
     previous_user_location = chat_users["test nick"].location
 
     # when
-    game_event_router._handle_player_location()
+    with (
+        threadsafe_coroutine(),
+        patch_saicsync(game_event_router) as mock_saic_sync,
+        patch.object(
+            game_event_router, "_send_saic_location"
+        ) as mock__send_saic_location,
+    ):
+        game_event_router._handle_player_location()
+        task = mock_state.player_update_task
+        assert task is not None
+        await task
 
     # then
+    mock_saic_sync.assert_not_called()
+    mock__send_saic_location.assert_called_once_with()
     assert mock_logger.mock_calls == [
         call.debug("Handling PLAYER_LOCATION event"),
+        call.debug(
+            "Syncing changes: %s",
+            {"location": LocationEnum.k02_trucks_cemetery},
+        ),
     ]
     mock__update_crc_users_data.assert_called_once()
     mock__add_error_text.assert_not_called()
@@ -316,11 +361,12 @@ def test__handle_rank_invalid_rank(
     assert chat_users["test nick"].rank == previous_user_rank
 
 
+@pytest.mark.asyncio
 @patch("pysaic.router.game_event_router.logger")
 @patch(
     "pysaic.router.game_event_router.GameEventRouter._update_crc_users_data"
 )
-def test__handle_rank_happy_path(
+async def test__handle_rank_happy_path(
     mock__update_crc_users_data,
     mock_logger,
     game_event_router,
@@ -335,11 +381,24 @@ def test__handle_rank_happy_path(
     previous_user_rank = chat_users["test nick"].rank
 
     # when
-    game_event_router._handle_rank()
+    with (
+        threadsafe_coroutine(),
+        patch_saicsync(game_event_router) as mock_full_sync,
+        patch.object(
+            game_event_router, "_send_saic_rank"
+        ) as mock__send_saic_rank,
+    ):
+        game_event_router._handle_rank()
+        task = mock_state.player_update_task
+        assert task is not None
+        await task
 
     # then
+    mock__send_saic_rank.assert_called_once_with()
+    mock_full_sync.assert_not_called()
     assert mock_logger.mock_calls == [
         call.debug("Handling GAME_RANK event"),
+        call.debug("Syncing changes: %s", {"rank": RankEnum.professional}),
     ]
 
     mock__update_crc_users_data.assert_called_once()
@@ -389,11 +448,12 @@ def test__handle_reputation_invalid_value(
     assert chat_users["test nick"].reputation == previous_user_reputation
 
 
+@pytest.mark.asyncio
 @patch("pysaic.router.game_event_router.logger")
 @patch(
     "pysaic.router.game_event_router.GameEventRouter._update_crc_users_data"
 )
-def test__handle_reputation_happy_path(
+async def test__handle_reputation_happy_path(
     mock__update_crc_users_data,
     mock_logger,
     game_event_router,
@@ -408,11 +468,27 @@ def test__handle_reputation_happy_path(
     previous_user_reputation = chat_users["test nick"].reputation
 
     # when
-    game_event_router._handle_reputation()
+    with (
+        threadsafe_coroutine(),
+        patch_saicsync(game_event_router) as mock_full_sync,
+        patch.object(
+            game_event_router, "_send_saic_reputation"
+        ) as mock__send_saic_reputation,
+    ):
+        game_event_router._handle_reputation()
+        task = mock_state.player_update_task
+        assert task is not None
+        await task
 
     # then
+    mock__send_saic_reputation.assert_called_once_with()
+    mock_full_sync.assert_not_called()
     assert mock_logger.mock_calls == [
         call.debug("Handling GAME_REPUTATION event"),
+        call.debug(
+            "Syncing changes: %s",
+            {"reputation": ReputationEnum.st_reputation_bad},
+        ),
     ]
 
     mock__update_crc_users_data.assert_called_once()
@@ -727,3 +803,34 @@ def test_route_invalid_event_type(
         "Unknown game event: %r", game_event_router.event
     )
     mock__handle_not_afk.assert_called_once()
+
+
+@pytest.mark.asyncio
+async def test_sync_batching_and_locking_logic(
+    game_event_router, mock_state, chat_users
+):
+    # given
+    game_event_router.state = mock_state
+
+    # when
+    with (
+        threadsafe_coroutine(),
+        patch_saicsync(game_event_router) as mock_full_sync,
+    ):
+        game_event_router.event = IncomingEvent.create_game_event(
+            GameEvents.RANK, RankEnum.professional.value
+        )
+        game_event_router._handle_rank()
+
+        task = mock_state.player_update_task
+        assert task is not None
+
+        game_event_router.event = IncomingEvent.create_game_event(
+            GameEvents.REPUTATION, ReputationEnum.st_reputation_bad.name
+        )
+        game_event_router._handle_reputation()
+        await task
+
+    mock_full_sync.assert_called_once_with()
+    assert mock_state.pending_updates == {}
+    assert mock_state.player_update_task is None

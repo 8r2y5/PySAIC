@@ -264,3 +264,18 @@ class UserListDisplayModeEnum(StrEnum):
     OnlineFirstInAlphabeticalOrder = "Online first in alphabetical order"
     GroupByFactionAndName = "Group by faction and name"
     GroupByFactionWithCounter = "Group by faction with counter"
+
+
+class SAICCTCPEnum(StrEnum):
+    VERSION = "VERSION"
+    CLIENTINFO = "CLIENTINFO"
+    PING = "PING"
+    USERDATA = "USERDATA"
+    AMOGUS = "AMOGUS"
+    SAICSYNC = "SAICSYNC"
+    SAICREP = "SAICREP"
+    SAICRANK = "SAICRANK"
+    SAICLOC = "SAICLOC"
+    SAICAFK = "SAICAFK"
+    SAICAVATAR = "SAICAVATAR"
+    SAICSTATE = "SAICSTATE"

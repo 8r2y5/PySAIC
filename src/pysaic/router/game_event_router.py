@@ -1,5 +1,6 @@
 import asyncio
 import logging
+from asyncio import Task
 from datetime import UTC, datetime
 from random import randint
 from typing import Callable
@@ -14,7 +15,13 @@ from pysaic.entities import (
     OutgoingCTCP,
     OutgoingMessage,
 )
-from pysaic.enums import AppEventEnum, LocationEnum, RankEnum, ReputationEnum
+from pysaic.enums import (
+    AppEventEnum,
+    LocationEnum,
+    RankEnum,
+    ReputationEnum,
+    SAICCTCPEnum,
+)
 from pysaic.events.enum import GameEvents
 from pysaic.router.router import Router, send_only_when_connected
 from pysaic.router.utils import generic_send_saic_message
@@ -26,38 +33,39 @@ logger = logging.getLogger(__name__)
 _INVALID_VALUE = object()
 
 
+def sync_callback_handler(task: Task):
+    try:
+        task.result()
+    except Exception:
+        logger.exception(
+            "Error during player data sync",
+        )
+
+
 class GameEventRouter(Router):
     async def _send_sync(self, callback):
+        await asyncio.sleep(1.0)
         if not self.state.is_in_channel.is_set():
-            logger.debug("Not in channel, skipping player data sync")
-            self.state.player_update_task = None
             return
 
-        # game sometimes sends multiple updates in a very short time
-        # (after loading) new save or changing location,
-        # we wait a bit to gather them all and send only one update
-        await asyncio.sleep(1)
+        with self.state.state_lock:
+            try:
+                changes = self.state.pending_updates
+                self.state.pending_updates = {}
 
-        logger.debug("Sending player data sync to Chat")
-        player_changed_values = {}
-        while not self.state.player_changed_values_queue.empty():
-            field_name, value = (
-                await self.state.player_changed_values_queue.get()
-            )
-            player_changed_values[field_name] = value
-            self.state.player_changed_values_queue.task_done()
+                if not changes:
+                    return
 
-        logger.debug("Player changed values: %s", player_changed_values)
-        if len(player_changed_values.keys()) == 1:
-            logger.debug("Only one value changed, sending only that")
-            callback()
-        else:
-            logger.debug(
-                "Multiple values changed, sending full sync, %s changed",
-                player_changed_values,
-            )
-            self._send_saicsync_message()
-        self.state.player_update_task = None
+                logger.debug("Syncing changes: %s", changes)
+
+                if len(changes) == 1:
+                    callback()
+                else:
+                    self._send_saicsync_message()
+            except Exception:
+                logger.exception("Failed to sync player data: %s")
+            finally:
+                self.state.player_update_task = None
 
     def route(self):
         match self.event.event.what:
@@ -95,11 +103,11 @@ class GameEventRouter(Router):
         self._add_error_text("Please update your game script.")
 
     def _send_saic_location(self):
-        logger.info('Sending "SAICLOC" message')
+        logger.info('Sending "%s" message', SAICCTCPEnum.SAICLOC)
         self.outgoing_queue.put_nowait(
             OutgoingCTCP(
                 target=self.config.server.previous_channel,
-                content=f"SAICLOC 1/{self.state.player.location.name}",
+                content=f"{SAICCTCPEnum.SAICLOC} 1/{self.state.player.location.name}",
             )
         )
 
@@ -144,21 +152,21 @@ class GameEventRouter(Router):
                 (field_name, value)
             )
 
-            if self.state.player_update_task is None:
-                self.state.player_update_task = (
-                    asyncio.run_coroutine_threadsafe(
-                        self._send_sync(callback), loop
-                    )
-                )
-                self.state.player_update_task.add_done_callback(
-                    lambda fut: fut.exception(
-                        logger.error(
-                            "Error during player data sync",
-                            exc_info=True,
+            with self.state.state_lock:
+                self.state.pending_updates[field_name] = value
+
+                if (
+                    self.state.player_update_task is None
+                    or self.state.player_update_task.done()
+                ):
+                    self.state.player_update_task = (
+                        asyncio.run_coroutine_threadsafe(
+                            self._send_sync(callback), loop
                         )
                     )
-                )
-                return
+                    self.state.player_update_task.add_done_callback(
+                        sync_callback_handler
+                    )
 
     def _handle_player_location(self):
         logger.debug("Handling PLAYER_LOCATION event")
@@ -229,6 +237,7 @@ class GameEventRouter(Router):
             exception_handler=lambda _error: True,
         )
 
+    # noinspection PyTypeHints
     def _handle_reputation(self):
         logger.debug("Handling GAME_REPUTATION event")
         self._handle_player_generic_field_update(
@@ -243,48 +252,22 @@ class GameEventRouter(Router):
         generic_send_saic_message(
             self.outgoing_queue,
             self.config.server.previous_channel,
-            "SAICREP",
+            SAICCTCPEnum.SAICREP,
             lambda user: f"1/{user.reputation.value}",
             self.state,
             self.chat_users,
         )
-        # logger.info('Sending "SAICREP" message')
-        # try:
-        #     user = self.chat_users[self.nick]
-        # except KeyError:
-        #     logger.exception("User was missing in chat_users.")
-        #     user = self._readd_user_to_chat_users()
-        #
-        # self.outgoing_queue.put_nowait(
-        #     OutgoingCTCP(
-        #         target=self.config.server.previous_channel,
-        #         content=f"SAICREP 1/{user.reputation.value}",
-        #     )
-        # )
 
     @send_only_when_connected
     def _send_saic_rank(self):
         generic_send_saic_message(
             self.outgoing_queue,
             self.config.server.previous_channel,
-            "SAICRANK",
+            SAICCTCPEnum.SAICRANK,
             lambda user: f"1/{user.rank}",
             self.state,
             self.chat_users,
         )
-        # logger.info('Sending "SAICRANK" message')
-        # try:
-        #     user = self.chat_users[self.nick]
-        # except KeyError:
-        #     logger.exception("User was missing in chat_users.")
-        #     user = self._readd_user_to_chat_users()
-        #
-        # self.outgoing_queue.put_nowait(
-        #     OutgoingCTCP(
-        #         target=self.config.server.previous_channel,
-        #         content=f"SAICRANK 1/{user.rank}",
-        #     )
-        # )
 
     def _handle_not_afk(self):
         logger.debug("Handling NOT_AFK event")

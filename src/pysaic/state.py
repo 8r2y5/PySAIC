@@ -1,5 +1,6 @@
 import asyncio
 import logging
+import threading
 from abc import ABC, abstractmethod
 from asyncio import Task
 from collections import deque
@@ -21,6 +22,7 @@ from pysaic.enums import (
     ReputationEnum,
     NetworkDestroyReasonEnum,
 )
+from pysaic.use_cases.avatar import calculate_icon_based_on_faction_and_name
 
 logger = logging.getLogger(__name__)
 
@@ -59,7 +61,9 @@ class Player(ChatUser):
             return self.config.current_avatar
 
         return (
-            "random"
+            calculate_icon_based_on_faction_and_name(
+                self.faction.name, self.name
+            )
             if self.config.avatar == AvatarEnum.player
             else self.config.current_avatar
         )
@@ -194,6 +198,8 @@ class State:
         ]()
 
     def __init__(self, config: Config):
+        self.state_lock = threading.Lock()
+        self.pending_updates: dict[str, int | str] = {}
         self.id: str = str(id(self))
         self.got_first_handshake: asyncio.Event = asyncio.Event()
         self.logger: logging.Logger = logger.getChild("instance").getChild(
@@ -213,7 +219,7 @@ class State:
         self.last_messages: deque[
             tuple[HistoryMessageEnum, ChatUser, ChatUser, str]
         ] = deque(maxlen=20)
-        self.player_update_task: Optional[asyncio.Task] = None
+        self.player_update_task: Optional[asyncio.Future] = None
         self.player_changed_values_queue: asyncio.Queue = asyncio.Queue()
         self._is_currently_under_network_destruction: (
             NetworkDestroyReasonEnum
