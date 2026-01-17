@@ -1,4 +1,4 @@
 -- override to prevent conflicts with PySAIC
 
 -- not to break compatibility with mags redux
-local chatBox = pysaic.chatBox
+ChatBox = pysaic.ChatBox
