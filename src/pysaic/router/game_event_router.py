@@ -30,8 +30,6 @@ from pysaic.settings import LOCATIONS_FOR_ENUM_PATH, SUPPORTED_SCRIPT_VERSION
 
 logger = logging.getLogger(__name__)
 
-_INVALID_VALUE = object()
-
 
 def sync_callback_handler(task: Task):
     try:
