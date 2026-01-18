@@ -188,6 +188,26 @@
 			<string>at Zaton</string>
 			<string>in Zaton</string>
 		</zaton>
+		<grimwood>
+			<string>around Grimwood</string>
+			<string>at Grimwood</string>
+			<string>in Grimwood</string>
+			<string>near Grimwood</string>
+		</grimwood>
+		<promzona>
+			<string>around Promzone</string>
+			<string>at Promzone</string>
+			<string>in Promzone</string>
+			<string>near Promzone</string>
+			<string>inside Promzone</string>
+		</promzona>
+		<poselok_ug>
+			<string>around Town Yuzhniy</string>
+			<string>at Town Yuzhniy</string>
+			<string>in Town Yuzhniy</string>
+			<string>near Town Yuzhniy</string>
+			<string>inside Town Yuzhniy</string>
+		</poselok_ug>
 	</eng>
 	
 	<rus>
