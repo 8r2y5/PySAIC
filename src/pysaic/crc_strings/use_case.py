@@ -133,7 +133,7 @@ def load_by_key(filename, key):
 class StringsController:
     def _load_levels(self):
         try:
-            return self._load_by_key("death_levels.xml", self.death.location)
+            return load_by_key("death_levels.xml", self.death.location)
         except StopIteration:
             logger.warning('Could not load levels for "%r"', self.death)
             return [f"somewhere in the Zone ({self.death.location})"]
@@ -247,13 +247,6 @@ class DeathMessageUseCase(StringsController):
 
     def _load_random_saw(self):
         return choice(self._load_saw())
-
-    def _load_levels(self):
-        try:
-            return load_by_key("death_levels.xml", self.death.location)
-        except StopIteration:
-            logger.warning('Could not load levels for "%r"', self.death)
-            return [f"somewhere in the Zone ({self.death.location})"]
 
     def _load_saw(self):
         return load_simple("death_observances.xml")
