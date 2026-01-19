@@ -36,7 +36,7 @@ local pysaic_factions = {
     actor_zombied = 0,
 }
 
-function getIcon(name, faction, user_type)
+local function getIcon(name, faction, user_type)
     -- should be handled by PySAIC, it is fallback
     if user_type == pysaic_constants.IRCUserModeEnum.Operator then
         return 'crc_icon_operator'
@@ -101,6 +101,15 @@ end
 
 function getIconSafe(name, faction, icon_id, user_type)
     local user_icon
+    if not name then
+        name = 'nil'
+    end
+    if not faction then
+        faction = 'actor_stalker'
+    end
+    if not icon_id then
+        return 'pysaic_icon_actor_stalker_1'
+    end
     if isValidIcon(icon_id) then
         user_icon = icon_id
     else
