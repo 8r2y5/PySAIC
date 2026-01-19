@@ -83,10 +83,7 @@ local function _checkIconByMatch(icon_id, beginning_of_id, look_table)
     end
 end
 
-function isValidIcon(icon_id)
-    if icon_id == nil or icon_id == '' then
-        return false
-    end
+local function isValidIcon(icon_id)
     if icon_id == 'pysaic_icon_player' then
         return true
     end
