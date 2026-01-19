@@ -516,6 +516,10 @@ local function update()
 end
 
 local function onDeath(whoID)
+	if isDead then
+		return
+	end
+	isDead = true
 	local section, class
 	local who = whoID and alife():object(whoID)
 	if not who then
@@ -528,10 +532,7 @@ local function onDeath(whoID)
 			class = who:community()
 		end
 	end
-	if not isDead then --possible fix for death message spam
-		isDead = true
-		send("Death/%s/%s/%s/%s", db.actor:character_community(), level.name(), class:upper(), section)
-	end
+	send("Death/%s/%s/%s/%s", db.actor:character_community(), level.name(), class:upper(), section)
 	if chatBox then
 		ChatBox:Cancel()
 	end
