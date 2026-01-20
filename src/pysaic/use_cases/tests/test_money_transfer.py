@@ -84,15 +84,17 @@ def test_player_does_not_have_enough_money(
     mock_outgoing_queue,
     mock_state,
     mock_config,
+    user
 ):
     # given
     mock_state.is_game_running = True
     mock_state.money_enough.return_value = False
     mock_IncomingEvent.create_information_event.return_value = "test event"
     mock_config.block_money_transfer = False
+    user.in_game = True
 
     # when
-    assert send_money_use_case("someone", 100) is False
+    assert send_money_use_case("test nick", 100) is False
 
     # then
     assert mock_logger.mock_calls == [call.debug("Not enough money to send.")]
@@ -110,7 +112,7 @@ def test_player_does_not_have_enough_money(
 @patch("pysaic.use_cases.money_transfer.logger")
 @patch("pysaic.use_cases.money_transfer.IncomingEvent")
 @patch("pysaic.use_cases.money_transfer.remove_money_from_player")
-def test_money_transfer_happy_path(
+def test_user_is_not_online(
     mock_remove_money_from_player,
     mock_IncomingEvent,
     mock_logger,
@@ -122,18 +124,90 @@ def test_money_transfer_happy_path(
 ):
     # given
     mock_state.is_game_running = True
+    mock_state.money_enough.return_value = False
+    mock_IncomingEvent.create_information_event.return_value = "test event"
+    mock_config.block_money_transfer = False
+
+    # when
+    assert send_money_use_case("someone", 100) is False
+
+    # then
+    assert mock_logger.mock_calls == []
+    assert mock_outgoing_queue.mock_calls == []
+    assert mock_incoming_queue.mock_calls == [call.put_nowait("test event")]
+    mock_IncomingEvent.create_information_event.assert_called_once_with(
+        "'someone' is not in the chat."
+    )
+    mock_state.money_enough.assert_not_called()
+    mock_remove_money_from_player.assert_not_called()
+    mock_OutgoingMessage.assert_not_called()
+
+
+@patch("pysaic.use_cases.money_transfer.OutgoingMessage")
+@patch("pysaic.use_cases.money_transfer.logger")
+@patch("pysaic.use_cases.money_transfer.IncomingEvent")
+@patch("pysaic.use_cases.money_transfer.remove_money_from_player")
+def test_user_is_not_in_game(
+    mock_remove_money_from_player,
+    mock_IncomingEvent,
+    mock_logger,
+    mock_OutgoingMessage,
+    mock_incoming_queue,
+    mock_outgoing_queue,
+    mock_state,
+    mock_config,
+):
+    # given
+    mock_state.is_game_running = True
+    mock_state.money_enough.return_value = False
+    mock_IncomingEvent.create_information_event.return_value = "test event"
+    mock_config.block_money_transfer = False
+
+    # when
+    assert send_money_use_case("test nick", 100) is False
+
+    # then
+    assert mock_logger.mock_calls == []
+    assert mock_outgoing_queue.mock_calls == []
+    assert mock_incoming_queue.mock_calls == [call.put_nowait("test event")]
+    mock_IncomingEvent.create_information_event.assert_called_once_with(
+        "'test nick' is not in game."
+    )
+    mock_state.money_enough.assert_not_called()
+    mock_remove_money_from_player.assert_not_called()
+    mock_OutgoingMessage.assert_not_called()
+
+
+@patch("pysaic.use_cases.money_transfer.OutgoingMessage")
+@patch("pysaic.use_cases.money_transfer.logger")
+@patch("pysaic.use_cases.money_transfer.IncomingEvent")
+@patch("pysaic.use_cases.money_transfer.remove_money_from_player")
+def test_money_transfer_happy_path(
+    mock_remove_money_from_player,
+    mock_IncomingEvent,
+    mock_logger,
+    mock_OutgoingMessage,
+    mock_incoming_queue,
+    mock_outgoing_queue,
+    mock_state,
+    mock_config,
+    user
+):
+    # given
+    mock_state.is_game_running = True
     mock_state.money_enough.return_value = True
     mock_IncomingEvent.create_information_event.return_value = "test event"
     mock_OutgoingMessage.return_value = "test outgoing message"
     mock_config.block_money_transfer = False
     mock_config.current_faction = FactionsEnum.Loner
+    user.in_game = True
 
     # when
-    assert send_money_use_case("someone", 100) is True
+    assert send_money_use_case("test nick", 100) is True
 
     # then
     assert mock_logger.mock_calls == [
-        call.debug("Sending money %r to %r", 100, "someone")
+        call.debug("Sending money %r to %r", 100, "test nick")
     ]
     assert mock_outgoing_queue.mock_calls == [
         call.put_nowait("test outgoing message")
@@ -142,9 +216,9 @@ def test_money_transfer_happy_path(
     mock_IncomingEvent.create_information_event.assert_not_called()
     mock_state.money_enough.assert_called_once_with(100)
     mock_remove_money_from_player.assert_called_once_with(
-        mock_state.player, "someone", 100
+        mock_state.player, "test nick", 100
     )
     mock_OutgoingMessage.assert_called_once_with(
-        target="someone",
+        target="test nick",
         content=f"{FactionsEnum.Loner.value} pay {END_OF_ACTOR_CHARACTER} 100",
     )

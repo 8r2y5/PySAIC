@@ -110,6 +110,26 @@ def send_money_use_case(
         )
         return False
 
+    if target.startswith("@"):
+        target = target[1:]
+
+    target_user = state.chat_users.get(target)
+    if not target_user:
+        incoming_queue.put_nowait(
+            IncomingEvent.create_information_event(
+                f"{target!r} is not in the chat."
+            )
+        )
+        return False
+
+    if target_user.in_game is False:
+        incoming_queue.put_nowait(
+            IncomingEvent.create_information_event(
+                f"{target!r} is not in game."
+            )
+        )
+        return False
+
     if not state.money_enough(amount):
         logger.debug("Not enough money to send.")
         incoming_queue.put_nowait(
@@ -118,9 +138,6 @@ def send_money_use_case(
             )
         )
         return False
-
-    if target.startswith("@"):
-        target = target[1:]
 
     logger.debug("Sending money %r to %r", amount, target)
     outgoing_queue.put_nowait(
