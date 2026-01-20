@@ -1,5 +1,7 @@
 import asyncio
 import logging
+import re
+from decimal import Decimal
 from typing import Callable, Coroutine, Optional, Sequence
 
 import inject
@@ -23,6 +25,39 @@ from pysaic.use_cases.money_transfer import send_money_use_case
 from pysaic.use_cases.ui.our_priv_message import OurPrivMessageUseCase
 
 logger = logging.getLogger(__name__)
+
+
+def parse_human_readable(amount_str) -> None | int:
+    if not amount_str:
+        return None
+
+    magnitude_map = {
+        "k": 1_000,
+        "m": 1_000_000,
+        "b": 1_000_000_000,
+        "t": 1_000_000_000_000,
+        "qa": 1_000_000_000_000_000,
+        "qi": 1_000_000_000_000_000_000,
+    }
+
+    match = re.match(r"(-?[\d.]+)\s*([a-zA-Z]*)", amount_str.strip().lower())
+
+    if not match:
+        return None
+
+    number_part, suffix = match.groups()
+
+    try:
+        amount = Decimal(number_part)
+
+        for magnitude in suffix:
+            if magnitude not in magnitude_map:
+                return None
+
+            amount *= magnitude_map[magnitude]
+        return int(amount)
+    except Exception:
+        return None
 
 
 class HooksHandler:
@@ -250,7 +285,7 @@ class CommandUseCase:
     @inject.autoparams()
     def handle_pay(self, params, incoming_queue: IncomingQueue):
         """
-        Pay to user. Usage: /pay <user> <amount>
+        Pay to user. Usage: /pay <user> <amount>. Amount can be provided with magnitude 1k - 1000
         """
         if self.config.block_money_transfer:
             incoming_queue.put_nowait(
@@ -261,13 +296,20 @@ class CommandUseCase:
             return
 
         try:
-            target, amount = params.split(" ", 1)
+            target, param = params.split(" ", 1)
         except ValueError:
             self.handle_help("pay")
             return
 
-        if not amount or not amount.isdigit():
-            self.handle_help("pay")
+        amount = parse_human_readable(param)
+
+        if not amount or amount <= 0:
+            incoming_queue.put_nowait(
+                IncomingEvent.create_error_event(
+                    f"Invalid amount {param!r}. "
+                    f"Use formats like 1000, 1.5k, 2kk or 2M."
+                )
+            )
             return
 
         if send_money_use_case(target, int(amount)):
