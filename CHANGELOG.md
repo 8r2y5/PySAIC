@@ -2,10 +2,12 @@
 
 ## `0.3.0b10` - 2016-01-xx
 ### Short summary
-- Improved performance
-- Made synchronization more robust
-- Restored back `compatibility` with Mags Redux fix that was broken since `0.3.0b8`
-  - later on that fix will be included in PySAIC
+- Easier Payments: You can now use shortcuts for large amounts.
+  - Example: Instead of typing `/pay user 1500`, you can simply type `/pay user 1.5k`.
+- New Levels support: Added full support for Grimwood, Promazone, and Town Yuzhniy.
+- Smoother Performance: The app should now run faster and feel more responsive.
+- Better Reliability: Improved synchronization to prevent errors or "lag" during sync.
+- Bug Fix: Fixed a specific issue with the "Mags Redux" feature that had stopped working in the last few versions.
 
 
 ## `0.3.0b9` — 2026-01-15
