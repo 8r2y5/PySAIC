@@ -991,16 +991,54 @@ function ChatBox:Cancel()
 	chatBox = nil
 end
 
+function ChatBox:cycleThroughUsers(user_list, current_nick)
+    local current_index
+    for i, user in ipairs(user_list) do
+        if user == current_nick then
+            current_index = i
+            break
+        end
+    end
+
+    if current_index then
+        local next_index = (current_index % #user_list) + 1
+        return user_list[next_index]
+    end
+    return user_list[1]
+end
+
 function ChatBox:completeNick()
     local text = self.editBox:GetText()
-    local nick = text:match("@(%w+)")
-    if nick then
-        for k, _ in pairs(users) do
-            if k:lower():find(nick:lower()) then
-                text = text:gsub("@"..nick, "@"..k)
-                self.editBox:SetText(text)
+    local cursor_pos = self.editBox:GetCursorPosition()
+    local text_before_cursor = text:sub(1, cursor_pos)
+
+    local start_pos, end_pos, prefix, partial_nick = text_before_cursor:match("()(@?)(%w+)$")
+    if not partial_nick or #partial_nick < 2 then
+        return
+    end
+
+    local user_list = {}
+    for nick, _ in pairs(users) do
+        table.insert(user_list, nick)
+    end
+    table.sort(user_list)
+
+    local found_user
+    if users[partial_nick] then
+        found_user = self:cycleThroughUsers(user_list, partial_nick)
+    else
+        for _, nick in ipairs(user_list) do
+            if nick:lower():sub(1, #partial_nick) == partial_nick:lower() then
+                found_user = nick
                 break
             end
         end
+    end
+
+    if found_user then
+        local completion = (prefix or "") .. found_user
+        local new_text = text:sub(1, start_pos - 1) .. completion .. text:sub(end_pos)
+        self.editBox:SetText(new_text)
+        self.editBox:SetCursorPosition(start_pos - 1 + #completion)
     end
 end

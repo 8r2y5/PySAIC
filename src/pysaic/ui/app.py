@@ -41,7 +41,7 @@ MIN_HEIGHT = 300
 TK_BREAK = "break"
 
 PATH = Path(os.path.abspath(os.path.dirname(__file__)))
-AUTO_COMPLETE_REGEXP = re.compile(r"[@]?\w+$")
+AUTO_COMPLETE_REGEXP = re.compile(r"(@)?([\w]+)$")
 DELETION_STOP_CHARS = {" ", ",", ".", ":", ";", "@", "!", "(", ")"}
 
 
@@ -347,46 +347,37 @@ class App(Tk):
     def _nick_auto_complete(self, _event):
         self.input_message.focus_set()
         cursor_position = self.input_message.index(INSERT)
-        text = self.input_message.get()
-        result = AUTO_COMPLETE_REGEXP.search(text[:cursor_position])
-        start = 0 if not result else result.start()
+        text_before_cursor = self.input_message.get()[:cursor_position]
 
-        if start == -1:
-            start = 0
+        match = AUTO_COMPLETE_REGEXP.search(text_before_cursor)
+        if not match:
+            return TK_BREAK
 
-        characters = text[start:cursor_position]
-        if characters.startswith(" "):
-            original_len = len(characters)
-            word = characters.lstrip()
-            start += original_len - len(word)
+        prefix, partial_nick = match.groups()
+        start_pos = match.start()
 
-        was_at_there = False
-        if characters.startswith("@"):
-            characters = characters[1:]
-            was_at_there = True
-
-        if len(characters) < 2:
+        if len(partial_nick) < 2:
             return TK_BREAK
 
         users = sorted(self.pysaic_state.chat_users.keys())
-        if characters in users:
-            found_user = self._cycle_through_users(users, characters)
+
+        if partial_nick in users:
+            found_user = self._cycle_through_users(users, partial_nick)
         else:
-            characters = characters.lower()
             found_user = next(
                 (
                     user
                     for user in users
-                    if user.lower().startswith(characters)
+                    if user.lower().startswith(partial_nick.lower())
                 ),
-                [],
+                None,
             )
 
         if found_user:
-            self.input_message.delete(start, cursor_position)
-            if was_at_there:
-                found_user = f"@{found_user}"
-            self.input_message.insert(start, found_user)
+            completion = f"@{found_user}" if prefix else found_user
+
+            self.input_message.delete(start_pos, cursor_position)
+            self.input_message.insert(start_pos, completion)
 
         return TK_BREAK
 
@@ -422,15 +413,13 @@ class App(Tk):
 
         input_entry.delete(0, "end")
 
-    def _cycle_through_users(self, users, characters) -> str:
-        users_gen = iter(users)
-        user = next(users_gen)
-        while user != characters:
-            user = next(users_gen)
-        user = next(users_gen, None)
-        if not user:
-            user = next(iter(users), "")
-        return user
+    def _cycle_through_users(self, users, current_nick) -> str:
+        try:
+            current_index = users.index(current_nick)
+            next_index = (current_index + 1) % len(users)
+            return users[next_index]
+        except ValueError:
+            return next(iter(users), "")
 
     def _delete_till_previous_word(self, _):
         cursor_position = self.input_message.index("insert")
@@ -452,7 +441,7 @@ class App(Tk):
                 last_stop_index = index
 
         delete_start = last_stop_index + 1
-        
+
         self.input_message.delete(delete_start, cursor_position)
         return TK_BREAK
 
