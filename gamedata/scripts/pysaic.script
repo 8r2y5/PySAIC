@@ -705,6 +705,8 @@ function on_game_start()
 end
 ----------------------------------------------GUI------------------------------------------------------
 
+local DELETION_STOP_CHARS = {[" "] = true, [","] = true, ["."] = true, [":"] = true, [";"] = true, ["@"] = true, ["!"] = true, ["("] = true, [")"] = true}
+
 class "ChatBox" (CUIScriptWnd)
 function ChatBox:__init() super()
 	self:SetWndRect(Frect():set(0, 0, 1024, 768))
@@ -733,6 +735,8 @@ function ChatBox:__init() super()
 	self:UpdateMessages()
 	self:UpdateChannels()
 
+    self.lcontrol_pressed = false
+    self.rcontrol_pressed = false
 	self.focus = false
 end
 
@@ -745,18 +749,34 @@ function ChatBox:OnSelectChannel()
 end
 
 function ChatBox:OnKeyboard(dik, keyboard_action)
-	CUIScriptWnd.OnKeyboard(self, dik, keyboard_action)
-	if keyboard_action == ui_events.WINDOW_KEY_PRESSED then
-		if dik == DIK_keys.DIK_RETURN or dik == DIK_keys.DIK_NUMPADENTER then
-			self:Send()
-		elseif dik == DIK_keys.DIK_ESCAPE then
-			currChannel = self.currChannel
-			self:Cancel()
-		elseif dik == option.nickAutoCompleteKey then
+    CUIScriptWnd.OnKeyboard(self, dik, keyboard_action)
+
+    if dik == DIK_keys.DIK_LCONTROL then
+        if keyboard_action == ui_events.WINDOW_KEY_PRESSED then
+            self.lcontrol_pressed = true
+        elseif keyboard_action == ui_events.WINDOW_KEY_RELEASED then
+            self.lcontrol_pressed = false
+        end
+    elseif dik == DIK_keys.DIK_RCONTROL then
+        if keyboard_action == ui_events.WINDOW_KEY_PRESSED then
+            self.rcontrol_pressed = true
+        elseif keyboard_action == ui_events.WINDOW_KEY_RELEASED then
+            self.rcontrol_pressed = false
+        end
+    end
+
+    if keyboard_action == ui_events.WINDOW_KEY_PRESSED then
+        if dik == DIK_keys.DIK_RETURN or dik == DIK_keys.DIK_NUMPADENTER then
+            self:Send()
+        elseif dik == DIK_keys.DIK_ESCAPE then
+            self:Cancel()
+        elseif dik == option.nickAutoCompleteKey then
             self:completeNick()
-		end
-	end
-	return true
+        elseif dik == DIK_keys.DIK_BACK and (self.lcontrol_pressed or self.rcontrol_pressed) then
+            self:deleteTillPreviousWord()
+        end
+    end
+    return true
 end
 
 
@@ -1007,12 +1027,38 @@ function ChatBox:cycleThroughUsers(user_list, current_nick)
     return user_list[1]
 end
 
+function ChatBox:deleteTillPreviousWord()
+    -- Since we can't get the cursor position, we assume it's at the end
+    local text = self.editBox:GetText()
+    local cursor_idx = string.len(text)
+
+    if cursor_idx == 0 then return end
+
+    -- If char before cursor is a stop char, delete only it
+    if DELETION_STOP_CHARS[text:sub(cursor_idx, cursor_idx)] then
+        local new_text = text:sub(1, cursor_idx - 1)
+        self.editBox:SetText(new_text)
+        return
+    end
+
+    -- Find the start of the word to delete
+    local delete_start_idx = 0
+    for i = cursor_idx - 1, 1, -1 do
+        if DELETION_STOP_CHARS[text:sub(i, i)] then
+            delete_start_idx = i
+            break
+        end
+    end
+
+    local new_text = text:sub(1, delete_start_idx)
+    self.editBox:SetText(new_text)
+end
+
 function ChatBox:completeNick()
     local text = self.editBox:GetText()
-    local cursor_pos = self.editBox:GetCursorPosition()
-    local text_before_cursor = text:sub(1, cursor_pos)
+    -- Assuming cursor is at the end
+    local start_pos, end_pos, prefix, partial_nick = text:match("()(@?)(%w+)$")
 
-    local start_pos, end_pos, prefix, partial_nick = text_before_cursor:match("()(@?)(%w+)$")
     if not partial_nick or #partial_nick < 2 then
         return
     end
@@ -1037,8 +1083,7 @@ function ChatBox:completeNick()
 
     if found_user then
         local completion = (prefix or "") .. found_user
-        local new_text = text:sub(1, start_pos - 1) .. completion .. text:sub(end_pos)
+        local new_text = text:sub(1, start_pos - 1) .. completion
         self.editBox:SetText(new_text)
-        self.editBox:SetCursorPosition(start_pos - 1 + #completion)
     end
 end
