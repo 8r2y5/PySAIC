@@ -438,17 +438,22 @@ class App(Tk):
         if cursor_position == 0:
             return TK_BREAK
 
+        # if the character before the cursor is a stop char just delete it
         if text[cursor_position - 1] in DELETION_STOP_CHARS:
             self.input_message.delete(cursor_position - 1, cursor_position)
             return TK_BREAK
 
-        while (
-            cursor_position > 0
-            and text[cursor_position - 1] not in DELETION_STOP_CHARS
-        ):
-            cursor_position -= 1
+        substring = text[:cursor_position]
 
-        self.input_message.delete(cursor_position, "insert")
+        last_stop_index = -1
+        for char in DELETION_STOP_CHARS:
+            index = substring.rfind(char)
+            if index > last_stop_index:
+                last_stop_index = index
+
+        delete_start = last_stop_index + 1
+        
+        self.input_message.delete(delete_start, cursor_position)
         return TK_BREAK
 
     # noinspection PyTypeChecker
