@@ -84,7 +84,7 @@ def test_player_does_not_have_enough_money(
     mock_outgoing_queue,
     mock_state,
     mock_config,
-    user
+    user,
 ):
     # given
     mock_state.is_game_running = True
@@ -191,7 +191,7 @@ def test_money_transfer_happy_path(
     mock_outgoing_queue,
     mock_state,
     mock_config,
-    user
+    user,
 ):
     # given
     mock_state.is_game_running = True

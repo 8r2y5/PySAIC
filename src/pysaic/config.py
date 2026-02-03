@@ -272,6 +272,8 @@ class ContentColors(Colors):
     direct_message: str = "#ff69b4"
     online: str = "#008000"
     offline: str = "#ff0000"
+    surge: str = "#5b5bff"
+    underground: str = "#5b5bff"
     afk: str = "#ffff00"
 
 
@@ -401,6 +403,8 @@ class Config:
 
     @classmethod
     def default_config(cls) -> dict:
+        # TODO:
+        #  try to pull data from CRCR first
         return {}
 
     @classmethod

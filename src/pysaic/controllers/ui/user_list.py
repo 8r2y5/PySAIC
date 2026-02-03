@@ -3,11 +3,13 @@ from collections import Counter
 from tkinter import END
 
 from pysaic.entities import ChatUser
-from pysaic.enums import FactionsEnum, UserListDisplayModeEnum
+from pysaic.enums import FactionsEnum, UserListDisplayModeEnum, SAICStateEnum
 
 ONLINE_ICON = "⦿"
 OFFLINE_ICON = "⦾"
 AFK_ICON = "☽"
+SURGE_ICON = "⛈"
+UNDERGROUND_ICON = "🚪"
 
 logger = logging.getLogger(__name__)
 
@@ -30,6 +32,13 @@ class SortedMixin:
         if chat_user.afk:
             tag = "afk"
             icon = AFK_ICON
+        if chat_user.state != SAICStateEnum.ok:
+            # tag = chat_user.state.name
+            icon = (
+                SURGE_ICON
+                if chat_user.state == SAICStateEnum.emission
+                else UNDERGROUND_ICON
+            )
         # logger.debug("Adding user: %r (%r)", chat_user, tag)
         faction_tag = get_faction_tag(chat_user.faction)
         self.users_list.insert(END, f" {icon} ", tag)

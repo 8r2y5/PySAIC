@@ -18,7 +18,7 @@ Compatible with any Stalker Anomaly version and modpack that uses Stalker Anomal
 - **Custom channels**
   - Want to create your own channel? You can do that! Just add it to the `server.yml` file.
 - **Customizable**
-  - Change your nickname, avatar, and other settings in the options menu.
+  - Change your nickname, avatar, color theme, font and other settings in the options menu.
 - **Block Users**
   - Block users from sending you messages or interacting with you in-game.
 - **Block Words**
@@ -33,6 +33,8 @@ Compatible with any Stalker Anomaly version and modpack that uses Stalker Anomal
   - Simple installation process, just extract the files and run the client.
 - **Cross-Platform**
   - Works on Windows or Linux.
+- **Supports for [New Level](https://www.moddb.com/mods/stalker-anomaly/addons/promzone-level)**
+  - Compatible with Grimwood, Promazone, and Town Yuzhniy.
 - **See others status in-game**
   - Online status 
   - Avatar / Profile Picture
@@ -42,6 +44,7 @@ Compatible with any Stalker Anomaly version and modpack that uses Stalker Anomal
     - AFK status
     - Rank
     - Reputation
+    - Status
 
 
 ## Ability to identify with IRC server
@@ -53,27 +56,25 @@ Configuration is stored in `config.yml` file, which is created after the first r
 You can find all available commands in-game by typing `/commands` or `/help`.
 All commands that requires to provide nick can be used with `@` for nick completion.
 
-| Command      | Description                                     | Usage                            | Note                                                                                     |
-|--------------|-------------------------------------------------|----------------------------------|------------------------------------------------------------------------------------------|
-| `/block`     | Blocks interactions/messages with provided user | Check `/block` command section   |                                                                                          |
-| `/blockword` | Blocks messages that contain specified word     | See `/blockword` command section |                                                                                          |
-| `/help`      | Shows help message for command                  | `/help block`                    |                                                                                          |
-| `/commands`  | Shows avaliable commands                        | `/commands`                      |                                                                                          |
-| `/msg`       | Sends private message to user                   | `/msg [nick] [message]`          |                                                                                          |
-| `/m`         | Alias for `/msg`                                | `/m [nick] [message]`            |                                                                                          |
-| `/w`         | Alias for `/msg`                                | `/w [nick] [message]`            |                                                                                          |
-| `/priv`      | Alias for `/msg`                                | `/priv [nick] [message]`         |                                                                                          |
-| `/dm`        | Alias for `/msg`                                | `/dm [nick] [message]`           |                                                                                          |
-| `/nick`      | Changes you nicname in chat.                    | `/nick [new nick]`               | Nick cannot contain space, it's IRC limitation                                           |
-| `/reply`     | Replyes to last private message/dm              | `/reply [message]`               |                                                                                          |
-| `/r`         | Alias for `/reply`                              | `/r [message]`                   |                                                                                          |
-| `/pay`       | Transfers money to another user                 | `/pay [nick] [amount]`           | Both need to be in-game. There is option to block money transfer in `Options`.           |
-| `/exit`      | Closes the client                               | `/exit`                          |                                                                                          |
-| `/afk`       | Sets you as AFK                                 | `/afk`                           | Will show AFK status in chat, other players can see it.                                  |
-| `/mode`      | Sends IRC MODE command                          | `/mode [mode]`                   | [See IRC MODE](https://matrix-org.github.io/matrix-appservice-irc/latest/irc_modes.html) |
-| `/who`       | Sends IRC WHO command                           | `/who [nick/channel]`            |                                                                                          |
-| `/whois`     | Sends IRC WHOIS command                         | `/whois [nick]`                  |                                                                                          |
-| `/whowas`    | Sends IRC WHOWAS command                        | `/whowas [nick]`                 |                                                                                          |
+| Command      | Description                                     | Usage                            | Note                                                                                                                             |
+|--------------|-------------------------------------------------|----------------------------------|----------------------------------------------------------------------------------------------------------------------------------|
+| `/block`     | Blocks interactions/messages with provided user | Check `/block` command section   |                                                                                                                                  |
+| `/blockword` | Blocks messages that contain specified word     | See `/blockword` command section |                                                                                                                                  |
+| `/help`      | Shows help message for command                  | `/help block`                    |                                                                                                                                  |
+| `/commands`  | Shows avaliable commands                        | `/commands`                      |                                                                                                                                  |
+| `/msg`       | Sends private message to user                   | `/msg [nick] [message]`          |                                                                                                                                  |
+| `/m`         | Alias for `/msg`                                | `/m [nick] [message]`            |                                                                                                                                  |
+| `/w`         | Alias for `/msg`                                | `/w [nick] [message]`            |                                                                                                                                  |
+| `/priv`      | Alias for `/msg`                                | `/priv [nick] [message]`         |                                                                                                                                  |
+| `/dm`        | Alias for `/msg`                                | `/dm [nick] [message]`           |                                                                                                                                  |
+| `/nick`      | Changes you nicname in chat.                    | `/nick [new nick]`               | Nick cannot contain space, it's IRC limitation                                                                                   |
+| `/reply`     | Replyes to last private message/dm              | `/reply [message]`               |                                                                                                                                  |
+| `/r`         | Alias for `/reply`                              | `/r [message]`                   |                                                                                                                                  |
+| `/pay`       | Transfers money to another user                 | `/pay [nick] [amount]`           | Both need to be in-game. There is option to block money transfer in `Options`. Accepts human friendly values `/pay user 1.5k`.   |
+| `/exit`      | Closes the client                               | `/exit`                          |                                                                                                                                  |
+| `/afk`       | Sets you as AFK                                 | `/afk`                           | Will show AFK status in chat, other players can see it.                                                                          |
+| `/mode`      | Sends IRC MODE command                          | `/mode [mode]`                   | [See IRC MODE](https://matrix-org.github.io/matrix-appservice-irc/latest/irc_modes.html)                                                                                                              |
+| `/who`       | Sends IRC WHO command                           | `/who [nick/channel]`            |                                                                                                                                  |
 
 
 # /block command usage

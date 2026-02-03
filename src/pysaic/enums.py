@@ -3,7 +3,7 @@ from enum import Enum, StrEnum, auto
 
 import yaml
 
-from pysaic.settings import LOCATIONS_FOR_ENUM_PATH
+from pysaic.settings import LOCATIONS_FOR_ENUM_PATH, FACTIONS_FOR_ENUM_PATH
 
 logger = logging.getLogger(__name__)
 
@@ -105,24 +105,55 @@ class ReputationEnum(StrEnum):
     st_reputation_excellent = "Excellent"
 
 
-class FactionsEnum(Enum):
-    Clear_Sky = "actor_csky"
-    Loner = "actor_stalker"
-    Ecologist = "actor_ecolog"
-    Bandit = "actor_bandit"
-    Monolith = "actor_monolith"
-    Duty = "actor_dolg"
-    Freedom = "actor_freedom"
-    Mercenary = "actor_killer"
-    Military = "actor_army"
-    Renegade = "actor_renegade"
-    Zombie = "actor_zombied"
-    Anonymous = "actor_anonymous"  # appears in yellow color in-game
-    UNISG = "actor_isg"
-    SIN = "actor_greh"
+BASE_FACTIONS = {
+    "Clear_Sky": "actor_csky",
+    "Loner": "actor_stalker",
+    "Ecologist": "actor_ecolog",
+    "Bandit": "actor_bandit",
+    "Monolith": "actor_monolith",
+    "Duty": "actor_dolg",
+    "Freedom": "actor_freedom",
+    "Mercenary": "actor_killer",
+    "Military": "actor_army",
+    "Renegade": "actor_renegade",
+    "Zombie": "actor_zombied",
+    "Anonymous": "actor_anonymous",  # appears in yellow color in-game
+    "UNISG": "actor_isg",
+    "SIN": "actor_greh",
+}
 
-    def __str__(self):
-        return self.value
+
+def _load_factions():
+    factions = BASE_FACTIONS.copy()
+    try:
+        with open(FACTIONS_FOR_ENUM_PATH, encoding="utf-8") as file:
+            user_factions = yaml.safe_load(file) or {}
+    except FileNotFoundError:
+        with open(FACTIONS_FOR_ENUM_PATH, mode="w", encoding="utf-8") as file:
+            yaml.safe_dump({}, file)
+        user_factions = {}
+    except Exception:
+        logger.exception(
+            "Could not load factions from %s", FACTIONS_FOR_ENUM_PATH
+        )
+        user_factions = {}
+
+    for name, actor in user_factions.items():
+        if name in factions:
+            logger.warning(
+                "%r:%r already present in factions, skipping override",
+                name,
+                actor,
+            )
+            continue
+        factions[name] = actor
+
+    return factions
+
+
+FactionsEnum = Enum("FactionsEnum", _load_factions())
+# Monkey-patch __str__ to return the value, matching previous behavior
+FactionsEnum.__str__ = lambda self: self.value
 
 
 class AppEventEnum(Enum):

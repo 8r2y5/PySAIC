@@ -25,7 +25,7 @@ from pysaic.entities import (
     IrcUser,
     OutgoingQueue,
 )
-from pysaic.enums import FactionsEnum
+from pysaic.enums import FactionsEnum, SAICStateEnum
 from pysaic.router.incoming_router import IncomingRouter
 from pysaic.script_reader.entities import Death
 from pysaic.settings import APP_IDENTITY
@@ -45,6 +45,14 @@ def gen_chat_users():
             faction=choice(list(FactionsEnum)),
             in_game=choice([True, False]),
             afk=choice([True, False, False]),
+            state=choice(
+                (
+                    SAICStateEnum.ok,
+                    SAICStateEnum.ok,
+                    SAICStateEnum.emission,
+                    SAICStateEnum.underground,
+                )
+            ),
         )
         for x in range(30)
     }

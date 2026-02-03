@@ -165,6 +165,16 @@ def apply_color_tags_to_text(widget: tkinter.Text, colors: ColorsConfig):
         foreground=colors.content.afk,
         font=bold_font,
     )
+    widget.tag_config(
+        "emission",
+        foreground=colors.content.surge,
+        font=bold_font,
+    )
+    widget.tag_config(
+        "underground",
+        foreground=colors.content.underground,
+        font=bold_font,
+    )
 
 
 def apply_style_to_tkinter(container, config: Config):

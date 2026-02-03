@@ -168,6 +168,7 @@ class App(Tk):
         self.messages_list.grid(row=0, column=0, sticky="nsew")
         chat_scroll.config(command=self.messages_list.yview)
         chat_scroll.grid(row=0, column=1, sticky="ns")
+        self.messages_list.list_scroll = chat_scroll
         self.hyperlinks = HyperlinkManager(self.messages_list)
 
     def _prepare_right_frame(self):
@@ -445,9 +446,6 @@ class App(Tk):
             cursor_position > 0
             and text[cursor_position - 1] not in DELETION_STOP_CHARS
         ):
-            cursor_position -= 1
-
-        if cursor_position - 1 > 0:
             cursor_position -= 1
 
         self.input_message.delete(cursor_position, "insert")

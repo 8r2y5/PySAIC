@@ -9,6 +9,7 @@
 - Better Reliability: Improved synchronization to prevent errors or "lag" during sync.
 - Bug Fix: Fixed a specific issue with the "Mags Redux" feature that had stopped working in the last few versions.
 
+---
 
 ## `0.3.0b9` — 2026-01-15
 ### Short summary
@@ -20,6 +21,8 @@
   - you only need to turn off client and update PySAIC, no game restart is required
 - if you are updating from anything else
   - You need to copy all the files and restart your game.
+
+---
 
 ## `0.3.0b8` — 2026-01-15
 ### Short summary
@@ -44,6 +47,8 @@
 
 ### Do I need to do anything?
 You need to copy all the files and restart your game.
+
+---
 
 ## `0.3.0b7` — 2025-11-14
 ### Short summary

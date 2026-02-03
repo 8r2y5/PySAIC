@@ -1,7 +1,6 @@
 import logging
 from dataclasses import dataclass
 from itertools import chain
-from tkinter import END
 from typing import Callable, Union
 
 from pysaic.config import Config
@@ -32,7 +31,6 @@ from pysaic.router.irc_event_router import IrcEventRouter
 from pysaic.router.router import Router
 from pysaic.settings import (
     APP_IDENTITY,
-    END_OF_ACTOR_CHARACTER,
     START_OF_ACTOR_CHARACTER,
 )
 from pysaic.state import State
@@ -43,8 +41,8 @@ from pysaic.use_cases.irc_mode_to_user_type import parsed_mode_to_name
 from pysaic.use_cases.money_transfer import IncomingMoneyTransferUseCase
 from pysaic.use_cases.text import make_content_malformed
 from pysaic.use_cases.ui.add_dm_message import AddDmMessage
+from pysaic.use_cases.ui.add_message import AddMessageUseCase
 from pysaic.use_cases.ui.utils import (
-    enable_disable,
     get_faction_actor,
     normalize_content,
 )
@@ -189,26 +187,7 @@ class IncomingRouter(Router):
 
     def _add_channel_message(self, event: IncomingMessage):
         logger.debug("Adding channel message: %r", event)
-        author_nick = event.author.nick
-        highlight = (
-            author_nick != self.nick and self.nick in event.content
-        ) or author_nick == "NickServ"
-        additional_tags = ["Highlight"] if highlight else []
-        show_popup = self.ui.should_show_popups and highlight
-
-        with enable_disable(self.messages_list):
-            self._add_date_to_message(event, additional_tags)
-            if START_OF_ACTOR_CHARACTER in event.content:
-                self._add_death_message(event, additional_tags)
-            else:
-                self._add_user_and_faction_color(
-                    author_nick, additional_tags=additional_tags
-                )
-                self._add_content_to_message(
-                    event, additional_tags, show_popup
-                )
-
-            # self.messages_list.see(END)
+        AddMessageUseCase(self.state, self.config, self.ui, event).execute()
 
     def _add_event(self, event):
         # TODO: replace with dict mapping or or add them dynamically
@@ -326,25 +305,6 @@ class IncomingRouter(Router):
         self._update_crc_users_data()
         self._update_ui_user_list()
 
-    def _add_death_message(self, event, additional_tags=None):
-        if additional_tags is None:
-            additional_tags = []
-        author, faction_actor, content = (
-            self._get_death_message_author_and_content(event)
-        )
-        if self.state.fake_disconnect is True:
-            content = make_content_malformed(content)
-        self.messages_list.insert(
-            END,
-            author,
-            [FactionsEnum(faction_actor).name] + additional_tags,
-        )
-        self.messages_list.insert(
-            END,
-            f": {self._strip_new_line(content)}",
-            ["Text"] + additional_tags,
-        )
-
     def _add_channel_message_to_game(self, event: IncomingMessage):
         if START_OF_ACTOR_CHARACTER in event.content:
             author, faction_actor, content = (
@@ -378,15 +338,6 @@ class IncomingRouter(Router):
             user_type=parsed_mode_to_name(user.irc_mode),
             content=content,
         )
-
-    @staticmethod
-    def _get_death_message_author_and_content(event: IncomingMessage):
-        author = event.content.split(START_OF_ACTOR_CHARACTER, 1)[0]
-        faction_actor = event.content.split(START_OF_ACTOR_CHARACTER, 1)[
-            1
-        ].split(END_OF_ACTOR_CHARACTER, 1)[0]
-        content = event.content.split(END_OF_ACTOR_CHARACTER, 1)[1]
-        return author, faction_actor, normalize_content(content)
 
     def _parse_saicsync(self, author, content):
         # SAIC: 1/location/avatar/rank/reputation/afk
@@ -584,7 +535,6 @@ class IncomingRouter(Router):
         if self.state.should_malform_messages is True:
             event.content = make_content_malformed(event.content)
         self._add_channel_message(event)
-        self._add_channel_message_to_game(event)
 
     def _parse_saicafk(self, nick, message):
         logger.debug("Parsing %s: %r %r", SAICCTCPEnum.SAICAFK, nick, message)

@@ -32,71 +32,57 @@ logger = logging.getLogger(__name__)
 
 
 class AppEventRouter(Router):
+    def __init__(self, state, config, ui, event):
+        super().__init__(state, config, ui, event)
+        self.handlers = {
+            AppEventEnum.UPDATE_USERS: self._update_crc_users_data,
+            AppEventEnum.ACTOR_UPDATE: self._handle_actor_update,
+            AppEventEnum.IN_GAME: self._handle_in_game,
+            AppEventEnum.DISCONNECTED_FROM_PDA_NETWORK: self._handle_disconnected_from_channel,
+            AppEventEnum.UPDATE_UI_USERS_LIST: self._handle_update_ui_users_list,
+            AppEventEnum.OPTIONS_UPDATED: self._handle_options_updated,
+            AppEventEnum.COLORS_UPDATED: self._handler_colors_updated,
+            AppEventEnum.OUR_MESSAGE: self._handle_our_message,
+            AppEventEnum.COMMAND: self._handle_command,
+            AppEventEnum.NICKNAME_CHANGED: self._handle_nickname_changed,
+            AppEventEnum.CONNECTION_TO_SERVER_ISSUE: self._handle_connection_to_server_issue,
+            AppEventEnum.NEW_VERSION: self._handle_new_version,
+            AppEventEnum.GAME_CHANNEL_CHANGE: self._handle_game_channel_change_event,
+            AppEventEnum.CHANGE_CHANNEL: self._handle_app_channel_change,
+            AppEventEnum.CHECK_AFK: self._handle_afk_check,
+            AppEventEnum.SET_NOT_AFK: self._set_user_not_afk,
+            AppEventEnum.SET_AFK: self._set_user_afk,
+            AppEventEnum.TOGGLE_AFK: self._handle_toggle_afk,
+            AppEventEnum.FOCUS: self._handle_focus_window,
+            AppEventEnum.RAW_IRC_MESSAGE: self._handle_raw_irc_message,
+        }
+
     def route(self):
         if self.event.event.what != AppEventEnum.RAW_IRC_MESSAGE:
             logger.debug("Handling AppEvent: %r", self.event)
-        # TODO: replace with dict mapping or or add them dynamically
-        if self.event.event.what == AppEventEnum.UPDATE_USERS:
-            self._update_crc_users_data()
-        elif self.event.event.what == AppEventEnum.ACTOR_UPDATE:
-            self._handle_actor_update()
-        elif self.event.event.what == AppEventEnum.IN_GAME:
-            self._handle_in_game()
-        elif (
-            self.event.event.what == AppEventEnum.DISCONNECTED_FROM_PDA_NETWORK
-        ):
-            self._handle_disconnected_from_channel()
-        elif self.event.event.what == AppEventEnum.UPDATE_UI_USERS_LIST:
-            self._handle_update_ui_users_list()
-        elif self.event.event.what == AppEventEnum.OPTIONS_UPDATED:
-            self._handle_options_updated()
-        elif self.event.event.what == AppEventEnum.COLORS_UPDATED:
-            self._handler_colors_updated()
-        elif self.event.event.what == AppEventEnum.OUR_MESSAGE:
-            OurMessageUseCase(
-                self.state,
-                self.config,
-                self.ui,
-                self.outgoing_queue,
-                self.incoming_queue,
-            ).execute(self.event.event.payload)
-        elif self.event.event.what == AppEventEnum.COMMAND:
-            self._handle_command()
-        elif self.event.event.what == AppEventEnum.NICKNAME_CHANGED:
-            self._handle_nickname_changed()
-        elif self.event.event.what == AppEventEnum.CONNECTION_TO_SERVER_ISSUE:
-            self._handle_connection_to_server_issue()
-        elif self.event.event.what == AppEventEnum.NEW_VERSION:
-            self._add_information_text(
-                f"New version available: {self.event.event.payload}"
-            )
 
-        # TODO: merge those into one
-        elif self.event.event.what == AppEventEnum.GAME_CHANNEL_CHANGE:
-            self._handle_game_channel_change(self.event.event.payload)
-        elif self.event.event.what == AppEventEnum.CHANGE_CHANNEL:
-            self._handle_app_channel_change()
-
-        elif self.event.event.what == AppEventEnum.CHECK_AFK:
-            self._handle_afk_check()
-
-        elif self.event.event.what == AppEventEnum.SET_NOT_AFK:
-            self._set_user_not_afk()
-
-        elif self.event.event.what == AppEventEnum.SET_AFK:
-            self._set_user_not_afk()
-
-        elif self.event.event.what == AppEventEnum.TOGGLE_AFK:
-            self._handle_toggle_afk()
-
-        elif self.event.event.what == AppEventEnum.FOCUS:
-            self._handle_focus_window()
-
-        elif self.event.event.what == AppEventEnum.RAW_IRC_MESSAGE:
-            self._handle_raw_irc_message()
-
+        handler = self.handlers.get(self.event.event.what)
+        if handler:
+            handler()
         else:
             logger.warning("Unknown AppEvent: %r", self.event)
+
+    def _handle_our_message(self):
+        OurMessageUseCase(
+            self.state,
+            self.config,
+            self.ui,
+            self.outgoing_queue,
+            self.incoming_queue,
+        ).execute(self.event.event.payload)
+
+    def _handle_new_version(self):
+        self._add_information_text(
+            f"New version available: {self.event.event.payload}"
+        )
+
+    def _handle_game_channel_change_event(self):
+        self._handle_game_channel_change(self.event.event.payload)
 
     def _handle_in_game(self):
         payload = self.event.event.payload

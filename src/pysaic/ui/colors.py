@@ -25,7 +25,13 @@ from pysaic.config import (
     ContentColors,
     BackgroundColors,
 )
-from pysaic.controllers.ui.user_list import ONLINE_ICON, OFFLINE_ICON, AFK_ICON
+from pysaic.controllers.ui.user_list import (
+    ONLINE_ICON,
+    OFFLINE_ICON,
+    AFK_ICON,
+    UNDERGROUND_ICON,
+    SURGE_ICON,
+)
 from pysaic.entities import IncomingQueue, IncomingEvent
 from pysaic.enums import FactionsEnum, AppEventEnum
 from pysaic.ui.constants import WM_DELETE_WINDOW
@@ -223,6 +229,8 @@ class ColorsOptions:
             ("-> DM", "direct_message"),
             (f"{OFFLINE_ICON} Offline", "offline"),
             (f"{ONLINE_ICON} Online", "online"),
+            (f"{SURGE_ICON} Surge", "surge"),
+            (f"{UNDERGROUND_ICON} Underground", "underground"),
             ("[13:37] time", "time"),
         ]
         for i, (label, key) in enumerate(text_items):
