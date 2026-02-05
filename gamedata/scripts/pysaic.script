@@ -1030,7 +1030,7 @@ end
 function ChatBox:deleteTillPreviousWord()
     -- Since we can't get the cursor position, we assume it's at the end
     local text = self.editBox:GetText()
-    local cursor_idx = string.len(text)
+    local cursor_idx = #text
 
     if cursor_idx == 0 then return end
 
@@ -1057,7 +1057,7 @@ end
 function ChatBox:completeNick()
     local text = self.editBox:GetText()
     -- Assuming cursor is at the end
-    local start_pos, end_pos, prefix, partial_nick = text:match("()(@?)(%w+)$")
+    local start_pos, prefix, partial_nick = text:match("()(@?)(%w+)$")
 
     if not partial_nick or #partial_nick < 2 then
         return
@@ -1065,7 +1065,7 @@ function ChatBox:completeNick()
 
     local user_list = {}
     for nick, _ in pairs(users) do
-        table.insert(user_list, nick)
+        user_list[#user_list+1] = nick
     end
     table.sort(user_list)
 
