@@ -15,11 +15,11 @@ logger = logging.getLogger(__name__)
 
 @contextmanager
 def enable_disable(widget, *, tail=True):
+    is_at_bottom = widget.yview()[1] > 0.95
     widget.config(state=NORMAL)
     if widget.get("1.0", "end-1c") != "":
         widget.insert(END, "\n")
     widget.tag_remove("Highlight", "end-1c", "end")
-    is_at_bottom = widget.yview()[1] > 0.95
     yield
     if is_at_bottom is True and tail is True:
         widget.see(END)
