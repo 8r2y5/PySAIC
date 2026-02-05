@@ -32,7 +32,7 @@ class SortedMixin:
         if chat_user.afk:
             tag = "afk"
             icon = AFK_ICON
-        if chat_user.state != SAICStateEnum.ok:
+        if chat_user.state != SAICStateEnum.ok and chat_user.in_game:
             # tag = chat_user.state.name
             icon = (
                 SURGE_ICON
