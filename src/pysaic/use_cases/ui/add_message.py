@@ -2,7 +2,7 @@ import logging
 from tkinter import END
 
 from pysaic.controllers.game import add_channel_message_to_game
-from pysaic.enums import HistoryMessageEnum
+from pysaic.enums import FactionsEnum, HistoryMessageEnum
 from pysaic.settings import END_OF_ACTOR_CHARACTER, START_OF_ACTOR_CHARACTER
 from pysaic.use_cases.irc_mode_to_user_type import parsed_mode_to_name
 from pysaic.use_cases.text import make_content_malformed
@@ -53,10 +53,16 @@ class AddMessageUseCase(UiUseCase):
         )
         if self.state.fake_disconnect is True:
             content = make_content_malformed(content)
+
+        try:
+            faction_tag = FactionsEnum(faction_actor).name
+        except ValueError:
+            faction_tag = FactionsEnum.Anonymous.name
+
         self.messages_list.insert(
             END,
             author,
-            [faction_actor] + additional_tags,
+            [faction_tag] + additional_tags,
         )
         content = content.lstrip("\n")
         self.messages_list.insert(
