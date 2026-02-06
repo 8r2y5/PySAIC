@@ -1,6 +1,7 @@
 import logging
 from dataclasses import asdict, dataclass, field
 from enum import Enum, StrEnum
+from pathlib import Path
 from typing import Any, Callable, Optional, Self, Type
 
 import yaml
@@ -21,6 +22,8 @@ from pysaic.use_cases.avatar import (
 logger = logging.getLogger(__name__)
 
 NOT_SET = object()
+
+THEMES_PATH = Path('themes')
 
 
 class InGameUserDisplayEnum(StrEnum):
@@ -357,6 +360,7 @@ class Config:
     pop_up_on_ping: bool = BoolField(default=False)
     pop_up_sound: bool = BoolField(default=True)
     font: FontConfig = NestedObjectFiled(FontConfig)
+    theme_name: str = ConfigField(default="pysaic")
     colors: ColorsConfig = NestedObjectFiled(ColorsConfig)
 
     @classmethod
@@ -373,6 +377,32 @@ class Config:
             if not config:
                 config = cls.default_config()
                 should_save = True
+
+        # Load theme
+        theme_name = config.get("theme_name", "pysaic")
+        theme_path = THEMES_PATH / f"{theme_name}.yml"
+        should_create_theme = False
+        if theme_path.exists():
+            try:
+                with open(theme_path) as f:
+                    theme_data = yaml.safe_load(f)
+                    if theme_data:
+                        config["colors"] = theme_data
+            except Exception:
+                logger.exception(f"Error loading theme {theme_name}")
+                should_create_theme = True
+        else:
+            should_create_theme = True
+
+        if should_create_theme:
+            theme_name = 'pysaic'
+            theme_path = THEMES_PATH / f"{theme_name}.yml"
+            config['theme'] = theme_name
+            theme_path.parent.mkdir(parents=True, exist_ok=True)
+            with open(theme_path, "w") as f:
+                data = asdict(ColorsConfig.load_from_config({}))
+                yaml.dump(data, f)
+                config["colors"] = data
 
         instance = cls.create_instance_from_config(config)
         changed_avatar = instance.recalculate_avatar()
@@ -392,6 +422,9 @@ class Config:
                 separate_save.append(attr)
                 continue
 
+            if name == "colors":
+                continue
+
             value = attr.dump_value(self)
             if value is not None:
                 data[name] = value
@@ -400,6 +433,10 @@ class Config:
             yaml.dump(data, f)
             for attr in separate_save:
                 attr.save_value(self)
+
+        theme_path = THEMES_PATH / f"{self.theme_name}.yml"
+        with open(theme_path, "w") as f:
+            yaml.dump(asdict(self.colors), f)
 
     @classmethod
     def default_config(cls) -> dict:

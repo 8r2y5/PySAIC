@@ -5,11 +5,13 @@ import logging.config
 import sys
 import traceback
 from functools import partial
+from dataclasses import asdict
 
 import inject
+import yaml
 from asyncirc.server import Server
 
-from pysaic.config import Config
+from pysaic.config import Config, ColorsConfig
 from pysaic.entities import IncomingEvent, IncomingQueue, OutgoingQueue
 from pysaic.enums import IrcEvents
 from pysaic.irc_protocol import PySaicIrcProtocol
@@ -19,6 +21,7 @@ from pysaic.settings import (
     DEBUG,
     GAMEDATA_PATH,
     WORKDIR,
+    THEMES_PATH,
     get_log_config,
 )
 from pysaic.state import State
@@ -225,6 +228,17 @@ def initialize_logging():
     logging.config.dictConfig(get_log_config())
 
 
+def ensure_themes_exist():
+    if not THEMES_PATH.exists():
+        THEMES_PATH.mkdir()
+
+    default_theme_path = THEMES_PATH / "pysaic.yml"
+    if not default_theme_path.exists():
+        default_colors = ColorsConfig()
+        with open(default_theme_path, "w") as f:
+            yaml.dump(asdict(default_colors), f)
+
+
 def main():
     incoming_queue = IncomingQueue()
     loop = asyncio.new_event_loop()
@@ -243,6 +257,7 @@ def main():
     logger.info("Starting %s", APP_IDENTITY)
     logger.debug("WORKDIR: %s", WORKDIR)
     logger.debug("GAMEDATA_PATH: %s", GAMEDATA_PATH)
+    ensure_themes_exist()
     config = Config.load_config()
     state = State(config)
 
