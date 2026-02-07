@@ -31,6 +31,8 @@ from pysaic.use_cases.get_user_for_irc import get_user_for_irc
 from pysaic.use_cases.local_server import (
     ask_instance_to_focus,
     get_pysaic_localserver,
+    get_game_server,
+    game_message_processor,
 )
 from pysaic.use_cases.notification_registry import (
     check_and_register_uri_protocol,
@@ -244,6 +246,7 @@ def main():
     loop = asyncio.new_event_loop()
     try:
         pysaic_localserver = get_pysaic_localserver(loop, incoming_queue)
+        game_server = get_game_server(loop)
     except OSError:
         logger.error("Another instance of PySAIC is already running. Exiting.")
         loop.run_until_complete(ask_instance_to_focus())
@@ -251,6 +254,7 @@ def main():
     success = check_and_register_uri_protocol()
     if not success:
         pysaic_localserver.close()
+        game_server.close()
         loop.close()
         sys.exit(1)
     initialize_logging()
@@ -310,6 +314,11 @@ def main():
         name="IncomingQueueProcessingTask",
     )
     incoming_queue_processing_task.add_done_callback(prepared_callback)
+    game_message_processor_task = loop.create_task(
+        game_message_processor(incoming_queue),
+        name="GameMessageProcessorTask",
+    )
+    game_message_processor_task.add_done_callback(prepared_callback)
     loop.create_task(irc.connect(), name="IRCConnectTask")
     inject.configure(
         partial(
@@ -334,7 +343,9 @@ def main():
         loop.run_until_complete(outgoing_process_task)
     finally:
         pysaic_localserver.close()
+        game_server.close()
         loop.run_until_complete(pysaic_localserver.wait_closed())
+        loop.run_until_complete(game_server.wait_closed())
         logger.info("Stopping")
 
         logger.info("Cancelling tasks")

@@ -228,6 +228,7 @@ class State:
             NetworkDestructionStrategy
         ] = None
         self.last_private_message_from: Optional[str] = None
+        self.game_transport: Optional[asyncio.Transport] = None
 
     def money_enough(self, amount) -> bool:
         return self.player.money >= amount

@@ -5,8 +5,6 @@ local SCRIPT_VERSION = 14
 -- Constants
 local UPDATE_INTERVAL = 250  -- 250ms
 local MAX_MESSAGE_LOG_LENGTH = 15
-local INPATH = getFS():update_path("$game_config$", "").."\\crc_input.txt"
-local OUTPATH = getFS():update_path("$game_config$", "").."\\crc_output.txt"
 local MESSAGE_COLOR = "%c[255,255,255,255]"  -- white
 local QUERY_COLOR = "%c[255,255,192,192]"  -- light pink
 local ERROR_COLOR = "%c[255,255,128,128]"  -- light red
@@ -34,7 +32,6 @@ local option = {
 -- Etc
 local config = system_ini()
 local lastUpdate = 0
-local sendQueue = {}
 local messageLog = {}
 local chatBox
 local showChatBox = false
@@ -49,6 +46,22 @@ local prev_rank
 local table_channel = {}
 local irc_name_to_description = {}
 
+-- Pollnet
+local pollnet = require("pollnet_ex")
+local socket
+
+local function connect_socket()
+    if socket and socket:status() == "open" then
+        return
+    end
+    printf("PySAIC: Connecting to backend...")
+    socket = pollnet.open_tcp("127.0.0.1:8008")
+    if socket then
+        printf("PySAIC: Socket created, status: %s", socket:status())
+    else
+        printf("PySAIC: Failed to create socket")
+    end
+end
 
 local function gt(id)
 	local result = game.translate_string(id)
@@ -104,8 +117,11 @@ local function addMessage(icon, title, text, reputation, rank)
 end
 
 local function send(message, ...)
+    if not socket or socket:status() ~= "open" then
+        return
+    end
 	local line = message:format(...).."\n"
-	sendQueue[#sendQueue+1] = line
+	socket:send(line)
 end
 
 function send_handshake(body)
@@ -450,26 +466,19 @@ end
 
 function parseInput(receiveQueue)
 	for _, line in ipairs(receiveQueue) do
+        if line == "" then goto continue end
 		local type, body = line:match("([^/]+)/(.+)")
-		local action = inputActions[type]
-		if action then
-			--printf("Input message: %s, %s", type, body)
-			action(body)
-		else
-			printf("No callback for '%s'", type)
-			-- Whine about it
-		end
-	end
-end
-
-function writeOutput()
-	local output = io.open(OUTPATH, "a")
-	if output then
-		for _, line in ipairs(sendQueue) do
-			output:write(line)
-		end
-		output:close()
-		sendQueue = {}
+		if type and body then
+            local action = inputActions[type]
+            if action then
+                --printf("Input message: %s, %s", type, body)
+                action(body)
+            else
+                printf("No callback for '%s'", type)
+                -- Whine about it
+            end
+        end
+        ::continue::
 	end
 end
 
@@ -493,26 +502,26 @@ local function update()
 	end
 	lastUpdate = time_global()
 
-	if #sendQueue > 0 then
-		writeOutput()
-	end
+    if not socket or socket:status() ~= "open" then
+        connect_socket()
+        return
+    end
 
-	local input = io.open(INPATH, "r")
-	if input then
-		local receiveQueue = {}
-		for line in input:lines() do
-			receiveQueue[#receiveQueue+1] = line
-		end
-		input:close()
+    local ok, data = socket:poll()
+    if not ok and data ~= "closed" then
+        printf("PySAIC: Socket error: %s", data)
+        socket:close()
+        socket = nil
+        return
+    end
 
-		-- Clear the input file after reading
-		input = io.open(INPATH, "w")
-		if input then
-			input:close()
-		end
-
-		parseInput(receiveQueue)
-	end
+    if data then
+        local messages = {}
+        for s in data:gmatch("[^\n]+") do
+            table.insert(messages, s)
+        end
+        parseInput(messages)
+    end
 end
 
 local function onDeath(whoID)
@@ -675,6 +684,10 @@ function load_state(m_data)
 end
 
 function actor_on_net_destroy()
+    if socket then
+        socket:close()
+        socket = nil
+    end
 	if chatBox and option.disconnectWhenBlowoutOrUnderground then
 		ChatBox:Cancel()
 	end
@@ -701,6 +714,7 @@ function on_game_start()
 	-- Not using axr_keybind for old version compatibility
 	RegisterScriptCallback("on_key_press", onKeyPress)
 	RegisterScriptCallback("actor_on_item_take", actorOnItemTake)
+    connect_socket()
 	send_handshake('startup')
 end
 ----------------------------------------------GUI------------------------------------------------------

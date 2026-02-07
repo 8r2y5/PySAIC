@@ -218,31 +218,40 @@ def add_to_crc_input_file(
         .replace("\n", "")
         .replace("\r", "")
     )
-    logger.debug("Adding to %s: %r", state.crc_input_path, content)
-    try:
-        with open(state.crc_input_path, "a") as f:
-            f.write(content + "\n")
-    except FileNotFoundError:
-        logger.exception(
-            "Game location %s does not exist, cannot write to crc_input.txt",
-            state.game_location,
-        )
-        incoming_queue.put_nowait(
-            IncomingEvent.create_error_event(
-                f"File {state.crc_input_path} does not exist"
+
+    if state.game_transport:
+        logger.debug("Sending to game via socket: %r", content)
+        try:
+            state.game_transport.write((content + "\n").encode())
+        except Exception as e:
+            logger.exception("Failed to write to socket: %s", e)
+            state.game_transport = None
+    else:
+        logger.debug("Adding to %s: %r", state.crc_input_path, content)
+        try:
+            with open(state.crc_input_path, "a") as f:
+                f.write(content + "\n")
+        except FileNotFoundError:
+            logger.exception(
+                "Game location %s does not exist, cannot write to crc_input.txt",
+                state.game_location,
             )
-        )
-        raise
-    except OSError as e:
-        logger.exception(
-            "Failed to write to crc_input.txt: %s. Game location: %s",
-            e,
-            state.game_location,
-        )
-        incoming_queue.put_nowait(
-            IncomingEvent.create_error_event(
-                f"Cannot write into {state.crc_input_path}. "
-                f"Please check permissions or disk space."
+            incoming_queue.put_nowait(
+                IncomingEvent.create_error_event(
+                    f"File {state.crc_input_path} does not exist"
+                )
             )
-        )
-        raise
+            raise
+        except OSError as e:
+            logger.exception(
+                "Failed to write to crc_input.txt: %s. Game location: %s",
+                e,
+                state.game_location,
+            )
+            incoming_queue.put_nowait(
+                IncomingEvent.create_error_event(
+                    f"Cannot write into {state.crc_input_path}. "
+                    f"Please check permissions or disk space."
+                )
+            )
+            raise
