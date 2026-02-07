@@ -35,6 +35,7 @@ else:
 RES_PATH = (GAMEDATA_PATH / ".." / "res").resolve()
 LOCATIONS_FOR_ENUM_PATH = RES_PATH / "locations.yml"
 FACTIONS_FOR_ENUM_PATH = RES_PATH / "factions.yml"
+THEMES_PATH = WORKDIR / "themes"
 
 ANOMALY_DIR_PATH = (os.environ.get("ANOMALY_DIR_PATH") or "").strip()
 if ANOMALY_DIR_PATH:

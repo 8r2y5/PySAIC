@@ -187,7 +187,7 @@ class IncomingEvent:
         )
 
     @classmethod
-    def create_app_event(cls, what, payload):
+    def create_app_event(cls, what, payload=None):
         return cls(
             author="",
             target="",

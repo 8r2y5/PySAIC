@@ -39,6 +39,7 @@ from pysaic.ui.avatar_options import AvatarOptions
 from pysaic.ui.colors import ColorsOptions
 from pysaic.ui.constants import WM_DELETE_WINDOW
 from pysaic.ui.font import FontOptions
+from pysaic.ui.theme_options import ThemeOptions
 from pysaic.ui.utils import add_separator, apply_style_to_tkinter, update_style
 from pysaic.use_cases.nick import sanitize_nick
 
@@ -54,6 +55,7 @@ class Options:
         self._avatar_options: None | AvatarOptions = None
         self._colors_options: None | ColorsOptions = None
         self._font_options: None | FontOptions = None
+        self._theme_options: None | ThemeOptions = None
         self.this_window = Toplevel(self.main_window)
         self.this_window.protocol(WM_DELETE_WINDOW, self._destroy_this_window)
         self.this_window.title("Options")
@@ -394,16 +396,29 @@ class Options:
             foreground=self.text_color,
             font=self.font_normal_size,
         ).grid(row=5, column=0, sticky="w", pady=(5, 0))
+
+        theme_frame = Frame(frame, background=self.background_color)
+        theme_frame.grid(row=5, column=1, sticky="e", pady=(5, 0))
+
+        self._theme_button = Button(
+            theme_frame,
+            text="Themes",
+            background=self.background_color,
+            foreground=self.text_color,
+            font=self.font_normal_size,
+            command=self._spawn_theme_options,
+        )
+        self._theme_button.grid(row=0, column=0, padx=(0, 5))
+
         self._colors_button = Button(
-            frame,
+            theme_frame,
             text="Colors Config",
             background=self.background_color,
             foreground=self.text_color,
             font=self.font_normal_size,
             command=self._spawn_colors_options,
         )
-
-        self._colors_button.grid(row=5, column=1, sticky="e", pady=(5, 0))
+        self._colors_button.grid(row=0, column=1)
 
         Label(
             frame,
@@ -809,6 +824,7 @@ class Options:
             self._avatar_options,
             self._colors_options,
             self._font_options,
+            self._theme_options,
         ):
             if sub:
                 sub._destroy_this_window()
@@ -829,11 +845,16 @@ class Options:
         self._font_button.config(state=DISABLED)
         self._font_options = FontOptions(self, self.config)
 
+    def _spawn_theme_options(self):
+        self._theme_button.config(state=DISABLED)
+        self._theme_options = ThemeOptions(self, self.config)
+
     def update_colors(self):
         for sub in (
             self._avatar_options,
             # self._colors_options,
             self._font_options,
+            self._theme_options,
         ):
             if sub:
                 apply_style_to_tkinter(sub.this_window, self.config)
@@ -849,5 +870,8 @@ class Options:
             case "avatar":
                 self._avatar_options = None
                 self._avatar_button.config(state=NORMAL)
+            case "theme":
+                self._theme_options = None
+                self._theme_button.config(state=NORMAL)
             case _:
                 logger.error("%r unexpected name to clear", name)

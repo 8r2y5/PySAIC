@@ -2,12 +2,15 @@
 
 ## `0.3.0b10` - 2016-01-xx
 ### Short summary
-- Easier Payments: You can now use shortcuts for large amounts.
+- **Themes**: You can now create, select, and delete custom themes directly from the options menu!
+  - Want to change how the app looks? Go to Options -> Themes to pick a new style or save your own color creation.
+- **Easier Payments**: You can now use shortcuts for large amounts.
   - Example: Instead of typing `/pay user 1500`, you can simply type `/pay user 1.5k`.
-- New Levels support: Added full support for Grimwood, Promazone, and Town Yuzhniy.
-- Smoother Performance: The app should now run faster and feel more responsive.
-- Better Reliability: Improved synchronization to prevent errors or "lag" during sync.
-- Bug Fix: Fixed a specific issue with the "Mags Redux" feature that had stopped working in the last few versions.
+- **New Levels support**: Added full support for Grimwood, Promazone, and Town Yuzhniy.
+- **Smoother Performance**: The app should now run faster and feel more responsive.
+- **Better Reliability**: Improved synchronization to prevent errors or "lag" during sync.
+- Fixed a specific issue with the "Mags Redux" feature that had stopped working in the last few versions.
+- Improved nick competition in game and as well in the chat app.
 
 ---
 

@@ -1,7 +1,6 @@
 import logging
 from dataclasses import asdict, dataclass, field
 from enum import Enum, StrEnum
-from pathlib import Path
 from typing import Any, Callable, Optional, Self, Type
 
 import yaml
@@ -18,12 +17,14 @@ from pysaic.use_cases.avatar import (
     calculate_icon_based_on_faction_and_name,
     is_icon_valid,
 )
+from pysaic.settings import THEMES_PATH, WORKDIR
+
+CONFIG_FILE = WORKDIR / "config.yml"
+SERVER_FILE = WORKDIR / "server.yml"
 
 logger = logging.getLogger(__name__)
 
 NOT_SET = object()
-
-THEMES_PATH = Path('themes')
 
 
 class InGameUserDisplayEnum(StrEnum):
@@ -67,7 +68,7 @@ class Server:
     def load_config(cls):
         should_save = False
         try:
-            with open("server.yml") as f:
+            with open(SERVER_FILE) as f:
                 config = yaml.safe_load(f)
         except Exception:
             logger.exception("Error loading config file")
@@ -84,7 +85,7 @@ class Server:
         return instance
 
     def save_config(self):
-        with open("server.yml", "w") as f:
+        with open(SERVER_FILE, "w") as f:
             yaml.dump(asdict(self), f)
 
     @classmethod
@@ -395,9 +396,9 @@ class Config:
             should_create_theme = True
 
         if should_create_theme:
-            theme_name = 'pysaic'
+            theme_name = "pysaic"
             theme_path = THEMES_PATH / f"{theme_name}.yml"
-            config['theme'] = theme_name
+            config["theme_name"] = theme_name
             theme_path.parent.mkdir(parents=True, exist_ok=True)
             with open(theme_path, "w") as f:
                 data = asdict(ColorsConfig.load_from_config({}))
