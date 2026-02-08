@@ -206,6 +206,15 @@ class GameEventRouter(Router):
 
     @inject.autoparams
     def _handle_new_achievement(self, loop: asyncio.AbstractEventLoop):
+        payload: Achievement = self.event.event.payload
+        if payload.game_enum in self.state.sent_achievements:
+            logger.debug(
+                "Achievement %r already sent, skipping", payload.game_enum
+            )
+            return
+
+        self.state.sent_achievements.add(payload.game_enum)
+
         async def _post_achievement_to_chat():
             await self.state.is_in_channel.wait()
             payload: Achievement = self.event.event.payload

@@ -97,6 +97,7 @@ class AppEventRouter(Router):
         else:
             self.state.is_game_running, self.state.game_location = payload
             self.state.player.reset()
+            self.state.sent_achievements.clear()
             self.state.got_first_handshake.clear()
 
         self.chat_users.set_user(

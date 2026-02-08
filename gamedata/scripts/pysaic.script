@@ -51,7 +51,7 @@ local pollnet = require("pollnet_ex")
 local socket
 
 local function connect_socket()
-    if socket and socket:status() == "open" then
+    if socket and (socket:status() == "open" or socket:status() == "opening") then
         return
     end
     printf("PySAIC: Connecting to backend...")
@@ -483,44 +483,45 @@ function parseInput(receiveQueue)
 end
 
 local function update()
-	if chatBox and not chatBox.focus then
-		chatBox.editBox:CaptureFocus(true)
-		chatBox.focus = true
-	end
+    if chatBox and not chatBox.focus then
+        chatBox.editBox:CaptureFocus(true)
+        chatBox.focus = true
+    end
 
-	if showChatBox and ChatBoxEnabled then
-		showChatBox = false
-		chatBox = ChatBox()
-		-- chatBox:UpdateChannels()
-		chatBox:ShowDialog()
-		-- Disable keypress callback so other scripts don't fire while typing
-		Register_UI("ChatBox","chernobyl_relay_chat")
-	end
+    if showChatBox and ChatBoxEnabled then
+        showChatBox = false
+        chatBox = ChatBox()
+        -- chatBox:UpdateChannels()
+        chatBox:ShowDialog()
+        -- Disable keypress callback so other scripts don't fire while typing
+        Register_UI("ChatBox", "chernobyl_relay_chat")
+    end
 
-	if not db.actor or time_global() < lastUpdate + UPDATE_INTERVAL then
-		return
-	end
-	lastUpdate = time_global()
+    if not db.actor or time_global() < lastUpdate + UPDATE_INTERVAL then
+        return
+    end
+    lastUpdate = time_global()
 
-    if not socket or socket:status() ~= "open" then
+    if not socket or socket:status() == "closed" or socket:status() == "error" then
         connect_socket()
-        return
     end
 
-    local ok, data = socket:poll()
-    if not ok and data ~= "closed" then
-        printf("PySAIC: Socket error: %s", data)
-        socket:close()
-        socket = nil
-        return
-    end
-
-    if data then
-        local messages = {}
-        for s in data:gmatch("[^\n]+") do
-            table.insert(messages, s)
+    if socket then
+        local ok, data = socket:poll()
+        if not ok and data ~= "closed" then
+            printf("PySAIC: Socket error: %s", data)
+            socket:close()
+            socket = nil
+            return
         end
-        parseInput(messages)
+
+        if data then
+            local messages = {}
+            for s in data:gmatch("[^\n]+") do
+                table.insert(messages, s)
+            end
+            parseInput(messages)
+        end
     end
 end
 
@@ -714,7 +715,7 @@ function on_game_start()
 	-- Not using axr_keybind for old version compatibility
 	RegisterScriptCallback("on_key_press", onKeyPress)
 	RegisterScriptCallback("actor_on_item_take", actorOnItemTake)
-    connect_socket()
+	RegisterScriptCallback("actor_on_first_update", connect_socket)
 	send_handshake('startup')
 end
 ----------------------------------------------GUI------------------------------------------------------

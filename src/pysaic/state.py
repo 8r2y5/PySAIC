@@ -229,6 +229,7 @@ class State:
         ] = None
         self.last_private_message_from: Optional[str] = None
         self.game_transport: Optional[asyncio.Transport] = None
+        self.sent_achievements: set[str] = set()
 
     def money_enough(self, amount) -> bool:
         return self.player.money >= amount
