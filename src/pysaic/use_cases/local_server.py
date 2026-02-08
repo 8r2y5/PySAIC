@@ -24,7 +24,9 @@ class GameClientProtocol(asyncio.Protocol):
         self.logger = logger.getChild("game")
 
     @inject.autoparams()
-    def connection_made(self, transport, state: State, incoming_queue: IncomingQueue):
+    def connection_made(
+        self, transport, state: State, incoming_queue: IncomingQueue
+    ):
         self.transport = transport
         state.game_transport = transport
         self.logger.debug(
@@ -33,7 +35,7 @@ class GameClientProtocol(asyncio.Protocol):
         )
         incoming_queue.put_nowait(
             IncomingEvent.create_information_event(
-                f'Game connection made from {transport.get_extra_info("peername")}'
+                "Link game established... finishing initialization."
             )
         )
 
@@ -48,11 +50,11 @@ class GameClientProtocol(asyncio.Protocol):
             self.message_queue.put_nowait(line)
 
     @inject.autoparams()
-    def connection_lost(self, exc, state: State, incoming_queue: IncomingQueue):
+    def connection_lost(
+        self, exc, state: State, incoming_queue: IncomingQueue
+    ):
         incoming_queue.put_nowait(
-            IncomingEvent.create_information_event(
-                f'Lost connection with {exc}'
-            )
+            IncomingEvent.create_information_event("Game connection lost.")
         )
         self.logger.debug("Game connection lost")
         state.game_transport = None

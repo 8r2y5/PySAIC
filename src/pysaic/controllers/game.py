@@ -3,7 +3,7 @@ from typing import Iterable, Optional
 
 import inject
 
-from pysaic.entities import ChatUser, IncomingEvent, IncomingQueue
+from pysaic.entities import ChatUser, IncomingQueue
 from pysaic.enums import FactionsEnum, HistoryMessageEnum
 from pysaic.state import State
 from pysaic.use_cases.irc_mode_to_user_type import parsed_mode_to_name
@@ -210,7 +210,7 @@ def add_setting_to_game(setting: str, value: str):
 
 @inject.autoparams()
 def add_to_crc_input_file(
-    content: str, state: State, incoming_queue: IncomingQueue
+    content: str, state: State
 ):
     content = (
         content.encode("utf-8", errors="replace")
@@ -227,31 +227,4 @@ def add_to_crc_input_file(
             logger.exception("Failed to write to socket: %s", e)
             state.game_transport = None
     else:
-        logger.debug("Adding to %s: %r", state.crc_input_path, content)
-        try:
-            with open(state.crc_input_path, "a") as f:
-                f.write(content + "\n")
-        except FileNotFoundError:
-            logger.exception(
-                "Game location %s does not exist, cannot write to crc_input.txt",
-                state.game_location,
-            )
-            incoming_queue.put_nowait(
-                IncomingEvent.create_error_event(
-                    f"File {state.crc_input_path} does not exist"
-                )
-            )
-            raise
-        except OSError as e:
-            logger.exception(
-                "Failed to write to crc_input.txt: %s. Game location: %s",
-                e,
-                state.game_location,
-            )
-            incoming_queue.put_nowait(
-                IncomingEvent.create_error_event(
-                    f"Cannot write into {state.crc_input_path}. "
-                    f"Please check permissions or disk space."
-                )
-            )
-            raise
+        logger.warning('There is no connection with game yet!')
