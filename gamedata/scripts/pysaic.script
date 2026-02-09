@@ -138,7 +138,7 @@ end
 
 function historyChannelHandler(message, highlight, name, faction, icon_id, message_params, reputation, rank, user_type)
 	highlight = isTrue(highlight)
-	local icon = handle_icon(name, faction, icon_id)
+	local icon = handle_icon(name, faction, icon_id, user_type)
 	local title = name..', '.._get_title_value(faction, user_type)
 	local text = ((highlight and HIGHLIGHT_COLOR) or MESSAGE_COLOR) .. message
 	add_message_to_history(icon, title, text, reputation, rank)
@@ -146,14 +146,14 @@ end
 
 
 function historyFromPrivateHandler(message, highlight, name, faction, icon_id, message_params, reputation, rank, user_type)
-	local icon = handle_icon(name, faction, icon_id)
+	local icon = handle_icon(name, faction, icon_id, user_type)
 	local title = name .. " -> " .. message_params
 	local text = QUERY_COLOR .. message
 	add_message_to_history(icon, title, text, reputation, rank)
 end
 
 function historyToPrivateHandler(message, highlight, name, faction, icon_id, message_params, reputation, rank, user_type)
-	local icon = handle_icon(name, faction, icon_id)
+	local icon = handle_icon(name, faction, icon_id, user_type)
 	local title = message_params .. " -> " .. name
 	local text = QUERY_COLOR .. message
 	add_message_to_history(icon, title, text, reputation, rank)
@@ -180,14 +180,14 @@ function addErrorMessage(body)
 end
 
 function historyMoneyFromHandler(message, highlight, name, faction, icon_id, message_params, reputation, rank, user_type)
-	local icon = handle_icon(name, faction, icon_id)
+	local icon = handle_icon(name, faction, icon_id, user_type)
 	local title = name .. " " .. (gt("crc_money_recv"))
 	local text = MONEY_COLOR .. message .. " RUB"
 	add_message_to_history(icon, title, text, reputation, rank)
 end
 
 function historyMoneyToHandler(message, highlight, name, faction, icon_id, message_params, reputation, rank, user_type)
-	local icon = handle_icon(name, faction, icon_id)
+	local icon = handle_icon(name, faction, icon_id, user_type)
 	local title = message_params .. " " .. (gt("crc_money")) .. " " .. name
 	local text = MONEY_COLOR .. message .. " RUB"
 	add_message_to_history(icon, title, text, reputation, rank)
@@ -218,10 +218,10 @@ end
 
 
 
-function handle_icon(name, faction, icon_id)
+function handle_icon(name, faction, icon_id, user_type)
 	local icon
 	if not knownIcons[name] then
-		icon = pysaic_icons.getIconSafe(name, faction, icon_id)
+		icon = pysaic_icons.getIconSafe(name, faction, icon_id, user_type)
 	else
 		icon = knownIcons[name]
 	end
@@ -231,7 +231,7 @@ end
 function parseChannelMessage (body)
 	local faction, name, icon_id, reputation, rank, highlight, user_type, message = body:match("([^/]+)/([^/]+)/([^/]+)/([^/]+)/([^/]+)/([^/]+)/([^/]+)/(.+)")
 	highlight = isTrue(highlight)
-	local icon = handle_icon(name, faction, icon_id)
+	local icon = handle_icon(name, faction, icon_id, user_type)
 	if chatBox then
 		chatBox:UpdateUsers()
 	end
