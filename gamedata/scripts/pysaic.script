@@ -47,7 +47,7 @@ local table_channel = {}
 local irc_name_to_description = {}
 
 -- Connection Manager
-local conn = require("pollnet_ex")
+local conn = require("pysaic_cm")
 local handshake_sent = false
 
 local function gt(id)

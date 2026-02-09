@@ -63,9 +63,7 @@ function M.status()
 end
 
 function M.shutdown()
-    -- Per user feedback, we no longer shut down the connection on game events.
-    -- The connection should persist for the entire game session.
-    -- If a shutdown is truly needed, it can be added back here.
+    -- we don't close it ever
 end
 
 return M
