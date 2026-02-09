@@ -105,9 +105,11 @@ It is stored inside `config.yml` file.
 </div> 
 
 # Installation 
-Currently, Mod Managers are not supported, so you will need to install it manually.
+Currently, Mod Managers are supported now and it is recommended way of installing.
+
+For those who are not using it, here are steps how to install it directly into Anomaly
 1. Extract the contents of the zip wherever you like, preferably inside Anomaly's game directory.
-2. Copy the included `gamedata`, `res`, `pysaic` folders to your Anomaly directory.
+2. Copy the included `bin`, `gamedata`, `res`, `pysaic` folders to your Anomaly directory.
 
 # Usage
 Run `pysaic.exe`; the application must be running for in-game chat to work.  

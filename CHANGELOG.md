@@ -9,6 +9,7 @@
 - **New Levels support**: Added full support for Grimwood, Promazone, and Town Yuzhniy.
 - **Smoother Performance**: The app should now run faster and feel more responsive.
 - **Better Reliability**: Improved synchronization to prevent errors or "lag" during sync.
+- **Support for Mod Managers**: PySAIC is now working correctly with MO2, there is no need to extract into Anomaly, but still can work by being dropped there.
 - Fixed a specific issue with the "Mags Redux" feature that had stopped working in the last few versions.
 - Improved nick competition in game and as well in the chat app.
 

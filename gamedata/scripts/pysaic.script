@@ -46,22 +46,9 @@ local prev_rank
 local table_channel = {}
 local irc_name_to_description = {}
 
--- Pollnet
-local pollnet = require("pollnet_ex")
-local socket
-
-local function connect_socket()
-    if socket and (socket:status() == "open" or socket:status() == "opening") then
-        return
-    end
-    printf("PySAIC: Connecting to backend...")
-    socket = pollnet.open_tcp("127.0.0.1:8008")
-    if socket then
-        printf("PySAIC: Socket created, status: %s", socket:status())
-    else
-        printf("PySAIC: Failed to create socket")
-    end
-end
+-- Connection Manager
+local conn = require("pollnet_ex")
+local handshake_sent = false
 
 local function gt(id)
 	local result = game.translate_string(id)
@@ -117,11 +104,7 @@ local function addMessage(icon, title, text, reputation, rank)
 end
 
 local function send(message, ...)
-    if not socket or socket:status() ~= "open" then
-        return
-    end
-	local line = message:format(...).."\n"
-	socket:send(line)
+    conn.send(string.format(message, ...))
 end
 
 function send_handshake(body)
@@ -502,26 +485,22 @@ local function update()
     end
     lastUpdate = time_global()
 
-    if not socket or socket:status() == "closed" or socket:status() == "error" then
-        connect_socket()
+    local data = conn.update()
+
+    local status = conn.status()
+    if status == "open" and not handshake_sent then
+        send_handshake("reconnect")
+        handshake_sent = true
+    elseif status == "closed" or status == "error" then
+        handshake_sent = false
     end
 
-    if socket then
-        local ok, data = socket:poll()
-        if not ok and data ~= "closed" then
-            printf("PySAIC: Socket error: %s", data)
-            socket:close()
-            socket = nil
-            return
+    if data then
+        local messages = {}
+        for s in data:gmatch("[^\n]+") do
+            table.insert(messages, s)
         end
-
-        if data then
-            local messages = {}
-            for s in data:gmatch("[^\n]+") do
-                table.insert(messages, s)
-            end
-            parseInput(messages)
-        end
+        parseInput(messages)
     end
 end
 
@@ -685,10 +664,6 @@ function load_state(m_data)
 end
 
 function actor_on_net_destroy()
-    if socket then
-        socket:close()
-        socket = nil
-    end
 	if chatBox and option.disconnectWhenBlowoutOrUnderground then
 		ChatBox:Cancel()
 	end
@@ -698,6 +673,11 @@ function actorOnItemTake(item)
 	if IsArtefact(item) then
 		send('ArtifactFound/%s/%s/%s', item:name(), level.name(), item:section())
 	end
+end
+
+function start_pysaic()
+    conn.init()
+    send_handshake('startup')
 end
 
 function on_game_start()
@@ -715,8 +695,7 @@ function on_game_start()
 	-- Not using axr_keybind for old version compatibility
 	RegisterScriptCallback("on_key_press", onKeyPress)
 	RegisterScriptCallback("actor_on_item_take", actorOnItemTake)
-	RegisterScriptCallback("actor_on_first_update", connect_socket)
-	send_handshake('startup')
+    RegisterScriptCallback("actor_on_first_update", start_pysaic)
 end
 ----------------------------------------------GUI------------------------------------------------------
 
