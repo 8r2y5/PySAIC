@@ -3,7 +3,7 @@ from typing import Iterable, Optional
 
 import inject
 
-from pysaic.entities import ChatUser, IncomingQueue
+from pysaic.entities import ChatUser
 from pysaic.enums import FactionsEnum, HistoryMessageEnum
 from pysaic.state import State
 from pysaic.use_cases.irc_mode_to_user_type import parsed_mode_to_name
@@ -209,9 +209,7 @@ def add_setting_to_game(setting: str, value: str):
 
 
 @inject.autoparams()
-def add_to_crc_input_file(
-    content: str, state: State
-):
+def add_to_crc_input_file(content: str, state: State):
     content = (
         content.encode("utf-8", errors="replace")
         .decode("utf-8")
@@ -227,4 +225,4 @@ def add_to_crc_input_file(
             logger.exception("Failed to write to socket: %s", e)
             state.game_transport = None
     else:
-        logger.warning('There is no connection with game yet!')
+        logger.warning("There is no connection with game yet!")
