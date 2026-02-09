@@ -213,7 +213,6 @@ class State:
         self.is_author_authorized: asyncio.Event = asyncio.Event()
         self.is_in_channel: asyncio.Event = asyncio.Event()
         self.chat_users: ChatUsers = ChatUsers({})
-        self.game_related_tasks: list[Task] = []
         self.player: Player = Player.create_from_config(config)
         self.last_death: Optional[datetime] = None
         self.last_messages: deque[

@@ -284,11 +284,7 @@ def main():
 
     app = App(state, config, incoming_queue, outgoing_queue)
     prepared_callback = partial(close_everything_callback)
-    from pysaic.tasks.prepare_game_input import prepare_game_input_watcher
 
-    loop.create_task(
-        prepare_game_input_watcher(loop, state), name="PrepareGameInputWatcher"
-    )
     from pysaic.tasks.look_for_game import look_for_game_process
 
     looking_for_game_task = loop.create_task(
