@@ -24,9 +24,7 @@ class GameClientProtocol(asyncio.Protocol):
         self.logger = logger.getChild("game")
 
     @inject.autoparams()
-    def connection_made(
-        self, transport, state: State
-    ):
+    def connection_made(self, transport, state: State):
         self.transport = transport
         state.game_transport = transport
         self.logger.debug(
@@ -45,9 +43,7 @@ class GameClientProtocol(asyncio.Protocol):
             self.message_queue.put_nowait(line)
 
     @inject.autoparams()
-    def connection_lost(
-        self, exc, state: State
-    ):
+    def connection_lost(self, exc, state: State):
         self.logger.debug("Game connection lost")
         state.game_transport = None
         self.transport = None

@@ -18,6 +18,7 @@ from pysaic.use_cases.avatar import (
     is_icon_valid,
 )
 from pysaic.settings import THEMES_PATH, WORKDIR
+from pysaic.use_cases.themes import create_default_themes
 
 CONFIG_FILE = WORKDIR / "config.yml"
 SERVER_FILE = WORKDIR / "server.yml"
@@ -396,14 +397,7 @@ class Config:
             should_create_theme = True
 
         if should_create_theme:
-            theme_name = "pysaic"
-            theme_path = THEMES_PATH / f"{theme_name}.yml"
-            config["theme_name"] = theme_name
-            theme_path.parent.mkdir(parents=True, exist_ok=True)
-            with open(theme_path, "w") as f:
-                data = asdict(ColorsConfig.load_from_config({}))
-                yaml.dump(data, f)
-                config["colors"] = data
+            create_default_themes(config)
 
         instance = cls.create_instance_from_config(config)
         changed_avatar = instance.recalculate_avatar()
