@@ -169,6 +169,7 @@ class ThemeOptions:
                     self.config.colors = ColorsConfig.load_from_config(
                         theme_data
                     )
+                    self.config.save_config()
                     incoming_queue.put_nowait(
                         IncomingEvent.create_app_event(
                             AppEventEnum.OPTIONS_UPDATED,
