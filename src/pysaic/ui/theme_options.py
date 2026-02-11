@@ -51,6 +51,10 @@ class ThemeOptions:
         apply_style_to_tkinter(self.this_window, self.config)
 
     def main(self):
+        for widget in self.this_window.winfo_children():
+            if not isinstance(widget, Toplevel):
+                widget.destroy()
+
         self.this_window.grid_columnconfigure(0, weight=1)
 
         main_frame = Frame(self.this_window, background=self.background_color)
@@ -169,12 +173,14 @@ class ThemeOptions:
                     self.config.colors = ColorsConfig.load_from_config(
                         theme_data
                     )
-                    self.config.save_config()
+                    # self.config.save_config() # Do not save automatically
                     incoming_queue.put_nowait(
                         IncomingEvent.create_app_event(
                             AppEventEnum.OPTIONS_UPDATED,
                         )
                     )
+                    self.update_colors()
+                    self.parent.update_colors()
             except Exception as e:
                 logger.exception(f"Error loading theme {theme_name}: {e}")
                 messagebox.showerror(
@@ -260,5 +266,6 @@ class ThemeOptions:
     def update_colors(self):
         self.background_color = self.config.colors.background.app
         self.text_color = self.config.colors.content.text
+        self.this_window.configure(bg=self.background_color)
+        self.main()  # Re-draw widgets with new colors
         apply_style_to_tkinter(self.this_window, self.config)
-        self.main()

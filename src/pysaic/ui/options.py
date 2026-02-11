@@ -83,6 +83,10 @@ class Options:
         }
 
     def main(self):
+        for widget in self.this_window.winfo_children():
+            if not isinstance(widget, Toplevel):
+                widget.destroy()
+
         self.this_window.grid_columnconfigure(0, weight=1)
         self.this_window.grid_rowconfigure(0, weight=1)
 
@@ -786,6 +790,21 @@ class Options:
         self._theme_options = ThemeOptions(self, self.config)
 
     def update_colors(self):
+        self.background_color = self.config.colors.background.app
+        self.text_color = self.config.colors.content.text
+        self.this_window.configure(bg=self.background_color)
+
+        self.default_style_kwargs = {
+            "background": self.background_color,
+            "foreground": self.text_color,
+            "activebackground": self.background_color,
+            "activeforeground": self.text_color,
+            "selectcolor": self.background_color,
+            "font": self.font_normal_size,
+        }
+
+        self.main()  # Recreate UI
+
         for sub in (
             self._avatar_options,
             # self._colors_options,
