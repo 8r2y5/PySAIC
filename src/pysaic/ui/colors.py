@@ -94,7 +94,7 @@ class ColorsOptions:
 
     def _setup_window(self):
         self.this_window = Toplevel(self.parent.this_window)
-        self.this_window.protocol(WM_DELETE_WINDOW, self._destroy_this_window)
+        self.this_window.protocol(WM_DELETE_WINDOW, self.destroy_this_window)
         self.this_window.title("Color Options")
         self.this_window.minsize(450, 610)
         self.this_window.iconbitmap(PATH / "pysaic_icon.ico")
@@ -340,7 +340,7 @@ class ColorsOptions:
         Button(
             btn_frame,
             text="Cancel",
-            command=self._destroy_this_window,
+            command=self.destroy_this_window,
             font=self.font,
             background=self.config.colors.background.app,
             foreground=self.config.colors.content.text,
@@ -362,9 +362,9 @@ class ColorsOptions:
                 what=AppEventEnum.OPTIONS_UPDATED, payload=self.config.colors
             )
         )
-        self._destroy_this_window()
+        self.destroy_this_window()
 
-    def _destroy_this_window(self):
+    def destroy_this_window(self):
         self.this_window.destroy()
         self.parent.this_window.focus()
         self.parent.clear("colors")

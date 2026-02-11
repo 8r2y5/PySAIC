@@ -35,9 +35,7 @@ class FontOptions:
             self.parent.this_window,
             background=self.config.colors.background.app,
         )
-        self.this_window.protocol(
-            "WM_DELETE_WINDOW", self._destroy_this_window
-        )
+        self.this_window.protocol("WM_DELETE_WINDOW", self.destroy_this_window)
         self.this_window.title("Font Options")
         self.this_window.geometry("450x610")
         self.this_window.resizable(False, False)
@@ -47,7 +45,7 @@ class FontOptions:
         self.font = Font(family=font_name, size=font_size)
         self.font_small = Font(family=font_name, size=font_size - 2)
 
-    def _destroy_this_window(self):
+    def destroy_this_window(self):
         self.this_window.destroy()
         self.parent.this_window.focus()
         self.parent.clear("font")

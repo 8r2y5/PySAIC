@@ -10,6 +10,8 @@ from tkinter import (
     Radiobutton,
     StringVar,
     Toplevel,
+    DISABLED,
+    NORMAL,
 )
 from tkinter.ttk import Spinbox
 
@@ -94,16 +96,14 @@ class AvatarOptions:
     def __init__(self, config, parent):
         self.parent = parent
         self.this_window = Toplevel(self.parent.this_window)
-        self.this_window.protocol(
-            "WM_DELETE_WINDOW", self._destroy_this_window
-        )
+        self.this_window.protocol("WM_DELETE_WINDOW", self.destroy_this_window)
         self.this_window.title("Avatar Options")
         self.this_window.resizable(True, True)
         self.this_window.iconbitmap(PATH / "pysaic_icon.ico")
         self.config = config
         self.avatar_data = {}
         self._parse_avatar_data()
-        self.this_window.protocol(WM_DELETE_WINDOW, self._destroy_this_window)
+        self.this_window.protocol(WM_DELETE_WINDOW, self.destroy_this_window)
 
     def _reload_label_image(self):
         image_path = GAMEDATA_PATH / "textures" / "ui" / "pysaic_player.dds"
@@ -165,7 +165,7 @@ class AvatarOptions:
         button_cancel = Button(
             buttons_frame,
             text="Cancel",
-            command=self._destroy_this_window,
+            command=self.destroy_this_window,
             background=background_color,
             foreground=text_color,
         )
@@ -186,7 +186,7 @@ class AvatarOptions:
 
     def select_file(self):
         self.avatar_picker = PlayerAvatarEditor(self, self.this_window)
-        self.button_select_file.config(state="disabled")
+        self.button_select_file.config(state=DISABLED)
 
     @inject.autoparams()
     def update_avatar(self, image: Image.Image, state: State):
@@ -208,7 +208,7 @@ class AvatarOptions:
         self._reload_label_image()
 
     def close_avatar_picker(self):
-        self.button_select_file.config(state="normal")
+        self.button_select_file.config(state=NORMAL)
 
     def _create_avatar_options(
         self, background_color, default_style_kwargs, text_color
@@ -221,31 +221,31 @@ class AvatarOptions:
             if selection == AvatarEnum.faction_and_name_based.value:
                 self.faction_and_name_based_radio_button.select()
                 static_avatar_radio_button.deselect()
-                self.static_avatar_number_spinbox["state"] = "disabled"
+                self.static_avatar_number_spinbox.config(state=DISABLED)
                 player_avatar_radio_button.deselect()
-                faction_options_menu["state"] = "disabled"
+                faction_options_menu.config(state=DISABLED)
                 self._set_faction_and_name_based_avatar()
                 self.info_label.config(text="")
-                self.button_select_file["state"] = "disabled"
+                self.button_select_file.config(state=DISABLED)
 
             elif selection == AvatarEnum.static.value:
                 static_avatar_radio_button.select()
-                self.static_avatar_number_spinbox["state"] = "normal"
+                self.static_avatar_number_spinbox.config(state=NORMAL)
                 self.faction_and_name_based_radio_button.deselect()
                 player_avatar_radio_button.deselect()
-                faction_options_menu["state"] = "normal"
+                faction_options_menu.config(state=NORMAL)
                 self.info_label.config(text="")
-                self.button_select_file["state"] = "disabled"
+                self.button_select_file.config(state=DISABLED)
                 self._set_static_avatar()
 
             elif selection == AvatarEnum.player.value:
                 static_avatar_radio_button.deselect()
-                self.static_avatar_number_spinbox["state"] = "disabled"
+                self.static_avatar_number_spinbox.config(state=DISABLED)
                 self.faction_and_name_based_radio_button.deselect()
                 player_avatar_radio_button.select()
-                faction_options_menu["state"] = "normal"
+                faction_options_menu.config(state=NORMAL)
                 self.info_label.config(text="")
-                self.button_select_file["state"] = "normal"
+                self.button_select_file.config(state=NORMAL)
                 self._reload_label_image()
 
         self.avatar_var = StringVar(self.this_window, value=self.config.avatar)
@@ -543,9 +543,9 @@ class AvatarOptions:
                 what=AppEventEnum.OPTIONS_UPDATED, payload=self.config.avatar
             )
         )
-        self._destroy_this_window()
+        self.destroy_this_window()
 
-    def _destroy_this_window(self):
+    def destroy_this_window(self):
         logger.debug("Destroying avatar options window")
         self.this_window.destroy()
         self.parent.clear("avatar")

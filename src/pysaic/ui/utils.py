@@ -285,4 +285,21 @@ def update_style(container, config: Config):
         foreground=config.colors.content.text,
         arrowcolor=config.colors.content.text,
     )
+    style.configure(
+        "TNotebook",
+        background=config.colors.background.app,
+        borderwidth=0,
+    )
+    style.configure(
+        "TNotebook.Tab",
+        background=config.colors.background.app,
+        foreground=config.colors.content.text,
+        padding=[10, 2],
+        font=(config.font.name, config.font.size - 1),
+    )
+    style.map(
+        "TNotebook.Tab",
+        background=[("selected", config.colors.background.active_background)],
+        foreground=[("selected", config.colors.background.active_foreground)],
+    )
     apply_style_to_tkinter(container, config)

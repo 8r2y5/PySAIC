@@ -30,7 +30,7 @@ class ThemeOptions:
         self.parent = parent
         self.config = config
         self.this_window = Toplevel(self.parent.this_window)
-        self.this_window.protocol(WM_DELETE_WINDOW, self._destroy_this_window)
+        self.this_window.protocol(WM_DELETE_WINDOW, self.destroy_this_window)
         self.this_window.title("Theme Management")
 
         self.background_color = self.config.colors.background.app
@@ -130,7 +130,7 @@ class ThemeOptions:
         Button(
             button_frame,
             text="Close",
-            command=self._destroy_this_window,
+            command=self.destroy_this_window,
             background=self.background_color,
             foreground=self.text_color,
             font=self.font_normal_size,
@@ -252,7 +252,7 @@ class ThemeOptions:
         self._load_themes()
         self.selected_theme.set("pysaic")
 
-    def _destroy_this_window(self):
+    def destroy_this_window(self):
         self.parent.clear("theme")
         self.this_window.destroy()
         self.parent.this_window.focus()

@@ -16,7 +16,7 @@ from tkinter import (
     NORMAL,
 )
 from tkinter.font import Font
-from tkinter.ttk import Spinbox
+from tkinter.ttk import Spinbox, Notebook
 
 import inject
 
@@ -57,17 +57,19 @@ class Options:
         self._font_options: None | FontOptions = None
         self._theme_options: None | ThemeOptions = None
         self.this_window = Toplevel(self.main_window)
-        self.this_window.protocol(WM_DELETE_WINDOW, self._destroy_this_window)
+        self.this_window.protocol(WM_DELETE_WINDOW, self.destroy_this_window)
         self.this_window.title("Options")
-        self.this_window.configure(bg=self.main_window.cget("bg"))
+
+        self.background_color = self.config.colors.background.app
+        self.text_color = self.config.colors.content.text
+
+        self.this_window.configure(bg=self.background_color)
         height = 580
         width = 450
         self.this_window.minsize(width, height)
         self.this_window.iconbitmap(PATH / "pysaic_icon.ico")
         self.main_window.options_button.config(state=DISABLED)
 
-        self.background_color = self.main_window.cget("bg")
-        self.text_color = self.config.colors.content.text
         self.font_normal_size = Font(
             family=self.config.font.name, size=self.config.font.size - 1
         )
@@ -90,36 +92,51 @@ class Options:
         main_frame.grid(row=0, column=0, sticky="nsew", padx=10, pady=5)
 
         main_frame.grid_columnconfigure(0, weight=1)
+        main_frame.grid_rowconfigure(0, weight=1)  # For notebook
+
+        notebook = Notebook(main_frame)
+        notebook.grid(row=0, column=0, sticky="nsew")
+
+        # General Tab
+        general_tab = Frame(
+            notebook, background=self.background_color, padx=5, pady=5
+        )
+        general_tab.grid_columnconfigure(0, weight=1)
+        notebook.add(general_tab, text="General")
 
         row_index = 0
         add_separator(
-            main_frame,
+            general_tab,
             self.background_color,
             self.text_color,
             row_index,
             "Faction Settings",
             font=self.font_normal_size,
         )
-        main_frame.grid_rowconfigure(row_index, weight=1)
         row_index += 1
-        self._create_faction_settings(main_frame, row_index)
-        main_frame.grid_rowconfigure(row_index, weight=1)
+        self._create_faction_settings(general_tab, row_index)
         row_index += 1
         add_separator(
-            main_frame,
+            general_tab,
             self.background_color,
             self.text_color,
             row_index,
             "Account Details",
             font=self.font_normal_size,
         )
-        main_frame.grid_rowconfigure(row_index, weight=1)
         row_index += 1
-        self._create_account_details(main_frame, row_index)
-        main_frame.grid_rowconfigure(row_index, weight=1)
-        row_index += 1
+        self._create_account_details(general_tab, row_index)
+
+        # Client Tab
+        client_tab = Frame(
+            notebook, background=self.background_color, padx=5, pady=5
+        )
+        client_tab.grid_columnconfigure(0, weight=1)
+        notebook.add(client_tab, text="Client")
+
+        row_index = 0
         add_separator(
-            main_frame,
+            client_tab,
             self.background_color,
             self.text_color,
             row_index,
@@ -127,13 +144,19 @@ class Options:
             pad_y_top=5,
             font=self.font_normal_size,
         )
-        main_frame.grid_rowconfigure(row_index, weight=1)
         row_index += 1
-        self._create_client_config(main_frame, row_index)
-        main_frame.grid_rowconfigure(row_index, weight=1)
-        row_index += 1
+        self._create_client_config(client_tab, row_index)
+
+        # Display Tab
+        display_tab = Frame(
+            notebook, background=self.background_color, padx=5, pady=5
+        )
+        display_tab.grid_columnconfigure(0, weight=1)
+        notebook.add(display_tab, text="Display")
+
+        row_index = 0
         add_separator(
-            main_frame,
+            display_tab,
             self.background_color,
             self.text_color,
             row_index,
@@ -141,21 +164,34 @@ class Options:
             pad_y_top=5,
             font=self.font_normal_size,
         )
-        main_frame.grid_rowconfigure(row_index, weight=1)
         row_index += 1
-        self._create_display_options(main_frame, row_index)
-        main_frame.grid_rowconfigure(row_index, weight=1)
-        row_index += 1
-        add_separator(
-            main_frame, self.background_color, self.text_color, row_index
-        )
-        main_frame.grid_rowconfigure(row_index, weight=1)
-        row_index += 1
-        self._create_buttons(main_frame, row_index)
+        self._create_display_options(display_tab, row_index)
+
+        # Buttons
+        self._create_buttons(main_frame, 1)
+
         apply_style_to_tkinter(self.this_window, self.config)
 
     def _configure_style(self):
         update_style(self.this_window, self.config)
+
+    def _create_option_menu(self, master, var, options, width):
+        option_menu = OptionMenu(master, var, *options)
+        option_menu.config(
+            bg=self.background_color,
+            fg=self.text_color,
+            activebackground=self.background_color,
+            activeforeground=self.text_color,
+            width=width,
+            font=self.font_normal_size,
+        )
+        option_menu["menu"].config(
+            bg=self.background_color,
+            fg=self.text_color,
+            activebackground=self.config.colors.background.active_background,
+            activeforeground=self.config.colors.background.active_foreground,
+        )
+        return option_menu
 
     def _create_faction_settings(self, master, row):
         self.faction_var = StringVar(
@@ -197,24 +233,8 @@ class Options:
         options = sorted(
             [faction.name.replace("_", " ") for faction in FactionsEnum]
         )
-        self.faction_options_menu = OptionMenu(
-            static_frame,
-            self.static_faction_var,
-            *options,
-        )
-        self.faction_options_menu.config(
-            bg=self.background_color,
-            fg=self.text_color,
-            activebackground=self.background_color,
-            activeforeground=self.text_color,
-            width=15,
-            font=self.font_normal_size,
-        )
-        self.faction_options_menu["menu"].config(
-            bg=self.background_color,
-            fg=self.text_color,
-            activebackground=self.config.colors.background.active_background,
-            activeforeground=self.config.colors.background.active_foreground,
+        self.faction_options_menu = self._create_option_menu(
+            static_frame, self.static_faction_var, options, 15
         )
         self.faction_options_menu.grid(
             row=0, column=1, sticky="e", padx=(5, 0)
@@ -226,9 +246,9 @@ class Options:
         selection = self.faction_var.get()
         logger.debug("Setting faction to %r", selection)
         if selection == FactionSetting.GameSynced.value:
-            self.faction_options_menu["state"] = DISABLED
+            self.faction_options_menu.config(state=DISABLED)
         else:
-            self.faction_options_menu["state"] = NORMAL
+            self.faction_options_menu.config(state=NORMAL)
 
     def _create_account_details(self, master, row):
         frame = Frame(master, background=self.background_color)
@@ -297,26 +317,13 @@ class Options:
         self._disconnect_when_emission_var = StringVar(
             value=self.config.disconnect_when_emission
         )
-        disconnect_when_network = OptionMenu(
+        disconnect_when_network = self._create_option_menu(
             frame,
             self._disconnect_when_emission_var,
-            *disconnect_config_values,
-        )
-        disconnect_when_network.config(
-            bg=self.background_color,
-            fg=self.text_color,
-            activebackground=self.background_color,
-            activeforeground=self.text_color,
-            width=22,
-            font=self.font_normal_size,
+            disconnect_config_values,
+            22,
         )
         disconnect_when_network.grid(row=0, column=1, sticky="e", pady=2)
-        disconnect_when_network["menu"].config(
-            bg=self.background_color,
-            fg=self.text_color,
-            activebackground=self.config.colors.background.active_background,
-            activeforeground=self.config.colors.background.active_foreground,
-        )
 
         Label(
             frame,
@@ -328,26 +335,13 @@ class Options:
         self._disconnect_when_underground_var = StringVar(
             value=self.config.disconnect_when_underground
         )
-        disconnect_when_underground = OptionMenu(
+        disconnect_when_underground = self._create_option_menu(
             frame,
             self._disconnect_when_underground_var,
-            *[record.value for record in disconnect_tuple],
-        )
-        disconnect_when_underground.config(
-            bg=self.background_color,
-            fg=self.text_color,
-            activebackground=self.background_color,
-            activeforeground=self.text_color,
-            width=22,
-            font=self.font_normal_size,
+            [record.value for record in disconnect_tuple],
+            22,
         )
         disconnect_when_underground.grid(row=1, column=1, sticky="e", pady=2)
-        disconnect_when_underground["menu"].config(
-            bg=self.background_color,
-            fg=self.text_color,
-            activebackground=self.config.colors.background.active_background,
-            activeforeground=self.config.colors.background.active_foreground,
-        )
 
         self.block_money_transfer_var = BooleanVar(
             value=self.config.block_money_transfer
@@ -461,24 +455,11 @@ class Options:
         self.user_list_display_var = StringVar(
             frame, value=self.config.user_list_display
         )
-        user_list_display_option = OptionMenu(
+        user_list_display_option = self._create_option_menu(
             frame,
             self.user_list_display_var,
-            *(x.value for x in DISPLAY_MODES_MAP.keys()),
-        )
-        user_list_display_option.config(
-            bg=self.background_color,
-            fg=self.text_color,
-            activebackground=self.background_color,
-            activeforeground=self.text_color,
-            width=32,
-            font=self.font_normal_size,
-        )
-        user_list_display_option["menu"].config(
-            bg=self.background_color,
-            fg=self.text_color,
-            activebackground=self.config.colors.background.active_background,
-            activeforeground=self.config.colors.background.active_foreground,
+            [x.value for x in DISPLAY_MODES_MAP.keys()],
+            32,
         )
         user_list_display_option.grid(
             row=0, column=1, sticky="e", pady=2, padx=(5, 0), columnspan=2
@@ -505,24 +486,8 @@ class Options:
             frame, value=self.config.in_game_users_display
         )
         in_game_options = [enum.value for enum in InGameUserDisplayEnum]
-        in_game_display_option = OptionMenu(
-            frame,
-            self.in_game_display_var,
-            *in_game_options,
-        )
-        in_game_display_option.config(
-            bg=self.background_color,
-            fg=self.text_color,
-            activebackground=self.background_color,
-            activeforeground=self.text_color,
-            width=15,
-            font=self.font_normal_size,
-        )
-        in_game_display_option["menu"].config(
-            bg=self.background_color,
-            fg=self.text_color,
-            activebackground=self.config.colors.background.active_background,
-            activeforeground=self.config.colors.background.active_foreground,
+        in_game_display_option = self._create_option_menu(
+            frame, self.in_game_display_var, in_game_options, 15
         )
         in_game_display_option.grid(
             row=1, column=2, sticky="e", pady=2, padx=(5, 0)
@@ -539,29 +504,16 @@ class Options:
         self.in_game_display_order_var = StringVar(
             frame, value=self.config.in_game_users_display_order
         )
-        in_game_display_order_option = OptionMenu(
+        in_game_display_order_option = self._create_option_menu(
             frame,
             self.in_game_display_order_var,
-            *[
+            [
                 InGameUserDisplayOrderEnum.Nick.value,
                 InGameUserDisplayOrderEnum.Faction.value,
                 InGameUserDisplayOrderEnum.Faction_Counter.value,
                 InGameUserDisplayOrderEnum.OnlineStatus.value,
             ],
-        )
-        in_game_display_order_option.config(
-            bg=self.background_color,
-            fg=self.text_color,
-            activebackground=self.background_color,
-            activeforeground=self.text_color,
-            width=15,
-            font=self.font_normal_size,
-        )
-        in_game_display_order_option["menu"].config(
-            bg=self.background_color,
-            fg=self.text_color,
-            activebackground=self.config.colors.background.active_background,
-            activeforeground=self.config.colors.background.active_foreground,
+            15,
         )
         in_game_display_order_option.grid(
             row=2, column=2, sticky="e", pady=2, padx=(5, 0)
@@ -589,24 +541,8 @@ class Options:
             frame, value=self.config.death_report_type
         )
         death_report_options = [enum.value for enum in DeathReportTypeEnum]
-        self.death_report_type_option = OptionMenu(
-            frame,
-            self.death_report_type_var,
-            *death_report_options,
-        )
-        self.death_report_type_option.config(
-            bg=self.background_color,
-            fg=self.text_color,
-            activebackground=self.background_color,
-            activeforeground=self.text_color,
-            width=15,
-            font=self.font_normal_size,
-        )
-        self.death_report_type_option["menu"].config(
-            bg=self.background_color,
-            fg=self.text_color,
-            activebackground=self.config.colors.background.active_background,
-            activeforeground=self.config.colors.background.active_foreground,
+        self.death_report_type_option = self._create_option_menu(
+            frame, self.death_report_type_var, death_report_options, 15
         )
         self.death_report_type_option.grid(row=3, column=2, sticky="e", pady=2)
 
@@ -642,8 +578,8 @@ class Options:
         ).grid(row=4, column=2, sticky="e", pady=2)
 
     def _toggle_death_report_type(self):
-        self.death_report_type_option["state"] = (
-            "normal" if self.report_death_var.get() else "disabled"
+        self.death_report_type_option.config(
+            state=(NORMAL if self.report_death_var.get() else DISABLED)
         )
 
     def _create_buttons(self, master, row):
@@ -680,7 +616,7 @@ class Options:
         Button(
             frame,
             text="Save",
-            command=self.save_options,
+            command=lambda: self.save_options(),
             background=self.background_color,
             foreground=self.text_color,
             font=self.font_normal_size,
@@ -689,7 +625,7 @@ class Options:
         Button(
             frame,
             text="Cancel",
-            command=self._destroy_this_window,
+            command=self.destroy_this_window,
             background=self.background_color,
             foreground=self.text_color,
             font=self.font_normal_size,
@@ -708,7 +644,7 @@ class Options:
                 event=AppEvent(what=AppEventEnum.OPTIONS_UPDATED),
             )
         )
-        self._destroy_this_window()
+        self.destroy_this_window()
 
     def _update_config_from_ui(self):
         logger.debug("Faction setting: %r", self.faction_var.get())
@@ -818,7 +754,7 @@ class Options:
         )
         self.config.pop_up_sound = self.notification_popop_sound_var.get()
 
-    def _destroy_this_window(self):
+    def destroy_this_window(self):
         logger.debug("Destroying options window")
         for sub in (
             self._avatar_options,
@@ -827,7 +763,7 @@ class Options:
             self._theme_options,
         ):
             if sub:
-                sub._destroy_this_window()
+                sub.destroy_this_window()
         self.this_window.destroy()
         self.main_window.options_button.config(state=NORMAL)
         self.main_window.focus()
