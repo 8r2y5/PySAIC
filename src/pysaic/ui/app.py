@@ -19,6 +19,7 @@ from tkinter import (
 from tkinter.ttk import Scrollbar
 
 from pysaic.ui.constants import WM_DELETE_WINDOW
+from pysaic.ui.tabbed_chat import TabbedChat
 from pysaic.ui.utils import update_style, apply_color_tags_to_text
 from winotify import Notification, audio
 
@@ -27,7 +28,6 @@ from pysaic.entities import AppEvent, IncomingEvent
 from pysaic.enums import AppEventEnum
 from pysaic.settings import APP_IDENTITY, DEBUG
 from pysaic.state import State
-from pysaic.ui.hyper_links import HyperlinkManager
 from pysaic.ui.options import Options
 
 logger = logging.getLogger(__name__)
@@ -73,6 +73,14 @@ class App(Tk):
             and self.pysaic_state.is_game_running is not True
         )
 
+    @property
+    def messages_list(self):
+        return self.tabbed_chat.get_tab("main").messages_list
+
+    @property
+    def hyperlinks(self):
+        return self.tabbed_chat.get_tab("main").hyperlinks
+
     def __init__(
         self,
         state: State,
@@ -92,8 +100,6 @@ class App(Tk):
         self.protocol(WM_DELETE_WINDOW, self.on_close)
         self.incoming_queue = incoming_queue
         self.outgoing_queue = outgoing_queue
-        self.hyperlinks = None
-        print(self.pysaic_config)
         self.create_widgets()
         update_style(self, config)
         # self.after(250, self.process_incoming_events)
@@ -155,21 +161,10 @@ class App(Tk):
             pady=3,
         )
         left_frame.columnconfigure(0, weight=1)
-        left_frame.columnconfigure(1, weight=0, minsize=16)
         left_frame.rowconfigure(0, weight=1)
 
-        chat_scroll = Scrollbar(left_frame)
-        self.messages_list = Text(
-            left_frame,
-            yscrollcommand=chat_scroll.set,
-            background=self.pysaic_config.colors.background.content,
-            wrap="word",
-        )
-        self.messages_list.grid(row=0, column=0, sticky="nsew")
-        chat_scroll.config(command=self.messages_list.yview)
-        chat_scroll.grid(row=0, column=1, sticky="ns")
-        self.messages_list.list_scroll = chat_scroll
-        self.hyperlinks = HyperlinkManager(self.messages_list)
+        self.tabbed_chat = TabbedChat(left_frame, self.pysaic_config)
+        self.tabbed_chat.grid(row=0, column=0, sticky="nsew")
 
     def _prepare_right_frame(self):
         right_frame = Frame(
@@ -395,13 +390,18 @@ class App(Tk):
         if not content:
             return
 
+        target = self.tabbed_chat.get_current_tab_id()
+        if target == "main":
+            target = ""
+
         if content.startswith("/"):
             app_event = AppEvent(
                 what=AppEventEnum.COMMAND, payload=content[1:]
             )
         else:
             app_event = AppEvent(
-                what=AppEventEnum.OUR_MESSAGE, payload=content
+                what=AppEventEnum.OUR_MESSAGE,
+                payload={"content": content, "target": target},
             )
         self.incoming_queue.put_nowait(
             IncomingEvent(
@@ -478,7 +478,6 @@ class App(Tk):
     def _update_fonts_on_widgets(self):
         for widget in (
             self.users_list,
-            self.messages_list,
             AltFontSize(self.input_message, -1),
             AltFontSize(self.send_button, -1),
             AltFontSize(self.channels_dropbox, -2),
@@ -490,13 +489,15 @@ class App(Tk):
                     self.pysaic_config.font.size,
                 )
             )
+        self.tabbed_chat.update_styles()
 
     def set_color_tags(self):
-        apply_color_tags_to_text(self.messages_list, self.pysaic_config.colors)
         apply_color_tags_to_text(self.users_list, self.pysaic_config.colors)
+        self.tabbed_chat.update_styles()
 
     def update_colors(self):
         update_style(self, self.pysaic_config)
+        self.tabbed_chat.update_styles()
         if self._options_window:
             self._options_window.update_colors()
 

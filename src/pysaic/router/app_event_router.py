@@ -68,13 +68,21 @@ class AppEventRouter(Router):
             logger.warning("Unknown AppEvent: %r", self.event)
 
     def _handle_our_message(self):
+        payload = self.event.event.payload
+        if isinstance(payload, dict):
+            content = payload["content"]
+            target = payload.get("target", "")
+        else:
+            content = payload
+            target = ""
+
         OurMessageUseCase(
             self.state,
             self.config,
             self.ui,
             self.outgoing_queue,
             self.incoming_queue,
-        ).execute(self.event.event.payload)
+        ).execute(content, target)
 
     def _handle_new_version(self):
         self._add_information_text(

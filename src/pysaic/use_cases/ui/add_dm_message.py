@@ -16,8 +16,39 @@ logger = logging.getLogger(__name__)
 
 
 class AddDmMessage(UiUseCase):
+    def __init__(self, state, config, ui, event):
+        super().__init__(state, config, ui, event)
+        self._tab = None
+
+    @property
+    def messages_list(self):
+        if self._tab:
+            return self._tab.messages_list
+        return super().messages_list
+
+    @property
+    def hyperlinks(self):
+        if self._tab:
+            return self._tab.hyperlinks
+        return super().hyperlinks
+
     def execute(self):
+        if (
+            self.event.author.nick not in self.state.chat_users
+            and not self.event.service
+        ):
+            logger.debug(
+                "Ignoring DM from %r because they are not in chat users",
+                self.event.author.nick,
+            )
+            return
+
         self.state.last_private_message_from = self.event.author.nick
+
+        tab_id = self.event.author.nick
+        self.ui.tabbed_chat.add_tab(tab_id, tab_id)
+        self._tab = self.ui.tabbed_chat.get_tab(tab_id)
+
         self._add_dm_message()
         self._add_dm_message_to_game()
 

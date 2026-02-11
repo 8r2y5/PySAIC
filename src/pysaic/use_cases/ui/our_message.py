@@ -56,19 +56,26 @@ class OurMessageUseCase:
         self.outgoing_queue = outgoing_queue
         self.incoming_queue = incoming_queue
 
-    def _add_our_message(self, user, outgoing_message):
+    def _add_our_message(self, user, outgoing_message, target=""):
         logger.debug("Adding our message: %r", outgoing_message)
 
+        tab_id = "main"
+        if target:
+            tab_id = target
+            self.ui.tabbed_chat.add_tab(tab_id, tab_id)
+
+        tab = self.ui.tabbed_chat.get_tab(tab_id)
+
         TkinterMessageListController.add_message(
-            self.messages_list,
-            self.hyperlinks,
+            tab.messages_list,
+            tab.hyperlinks,
             user,
             outgoing_message.content,
             outgoing_message.created_at,
         )
 
-    def execute(self, content):
-        logger.debug("Outgoing message: %r", content)
+    def execute(self, content, target=""):
+        logger.debug("Outgoing message: %r, target: %r", content, target)
         for word in self.config.blocked_words:
             if word in content:
                 self.incoming_queue.put_nowait(
@@ -84,9 +91,14 @@ class OurMessageUseCase:
                 content,
             )
             content = make_content_malformed(content)
-        outgoing_message = OutgoingMessage(
-            self.config.server.previous_channel, content
-        )
+
+        if target:
+            outgoing_message = OutgoingMessage(target, content)
+        else:
+            outgoing_message = OutgoingMessage(
+                self.config.server.previous_channel, content
+            )
+
         self.outgoing_queue.put_nowait(outgoing_message)
         try:
             user = self.chat_users[self.state.nick]
@@ -95,7 +107,7 @@ class OurMessageUseCase:
             user = self.state.player.create_chat_user()
             self.chat_users.add_user(user.name, user)
 
-        self._add_our_message(user, outgoing_message)
+        self._add_our_message(user, outgoing_message, target)
 
         self.state.add_message(HistoryMessageEnum.channel, user, content)
         add_channel_message_to_game(
