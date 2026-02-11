@@ -1,5 +1,5 @@
 import tkinter
-from tkinter import Frame
+from tkinter import Frame, TclError
 from tkinter.font import Font
 from tkinter.ttk import Separator, Style, Label
 
@@ -177,74 +177,82 @@ def apply_color_tags_to_text(widget: tkinter.Text, colors: ColorsConfig):
     )
 
 
+def configure_widget(widget, config):
+    if isinstance(widget, tkinter.Button):
+        widget.configure(
+            background=config.colors.background.app,
+            foreground=config.colors.content.text,
+            font=(config.font.name, config.font.size - 2),
+        )
+    elif isinstance(widget, tkinter.Entry):
+        widget.configure(
+            background=config.colors.background.content,
+            foreground=config.colors.content.text,
+            font=(config.font.name, config.font.size - 1),
+            insertbackground=config.colors.content.text,
+        )
+    elif isinstance(widget, tkinter.OptionMenu):
+        widget.configure(
+            background=config.colors.background.app,
+            foreground=config.colors.content.text,
+            activebackground=config.colors.background.app,
+            activeforeground=config.colors.content.text,
+            highlightbackground=config.colors.background.app,
+            highlightcolor=config.colors.background.app,
+            highlightthickness=0,
+            font=(config.font.name, config.font.size - 2),
+        )
+        widget["menu"].config(
+            background=config.colors.background.app,
+            foreground=config.colors.content.text,
+            activebackground=config.colors.background.active_background,
+            activeforeground=config.colors.background.active_foreground,
+            selectcolor=config.colors.background.app,
+            relief="flat",
+            borderwidth=1,
+            activeborderwidth=1,
+            font=(config.font.name, config.font.size - 2),
+        )
+    elif isinstance(widget, tkinter.Label):
+        font = (config.font.name, config.font.size - 1)
+        widget.configure(
+            background=config.colors.background.app,
+            foreground=config.colors.content.text,
+            font=(font + ("bold",) if isinstance(widget, BoldLabel) else font),
+        )
+    elif isinstance(widget, tkinter.Radiobutton):
+        widget.configure(
+            background=config.colors.background.app,
+            foreground=config.colors.content.text,
+            font=(config.font.name, config.font.size - 1),
+        )
+    elif isinstance(widget, tkinter.Checkbutton):
+        widget.configure(
+            background=config.colors.background.app,
+            foreground=config.colors.content.text,
+            font=(config.font.name, config.font.size - 1),
+        )
+    elif isinstance(widget, ContentFrame):
+        widget.configure(background=config.colors.background.content)
+    elif isinstance(widget, tkinter.Frame):
+        widget.configure(
+            background=config.colors.background.app,
+        )
+    elif isinstance(widget, tkinter.Text):
+        widget.configure(
+            background=config.colors.background.content,
+            insertbackground=config.colors.content.text,
+        )
+        apply_color_tags_to_text(widget, config.colors)
+
+
 def apply_style_to_tkinter(container, config: Config):
     for widget in container.winfo_children():
-        if isinstance(widget, tkinter.Button):
-            widget.configure(
-                background=config.colors.background.app,
-                foreground=config.colors.content.text,
-                font=(config.font.name, config.font.size - 2),
-            )
-        elif isinstance(widget, tkinter.Entry):
-            widget.configure(
-                background=config.colors.background.content,
-                foreground=config.colors.content.text,
-                font=(config.font.name, config.font.size - 1),
-            )
-        elif isinstance(widget, tkinter.OptionMenu):
-            widget.configure(
-                background=config.colors.background.app,
-                foreground=config.colors.content.text,
-                activebackground=config.colors.background.app,
-                activeforeground=config.colors.content.text,
-                highlightbackground=config.colors.background.app,
-                highlightcolor=config.colors.background.app,
-                highlightthickness=0,
-                font=(config.font.name, config.font.size - 2),
-            )
-            widget["menu"].config(
-                background=config.colors.background.app,
-                foreground=config.colors.content.text,
-                activebackground=config.colors.background.active_background,
-                activeforeground=config.colors.background.active_foreground,
-                selectcolor=config.colors.background.app,
-                relief="flat",
-                borderwidth=1,
-                activeborderwidth=1,
-                font=(config.font.name, config.font.size - 2),
-            )
-        elif isinstance(widget, tkinter.Label):
-            font = (config.font.name, config.font.size - 1)
-            widget.configure(
-                background=config.colors.background.app,
-                foreground=config.colors.content.text,
-                font=(
-                    font + ("bold",) if isinstance(widget, BoldLabel) else font
-                ),
-            )
-        elif isinstance(widget, tkinter.Radiobutton):
-            widget.configure(
-                background=config.colors.background.app,
-                foreground=config.colors.content.text,
-                font=(config.font.name, config.font.size - 1),
-            )
-        elif isinstance(widget, tkinter.Checkbutton):
-            widget.configure(
-                background=config.colors.background.app,
-                foreground=config.colors.content.text,
-                font=(config.font.name, config.font.size - 1),
-            )
-        elif isinstance(widget, ContentFrame):
-            widget.configure(background=config.colors.background.content)
-        elif isinstance(widget, tkinter.Frame):
-            widget.configure(
-                background=config.colors.background.app,
-            )
-        elif isinstance(widget, tkinter.Text):
-            widget.configure(
-                background=config.colors.background.content,
-            )
-            apply_color_tags_to_text(widget, config.colors)
+        try:
+            configure_widget(widget, config)
+        except TclError as e:
+            if "unknown option" not in str(e):
+                raise
 
         if widget.winfo_children():
             apply_style_to_tkinter(widget, config)
@@ -256,7 +264,7 @@ def update_style(container, config: Config):
     style.configure(
         "TScrollbar",
         gripcount=0,
-        background=config.colors.background.content,  # The thumb color
+        background=config.colors.background.in_between,  # The thumb color
         troughcolor=config.colors.background.app,  # The track color
         bordercolor=config.colors.background.app,
         darkcolor=config.colors.background.app,
@@ -289,6 +297,9 @@ def update_style(container, config: Config):
         "TNotebook",
         background=config.colors.background.app,
         borderwidth=0,
+        bordercolor=config.colors.background.in_between,
+        lightcolor=config.colors.background.in_between,
+        darkcolor=config.colors.background.app,
     )
     style.configure(
         "TNotebook.Tab",
@@ -296,6 +307,9 @@ def update_style(container, config: Config):
         foreground=config.colors.content.text,
         padding=[10, 2],
         font=(config.font.name, config.font.size - 1),
+        bordercolor=config.colors.background.in_between,
+        lightcolor=config.colors.background.in_between,
+        darkcolor=config.colors.background.app,
     )
     style.map(
         "TNotebook.Tab",

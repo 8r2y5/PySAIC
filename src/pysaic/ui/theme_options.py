@@ -1,5 +1,7 @@
 import logging
+import os
 from dataclasses import asdict
+from pathlib import Path
 from tkinter import (
     Button,
     Entry,
@@ -22,6 +24,7 @@ from pysaic.settings import THEMES_PATH
 from pysaic.ui.constants import WM_DELETE_WINDOW
 from pysaic.ui.utils import apply_style_to_tkinter
 
+PATH = Path(os.path.abspath(os.path.dirname(__file__)))
 logger = logging.getLogger(__name__)
 
 
@@ -32,6 +35,7 @@ class ThemeOptions:
         self.this_window = Toplevel(self.parent.this_window)
         self.this_window.protocol(WM_DELETE_WINDOW, self.destroy_this_window)
         self.this_window.title("Theme Management")
+        self.this_window.iconbitmap(PATH / "pysaic_icon.ico")
 
         self.background_color = self.config.colors.background.app
         self.text_color = self.config.colors.content.text
