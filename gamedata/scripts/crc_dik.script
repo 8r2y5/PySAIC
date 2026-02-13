@@ -1,0 +1,49 @@
+--| Utility functions for dealing with DIK keys
+--| Remember to save this in windows 1251
+--| By Amon
+
+--- Returns DIK to char conversion table selected in MCM.
+--- @return {true: string, false: string}[]
+local function load_layout_from_mcm()
+    local layout_id = crc_config.get().keyboard_layout
+    local layouts = crc_config.keyboard_layouts
+    local layout_name = layouts[layout_id][2]
+
+    return crc_dik_latin.layout[layout_name]
+end
+
+--- Returns DIK to char conversion table selected in MCM.
+--- @return {true: string, false: string}[]
+local function load_cyrillic_layout_from_mcm()
+    local layout_id = crc_config.get().keyboard_layout_cyrillic
+    local layouts = crc_config.keyboard_layouts_cyrillic
+    local layout_name = layouts[layout_id][2]
+
+    return crc_dik_cyrillic.layout[layout_name]
+end
+
+--- replaces DIK key number with coresponding character.
+--- will return uppercase character if capital true
+--- <br> returns false if key is an unsupported DIK key
+--- @param key number
+--- @param capital boolean
+--- @param cyrillic boolean|nil
+---@return string | false
+function to_char(key, capital, cyrillic)
+    local layout = load_layout_from_mcm()
+    local layout_cyr = load_cyrillic_layout_from_mcm()
+
+    if cyrillic then
+        if layout_cyr[key] == nil then
+            return false
+        end
+
+        return layout_cyr[key][capital]
+    end
+
+    if layout[key] == nil then
+        return false
+    end
+
+    return layout[key][capital]
+end

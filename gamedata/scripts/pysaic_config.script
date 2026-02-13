@@ -1,0 +1,24 @@
+--| PySAIC Config
+
+-- Constants
+UPDATE_INTERVAL = 250  -- 250ms
+MAX_MESSAGE_LOG_LENGTH = 15
+MESSAGE_COLOR = "%c[255,255,255,255]"  -- white
+QUERY_COLOR = "%c[255,255,192,192]"  -- light pink
+ERROR_COLOR = "%c[255,255,128,128]"  -- light red
+HIGHLIGHT_COLOR = "%c[255,255,255,128]"  -- light yellow
+MONEY_COLOR = "%c[255,255,139,1]"  -- orange
+AFK_ARGB = GetARGB(255, 255, 255, 32)  -- yellow
+NOT_IN_GAME_ARGB = GetARGB(255, 255, 128, 128) -- red
+IN_GAME_ARGB = GetARGB(255, 128, 255, 154)  -- green
+
+-- Options
+option = {
+	newsDuration = 10000,  -- 10 seconds
+	chatKey = DIK_keys.DIK_RETURN,
+	nickAutoCompleteKey = DIK_keys.DIK_TAB,
+	newsSound = true,
+	closeChat = true,
+	disconnectWhenBlowoutOrUnderground = true,
+	userDisplayStyle = pysaic_constants.UserDisplayStyleEnum.CRCR
+}

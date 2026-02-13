@@ -1,0 +1,329 @@
+--| PySAIC ChatBox UI
+
+local DELETION_STOP_CHARS = {[" "] = true, [","] = true, ["."] = true, [":"] = true, [";"] = true, ["@"] = true, ["!"] = true, ["("] = true, [")"] = true}
+
+class "ChatBox" (CUIScriptWnd)
+function ChatBox:__init() super()
+	self:SetWndRect(Frect():set(0, 0, 1024, 768))
+	self.xml = CScriptXmlInit()
+	self.xml:ParseFile("crc_chatbox.xml")
+
+	self.xml:InitStatic("background", self)
+	self.xml:InitStatic("background_userlist", self)
+	self.xml:InitFrame("frame", self)
+
+	self.editBox = self.xml:InitEditBox("edit_box", self)
+	self.list_channel = self.xml:InitComboBox("list_channel", self)
+	self.scroll = self.xml:InitScrollView("scroll", self)
+
+	self:Register(self.list_channel, "list_channel")
+	self:Register(self.xml:Init3tButton("button_send", self), "button_send")
+	self:Register(self.xml:Init3tButton("button_close", self), "button_close")
+
+	self:AddCallback("button_send", ui_events.BUTTON_CLICKED, self.Send, self)
+	self:AddCallback("button_close", ui_events.BUTTON_CLICKED, self.Cancel, self)
+	self:AddCallback("list_channel", ui_events.LIST_ITEM_SELECT, self.OnSelectChannel, self)
+
+	self.users = {}
+	self:UpdateUsers()
+	self.messages = {}
+	self:UpdateMessages()
+	self:UpdateChannels()
+
+    self.lcontrol_pressed = false
+    self.rcontrol_pressed = false
+	self.focus = false
+end
+
+function ChatBox:OnSelectChannel()
+	if pysaic.prevChannel == self.list_channel:GetText() then
+		return
+	end
+	pysaic.prevChannel = self.list_channel:GetText()
+	pysaic_io.send("ChannelChange/%s", pysaic.prevChannel)
+end
+
+function ChatBox:OnKeyboard(dik, keyboard_action)
+    CUIScriptWnd.OnKeyboard(self, dik, keyboard_action)
+
+    if dik == DIK_keys.DIK_LCONTROL then
+        if keyboard_action == ui_events.WINDOW_KEY_PRESSED then
+            self.lcontrol_pressed = true
+        elseif keyboard_action == ui_events.WINDOW_KEY_RELEASED then
+            self.lcontrol_pressed = false
+        end
+    elseif dik == DIK_keys.DIK_RCONTROL then
+        if keyboard_action == ui_events.WINDOW_KEY_PRESSED then
+            self.rcontrol_pressed = true
+        elseif keyboard_action == ui_events.WINDOW_KEY_RELEASED then
+            self.rcontrol_pressed = false
+        end
+    end
+
+    if keyboard_action == ui_events.WINDOW_KEY_PRESSED then
+        if dik == DIK_keys.DIK_RETURN or dik == DIK_keys.DIK_NUMPADENTER then
+            self:Send()
+        elseif dik == DIK_keys.DIK_ESCAPE then
+            self:Cancel()
+        elseif dik == pysaic_config.option.nickAutoCompleteKey then
+            self:completeNick()
+        elseif dik == DIK_keys.DIK_BACK and (self.lcontrol_pressed or self.rcontrol_pressed) then
+            self:deleteTillPreviousWord()
+        end
+    end
+    return true
+end
+
+
+function ChatBox:getUserNodeName()
+	local user_node_name = pysaic_constants.userDisplayToNodeMap[pysaic_config.option.userDisplayStyle]
+	if not user_node_name then
+		user_node_name = "user"
+	end
+	return user_node_name
+end
+
+
+function ChatBox:setPySAICCard(data, user)
+	if data.rank ~= "unknown" then
+		self.xml:InitStatic("pysaic_card:rank", user):InitTexture("pysaic_rank_" .. data.rank)
+	end
+
+	if data.reputation == "Terrible" or data.reputation == "Dreary" or data.reputation == "Awful" or data.reputation == "Bad" then
+		self.xml:InitStatic("pysaic_card:reputation", user):InitTexture("pysaic_reputation_bad")
+	elseif data.reputation == "Good" or data.reputation == "Great" or data.reputation == "Brilliant" or data.reputation == "Excellent" then
+		self.xml:InitStatic("pysaic_card:reputation", user):InitTexture("pysaic_reputation_good")
+	end
+end
+
+
+function ChatBox:setPySAICCompact(data, user)
+	self.xml:InitStatic("pysaic_compact:rank", user):TextControl():SetText(tostring(data.rank))
+	self.xml:InitStatic("pysaic_compact:reputation", user):TextControl():SetText(tostring(data.reputation))
+end
+
+function ChatBox:_add_user_to_user_list(user_node_name, user_data)
+    local user, icon, name, status
+    local NotInGame = user_data.location == "False"
+    user = self.xml:InitStatic(user_node_name, nil)
+    icon = self.xml:InitStatic(user_node_name .. ":icon", user)
+    name = self.xml:InitStatic(user_node_name .. ":name", user)
+    status = self.xml:InitStatic(user_node_name .. ":status", user)
+    if pysaic_config.option.userDisplayStyle == pysaic_constants.UserDisplayStyleEnum.PySAIC_Card then
+        self:setPySAICCard(user_data, user)
+    elseif pysaic_config.option.userDisplayStyle == pysaic_constants.UserDisplayStyleEnum.PySAIC_Compact then
+        self:setPySAICCompact(user_data, user)
+    end
+
+    icon:InitTexture(user_data.icon or pysaic_icons.unknown)
+    name:TextControl():SetText(user_data.nick)
+    if pysaic.COLORED_NICKS and user_data.faction then
+        name:TextControl():SetTextColor(
+            pysaic_constants.FACTION_COLORS[user_data.faction]
+        )
+    end
+    if NotInGame then
+        if user_data.afk then
+            status:TextControl():SetText(game.translate_string("crc_afk"))
+            status:TextControl():SetTextColor(pysaic_config.AFK_ARGB)
+        else
+            status:TextControl():SetText(game.translate_string("crc_notingame"))
+            status:TextControl():SetTextColor(pysaic_config.NOT_IN_GAME_ARGB)
+        end
+    else
+		local text
+        if pysaic_config.option.userDisplayStyle == "CRCR" then
+            text = game.translate_string("crc_ingame")
+        else
+            text = game.translate_string(user_data.location) or game.translate_string("crc_ingame")
+        end
+        status:TextControl():SetText(text)
+        if user_data.afk then
+            status:TextControl():SetTextColor(pysaic_config.AFK_ARGB)
+        else
+            status:TextControl():SetTextColor(pysaic_config.IN_GAME_ARGB)
+        end
+    end
+    self.scroll:AddWindow(user, true)
+    user:SetAutoDelete(true)
+end
+
+function ChatBox:UpdateUsers()
+    local last_scroll_pos = self.scroll:GetCurrentScrollPos()
+    self.scroll:Clear()
+	local user_node_name = self:getUserNodeName()
+    local separator = (
+        pysaic.USER_LIST_ORDER == pysaic.sort_by_faction
+        or pysaic.USER_LIST_ORDER == pysaic.sort_by_faction_and_counter
+    )
+    local counter = (
+        pysaic.USER_LIST_ORDER == pysaic.sort_by_faction_and_counter
+    )
+    local last_faction
+    for _, data in pysaic.pairsByKeys(pysaic.users, pysaic.USER_LIST_ORDER) do
+        if separator and last_faction ~= data.faction then
+            last_faction = data.faction
+            local faction_separator = self.xml:InitStatic("faction_separator", nil)
+            local faction_text = self.xml:InitStatic("faction_separator:name", faction_separator)
+            faction_text:TextControl():SetText(
+                game.translate_string("crc_"..(last_faction or "unknown") )
+            )
+            faction_text:TextControl():SetTextColor(
+                pysaic_constants.FACTION_COLORS[data.faction]
+            )
+            if counter then
+                local faction_name_counter = self.xml:InitStatic("faction_separator:counter", faction_separator)
+                faction_name_counter:TextControl():SetText(
+                    "(" .. tostring(pysaic.FACTION_SIZE[data.faction] or 1) .. ")"
+                )
+            end
+            self.scroll:AddWindow(faction_separator, true)
+            faction_separator:SetAutoDelete(true)
+        end
+        self:_add_user_to_user_list(user_node_name, data)
+    end
+    self.scroll:SetScrollPos(last_scroll_pos)
+end
+
+function ChatBox:UpdateChannels()
+    if #pysaic.table_channel == 0 then
+        pysaic_io.send_handshake("UpdateChannels")
+        return
+    end
+    for i=1,#pysaic.table_channel do
+        self.list_channel:AddItem(pysaic.irc_name_to_description[pysaic.table_channel[i]], i)
+    end
+
+    self.list_channel:SetText(pysaic.irc_name_to_description[pysaic.prevChannel])
+end
+
+function ChatBox:UpdateMessages()
+	for _, message in ipairs(self.messages) do
+		self:DetachChild(message)
+	end
+	self.messages = {}
+	for index, messageData in ipairs(pysaic.messageLog) do
+		local message = self.xml:InitStatic("message", self)
+		local newPos = vector2():set(0, 768 - 100 - (#pysaic.messageLog - index) * message:GetHeight())
+		message:SetWndPos(newPos)
+		self.xml:InitStatic("message:icon", message):InitTexture(messageData.icon)
+		self.xml:InitStatic("message:title", message):TextControl():SetText(messageData.title)
+		self.xml:InitStatic("message:message_text", message):TextControl():SetText(messageData.text)
+		if pysaic_config.option.userDisplayStyle == pysaic_constants.UserDisplayStyleEnum.PySAIC_Card then
+			self:setPySAICCardMessage(messageData, message)
+		end
+		self.messages[#self.messages+1] = message
+	end
+end
+
+function ChatBox:setPySAICCardMessage(data, message)
+	if data.rank and data.rank ~= "unknown" then
+		self.xml:InitStatic("message:rank", message):InitTexture("pysaic_rank_" .. data.rank)
+	end
+	if data.reputation == "Terrible" or data.reputation == "Dreary" or data.reputation == "Awful" or data.reputation == "Bad" then
+		self.xml:InitStatic("message:reputation", message):InitTexture("pysaic_reputation_bad")
+	elseif data.reputation == "Good" or data.reputation == "Great" or data.reputation == "Brilliant" or data.reputation == "Excellent" then
+		self.xml:InitStatic("message:reputation", message):InitTexture("pysaic_reputation_good")
+	end
+end
+
+function send_message(content)
+    pysaic_io.send("Message/%s/%s", db.actor:character_community(), content)
+end
+
+
+function ChatBox:Send()
+	local input = self.editBox:GetText()
+	if input and input ~= "" then
+		self.editBox:SetText("")
+		send_message(input)
+	end
+	if pysaic_config.option.closeChat then
+		self:Cancel()
+	else
+		pysaic.chatBox.editBox:CaptureFocus(true)
+	end
+end
+
+function ChatBox:Cancel()
+	pysaic.chatBox:HideDialog()
+	Unregister_UI("ChatBox") --possible fix to a stack trace: 0x000000014014D6CA (moved this BEFORE = nil)
+	pysaic.chatBox = nil
+end
+
+function ChatBox:cycleThroughUsers(user_list, current_nick)
+    local current_index
+    for i, user in ipairs(user_list) do
+        if user == current_nick then
+            current_index = i
+            break
+        end
+    end
+
+    if current_index then
+        local next_index = (current_index % #user_list) + 1
+        return user_list[next_index]
+    end
+    return user_list[1]
+end
+
+function ChatBox:deleteTillPreviousWord()
+    -- Since we can't get the cursor position, we assume it's at the end
+    local text = self.editBox:GetText()
+    local cursor_idx = #text
+
+    if cursor_idx == 0 then return end
+
+    -- If char before cursor is a stop char, delete only it
+    if DELETION_STOP_CHARS[text:sub(cursor_idx, cursor_idx)] then
+        local new_text = text:sub(1, cursor_idx - 1)
+        self.editBox:SetText(new_text)
+        return
+    end
+
+    -- Find the start of the word to delete
+    local delete_start_idx = 0
+    for i = cursor_idx - 1, 1, -1 do
+        if DELETION_STOP_CHARS[text:sub(i, i)] then
+            delete_start_idx = i
+            break
+        end
+    end
+
+    local new_text = text:sub(1, delete_start_idx)
+    self.editBox:SetText(new_text)
+end
+
+function ChatBox:completeNick()
+    local text = self.editBox:GetText()
+    -- Assuming cursor is at the end
+    local start_pos, prefix, partial_nick = text:match("()(@?)(%w+)$")
+
+    if not partial_nick or #partial_nick < 2 then
+        return
+    end
+
+    local user_list = {}
+    for nick, _ in pairs(pysaic.users) do
+        user_list[#user_list+1] = nick
+    end
+    table.sort(user_list)
+
+    local found_user
+    if pysaic.users[partial_nick] then
+        found_user = self:cycleThroughUsers(user_list, partial_nick)
+    else
+        for _, nick in ipairs(user_list) do
+            if nick:lower():sub(1, #partial_nick) == partial_nick:lower() then
+                found_user = nick
+                break
+            end
+        end
+    end
+
+    if found_user then
+        local completion = (prefix or "") .. found_user
+        local new_text = text:sub(1, start_pos - 1) .. completion
+        self.editBox:SetText(new_text)
+    end
+end

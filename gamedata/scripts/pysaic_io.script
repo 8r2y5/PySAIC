@@ -1,0 +1,40 @@
+--| PySAIC IO
+--| Handles socket communication
+
+local conn = require("pysaic_cm")
+local handshake_sent = false
+local SCRIPT_VERSION = 14
+
+function init()
+    conn.init()
+end
+
+function send(message, ...)
+    conn.send(string.format(message, ...))
+end
+
+function send_handshake(body)
+    printf("Sending handshake with body: %s", body)
+	send("Handshake/%s/%s", SCRIPT_VERSION, body or "null")
+end
+
+function update()
+    local data = conn.update()
+
+    local status = conn.status()
+    if status == "open" and not handshake_sent then
+        send_handshake("reconnect")
+        handshake_sent = true
+    elseif status == "closed" or status == "error" then
+        handshake_sent = false
+    end
+
+    if data then
+        local messages = {}
+        for s in data:gmatch("[^\n]+") do
+            table.insert(messages, s)
+        end
+        return messages
+    end
+    return nil
+end
