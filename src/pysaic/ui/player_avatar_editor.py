@@ -15,6 +15,7 @@ from PIL import Image, ImageDraw, ImageTk
 from PIL.Image import LANCZOS
 
 from pysaic.avatar.avatar_maker import generate_avatar
+from pysaic.config import Config
 from pysaic.ui.constants import WM_DELETE_WINDOW
 
 RECT_W, RECT_H = 126, 56
@@ -23,12 +24,12 @@ RECT_W, RECT_H = 126, 56
 class PlayerAvatarEditor:
     def __init__(self, parent, master_window: Tk):
         self.parent = parent
-        self.config = parent.config
+        self.config: Config = parent.config
         self.master_window = master_window
         self.window = Toplevel()
-        self.this_window.protocol(WM_DELETE_WINDOW, self.close_window)
+        self.window.protocol(WM_DELETE_WINDOW, self.close_window)
         self.window.title("Player Avatar Editor")
-        self.window.configure(background=self.config.colors.background)
+        self.window.configure(background=self.config.colors.background.app)
         self.window.wm_minsize(400, 300)
         self.window.resizable(True, True)
         if master_window:
@@ -43,8 +44,8 @@ class PlayerAvatarEditor:
     def create_widgets(self):
         style = Style()
         style.theme_use("clam")
-        background_color = self.config.colors.background
-        text_color = self.config.colors.text
+        background_color = self.config.colors.background.app
+        text_color = self.config.colors.content.text
 
         # Configure columns for proper button alignment
         self.window.grid_rowconfigure(0, weight=1)
