@@ -98,7 +98,13 @@ class GameEventRouter(Router):
             return
 
         logger.error("Unsupported handshake version: %r", payload.version)
-        self._add_error_text("Please update your game script.")
+        supported_version = " or ".join(map(str, SUPPORTED_SCRIPT_VERSION))
+        self._add_error_text(
+            "[PySAIC] Please update your game script. "
+            "Use one provided in the 7zip package. "
+            f"Current version: {payload.version}. "
+            f"Required versions: {supported_version}"
+        )
 
     def _send_saic_location(self):
         logger.info('Sending "%s" message', SAICCTCPEnum.SAICLOC)

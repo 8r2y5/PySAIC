@@ -66,7 +66,7 @@ def test__handle_money_change(
     assert mock_state.player.money == 37
 
 
-@patch("pysaic.router.game_event_router.SUPPORTED_SCRIPT_VERSION", ("5", 1))
+@patch("pysaic.router.game_event_router.SUPPORTED_SCRIPT_VERSION", ("6", 7))
 @patch("pysaic.router.game_event_router.logger")
 @patch("pysaic.router.game_event_router.GameEventRouter._add_error_text")
 def test__handle_game_handshake_not_supported_version(
@@ -85,7 +85,10 @@ def test__handle_game_handshake_not_supported_version(
         "Unsupported handshake version: %r", "not existing version"
     )
     mock__add_error_text.assert_called_once_with(
-        "Please update your game script."
+        "[PySAIC] Please update your game script. "
+        "Use one provided in the 7zip package. "
+        "Current version: not existing version. "
+        "Required versions: 6 or 7"
     )
 
 
