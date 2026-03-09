@@ -63,6 +63,7 @@ class PySaicIrcProtocol(IrcProtocol):
     @inject.autoparams()
     async def connect(self, incoming_queue: IncomingQueue) -> None:
         delay_in_sec = 10
+        delay_in_sec_on_failure = 60
         delayer = AsyncDelayer(delay_in_sec)
         for server in cycle(self.servers):
             async with delayer:
@@ -86,14 +87,15 @@ class PySaicIrcProtocol(IrcProtocol):
                 else:
                     incoming_queue.put_nowait(
                         IncomingEvent.create_error_event(
-                            f"Failed to connect to server. Retrying in {delay_in_sec} seconds."
+                            f"Failed to connect to server. Retrying in {delay_in_sec_on_failure} seconds."
                         )
                     )
                     self.logger.warning(
                         "Failed to connect to %s, retrying in %d seconds",
                         server_address,
-                        delay_in_sec,
+                        delay_in_sec_on_failure,
                     )
+                    await asyncio.sleep(delay_in_sec_on_failure)
 
     @inject.autoparams()
     def connection_lost(
@@ -137,7 +139,7 @@ class PySaicIrcProtocol(IrcProtocol):
 
         fut = self._server.connection.do_connect(self)
         try:
-            await asyncio.wait_for(fut, 30)
+            await asyncio.wait_for(fut, 60)
         except asyncio.TimeoutError:
             if self.logger:
                 self.logger.exception(
