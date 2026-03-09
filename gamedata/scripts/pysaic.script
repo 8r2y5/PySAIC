@@ -55,7 +55,7 @@ local function add_message_to_history(icon, title, text, reputation, rank)
 	}
 end
 
-local function addMessage(icon, title, text, reputation, rank)
+local function addMessage(icon, title, text, reputation, rank, author)
 	add_message_to_history(icon, title, text, reputation, rank)
 	db.actor:give_game_news(title, text, icon, 0, pysaic_config.option.newsDuration)
 	if pysaic_config.option.newsSound then
@@ -64,8 +64,9 @@ local function addMessage(icon, title, text, reputation, rank)
 	if chatBox then
 		chatBox:UpdateMessages()
 	end
-    if crc_pda.get_ui() then
-        crc_pda.get_ui():add_message(icon, title, text, "system")
+    local pda_ui = crc_pda.get_ui()
+    if pda_ui then
+        pda_ui:add_message(icon, title, text, author or "system")
     end
 end
 
@@ -170,7 +171,6 @@ function parseHistoryMessage(body)
 	else
 		addErrorMessage("Cannot handle history type '" .. message_type .. "'")
 	end
-	--add_message_to_history(icon, title, text, reputation, rank)
 end
 
 
@@ -198,11 +198,9 @@ function parseChannelMessage (body)
         name..', '.._get_title_value(faction, user_type),
         text,
         reputation,
-        rank
+        rank,
+        name
     )
-    if crc_pda.get_ui() then
-        crc_pda.get_ui():add_message(icon, name..', '.._get_title_value(faction, user_type), text, name)
-    end
 end
 
 function parsePrivateMessage(body)
@@ -211,10 +209,7 @@ function parsePrivateMessage(body)
 	if chatBox then
 		chatBox:UpdateUsers()
 	end
-	addMessage(icon, from .. " -> " .. to, pysaic_config.QUERY_COLOR .. message, reputation, rank)
-    if crc_pda.get_ui() then
-        crc_pda.get_ui():add_message(icon, from .. " -> " .. to, pysaic_config.QUERY_COLOR .. message, from)
-    end
+	addMessage(icon, from .. " -> " .. to, pysaic_config.QUERY_COLOR .. message, reputation, rank, from)
 end
 
 function parseSendingMoney(body)
@@ -292,6 +287,10 @@ function parseChannels(value)
 	if chatBox then
 		chatBox:UpdateChannels()
 	end
+    local pda_ui = crc_pda.get_ui()
+    if pda_ui then
+        pda_ui:UpdateChannels()
+    end
 end
 
 
@@ -360,8 +359,6 @@ function parseSettings(body)
 	local parser = settingsParserMap[setting]
 	if parser then
 		parser(value)
-	--else
-		--printf("Unknown setting: '%s' with value: '%s'", setting, value)
 	end
 end
 
@@ -429,11 +426,9 @@ function parseInput(receiveQueue)
 		if type and body then
             local action = inputActions[type]
             if action then
-                --printf("Input message: %s, %s", type, body)
                 action(body)
             else
                 printf("No callback for '%s'", type)
-                -- Whine about it
             end
         end
         ::continue::
@@ -449,9 +444,7 @@ local function update()
     if showChatBox and ChatBoxEnabled then
         showChatBox = false
         chatBox = pysaic_chatbox.ChatBox()
-        -- chatBox:UpdateChannels()
         chatBox:ShowDialog()
-        -- Disable keypress callback so other scripts don't fire while typing
         Register_UI("ChatBox", "chernobyl_relay_chat")
     end
 
@@ -500,15 +493,23 @@ local function onKeyPress(dik)
 		end
 
 		if pysaic_state.USE_PDA then
-			local pda_ui = crc_pda.get_ui()
-			if pda_ui then
-				if pda_ui:is_open() then
-					pda_ui:HideDialog()
-					crc_textbox.unregister_our_ui()
-				else
-					pda_ui:ShowDialog()
-				end
-			end
+			local pda_menu = ActorMenu.get_pda_menu()
+            if not pda_menu then return end
+
+            local is_3d_pda = get_console_cmd(1, "g_3d_pda")
+
+            if pda_menu:IsShown() then
+                if pda_menu:GetActiveSubdialog() and pda_menu:GetActiveSubdialog().st_name == "eptChat" then
+                    if is_3d_pda then db.actor:activate_slot(0) else pda_menu:HideDialog() end
+                else
+                    pda_menu:SetActiveSubdialog("eptChat")
+                end
+            else
+                if db.actor:item_in_slot(8) then -- PDA slot
+                    if is_3d_pda then db.actor:activate_slot(8) else pda_menu:ShowDialog(true) end
+                    pda_menu:SetActiveSubdialog("eptChat")
+                end
+            end
 		else
 			if not chatBox then
 				showChatBox = true

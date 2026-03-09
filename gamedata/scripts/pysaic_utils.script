@@ -16,7 +16,13 @@ end
 
 function sort_by_faction(nick, other_nick)
     local user = pysaic_state.users[nick]
+    if not user then
+        return false
+    end
     local other_user = pysaic_state.users[other_nick]
+    if not other_user then
+        return true
+    end
     local anonymous_faction = "actor_anonymous"
     local size_user = pysaic_state.FACTION_SIZE[user.faction] or 0
     local size_other = pysaic_state.FACTION_SIZE[other_user.faction] or 0

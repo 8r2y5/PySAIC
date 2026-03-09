@@ -113,11 +113,16 @@ function CRCPda:init_controls()
     self:AddCallback('ignore_outsiders', ui_events.BUTTON_CLICKED, self.__react_to_messages_filter_or_sort_update, self)
 end
 
+function CRCPda:OnHide()
+    self.edit_box:unfocus()
+end
+
 function CRCPda:UpdateChannels()
     if #pysaic_state.table_channel == 0 then
         pysaic_io.send_handshake("UpdateChannels")
         return
     end
+    self.list_channel:clear()
     for i=1,#pysaic_state.table_channel do
         self.list_channel:add_item(pysaic_state.irc_name_to_description[pysaic_state.table_channel[i]], i)
     end
@@ -153,8 +158,8 @@ end
 --- @return boolean
 function CRCPda:handle_edit_key_press(key)
 	--- close the pda when CHAT_KEY is pressed
-	if key == crc_config.get().chat_key then
-        crc_shortcut.on_key_release(key)
+	if key == pysaic_config.option.chatKey then
+        self.edit_box:unfocus()
         return true
     end
 
@@ -164,7 +169,7 @@ function CRCPda:handle_edit_key_press(key)
         return true
     end
 
-	if key == crc_config.get().nick_auto_complete_key then
+	if key == pysaic_config.option.nickAutoCompleteKey then
 		self:__complete_nick()
 		return false
 	end
@@ -201,19 +206,14 @@ end
 --- send the message from the textbox to the EXE application via pysaic_io.
 function CRCPda:send()
 	local input = self.edit_box:get_text()
-    --news_manager.send_tip(db.actor, input, nil, nil, 1)
 
 	if input and input ~= "" then
 		self.edit_box:clear()
 		pysaic_io.send("Message/%s/%s", db.actor:character_community(), input)
 	end
 
-	--if pysaic_config.option.closeChat then
-	--	self:HideDialog()
-    --    crc_textbox.unregister_our_ui()
-	--end
-	if crc_config.get().close_chat then
-		crc_shortcut.hide_pda(crc_shortcut.load_pda())
+	if pysaic_config.option.closeChat then
+		self.edit_box:unfocus()
 	end
 
 	self:scroll_messages_to_the_latest()
@@ -245,36 +245,48 @@ function CRCPda:update_users()
 
 	self.user_list:Clear()
 
-    -- Use pysaic_state.users
     local sorted_users = {}
     for name, data in pairs(pysaic_state.users) do
-        table.insert(sorted_users, {name = name, data = data})
+        table.insert(sorted_users, data)
     end
 
-    -- Use global USER_LIST_ORDER if available, otherwise default sort
-    if USER_LIST_ORDER then
-        table.sort(sorted_users, USER_LIST_ORDER)
+    if pysaic_state.USER_LIST_ORDER then
+        table.sort(sorted_users, pysaic_state.USER_LIST_ORDER)
     else
-        table.sort(sorted_users, function(a, b) return a.name < b.name end)
+        table.sort(sorted_users, function(a, b) return a.nick < b.nick end)
     end
 
-	for _, user_entry in ipairs(sorted_users) do
-        local name = user_entry.name
-        local data = user_entry.data
+	for _, data in ipairs(sorted_users) do
         local is_in_game = data.location ~= "False"
 
 		local user = xml:InitStatic("user", nil)
 
 		xml:InitStatic("user:icon", user):InitTexture(data.icon or pysaic_icons.unknown)
-		xml:InitStatic("user:name", user):TextControl():SetText(name:sub(1, 20))
+		name = xml:InitStatic("user:name", data.nick)
+		name:TextControl():SetText(name:sub(1, 20))
+		if pysaic_state.COLORED_NICKS and data.faction then
+			name:TextControl():SetTextColor(
+				pysaic_constants.FACTION_COLORS[data.faction]
+			)
+		end
 		local user_status = xml:InitStatic("user:status", user)
 
 		if is_in_game then
 			user_status:TextControl():SetText(game.translate_string("crc_ingame"))
 			user_status:TextControl():SetTextColor(pysaic_config.IN_GAME_ARGB)
 		else
-			user_status:TextControl():SetText(game.translate_string("crc_notingame"))
-			user_status:TextControl():SetTextColor(pysaic_config.NOT_IN_GAME_ARGB)
+			local text
+			if pysaic_config.option.userDisplayStyle == "CRCR" then
+				text = game.translate_string("crc_ingame")
+			else
+				text = game.translate_string(data.location) or game.translate_string("crc_ingame")
+			end
+			status:TextControl():SetText(text)
+			if data.afk then
+				status:TextControl():SetTextColor(pysaic_config.AFK_ARGB)
+			else
+				status:TextControl():SetTextColor(pysaic_config.IN_GAME_ARGB)
+			end
 		end
 
 		self.user_list:AddWindow(user, true)
@@ -315,13 +327,8 @@ function CRCPda:update_messages()
 	local was_max_scrolled = self:is_list_max_scrolled(self.message_list)
 
 	--- display latest message as first or last depending on player preference
-	local start_index = (
-		-- ... and 1 is required to return boolean value
-		self.sort_by_date:GetCheck() and 1 or #pysaic_state.messageLog
-	)
-    local end_index = (
-		self.sort_by_date:GetCheck() and #pysaic_state.messageLog or 1
-	)
+	local start_index = (self.sort_by_date:GetCheck() and 1 or #pysaic_state.messageLog)
+    local end_index = (self.sort_by_date:GetCheck() and #pysaic_state.messageLog or 1)
     local iterator = (self.sort_by_date:GetCheck() and 1 or -1)
 
 	self.message_list:Clear()
@@ -329,7 +336,6 @@ function CRCPda:update_messages()
 	for i = start_index, end_index, iterator do
 		local messageData = pysaic_state.messageLog[i]
 
-		--- do not display message if the user filters out messages from outside of the zone and this is one of them
 		if self:__should_message_be_displayed(messageData) then
 			local message = xml:InitStatic("message", nil)
 
@@ -361,46 +367,12 @@ function CRCPda:connection_lost(state)
 	self.list_channel:enable(not state)
 end
 
---- selects pda sound by message type
---- @param message_type string
---- @return string
-function CRCPda:sound_picker(message_type)
-	if message_type == game.translate_string("crc_info") then
-		return "pda_welcome"
-
-	elseif message_type == game.translate_string("crc_error") then
-		return "pda_alarm"
-
-	else
-		return "pda_tips"
-	end
-end
-
 --- adds recived message to pda chat and log
 --- @param icon string
 --- @param title string
 --- @param text string
 --- @param author string
 function CRCPda:add_message(icon, title, text, author)
-    local max_messages = pysaic_config.MAX_MESSAGE_LOG_LENGTH
-	local messages_len = size_table(pysaic_state.messageLog)
-
-	if messages_len > max_messages then
-		for i=max_messages, messages_len, 1 do
-			table.remove(pysaic_state.messageLog, i)
-		end
-	end
-
-	--- was sender inside the Zone when the message was added?
-	local from_zone = false
-    if pysaic_state.users[author] and pysaic_state.users[author].location ~= "False" then
-        from_zone = true
-    end
-
-	local message = {title = title, text = text, icon = icon, from_zone = from_zone, author = author};
-
-	table.insert(pysaic_state.messageLog, 1, message)
-
 	if self:is_open() then
 		self:update_messages()
 	end

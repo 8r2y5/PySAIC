@@ -75,6 +75,10 @@ function CRCList:close()
     self.list:Show(false)
 end
 
+function CRCList:clear()
+    self.options = {}
+end
+
 --- Redraws the list and displays the list
 function CRCList:open()
     if self.list:IsShown() then
