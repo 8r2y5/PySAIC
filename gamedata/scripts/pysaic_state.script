@@ -1,0 +1,10 @@
+messageLog = {}
+users = {}
+table_channel = {}
+irc_name_to_description = {}
+prevChannel = ''
+USER_LIST_ORDER = nil
+COLORED_NICKS = false
+FACTION_SIZE = {}
+USE_PDA = true;
+knownIcons = {}

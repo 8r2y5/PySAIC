@@ -1,5 +1,6 @@
 --| Keyboard shortcut to quickly open PDA Chat
 --| By Amon
+--| modified for PySAIC integration
 
 --- @alias PDA { ui: unknown, pda3d: unknown | nil }
 
@@ -59,21 +60,25 @@ end
 
 function on_key_release(key)
     --- Open/Close chat window after pressing the keyboard shortcut
-    if key == crc_config.get().chat_key then
-        local pda = load_pda()
+    if not pysaic_state.USE_PDA then
+        return
+    end
+    if key ~= crc_config.get().chat_key then
+        return
+    end
+    local pda = load_pda()
 
-        --- open pda if it's closed
-        if can_pda_be_open(pda) then
-            show_pda(pda)
+    --- open pda if it's closed
+    if can_pda_be_open(pda) then
+        show_pda(pda)
+        open_crcr_gui(pda)
+
+    --- if open tab is Chat close pda, otherwise change tab to chat
+    elseif is_pda_open(pda) then
+        if not is_crcr_tab_selected() then
             open_crcr_gui(pda)
-
-        --- if open tab is Chat close pda, otherwise change tab to chat
-        elseif is_pda_open(pda) then
-            if not is_crcr_tab_selected() then
-                open_crcr_gui(pda)
-            else
-                hide_pda(pda)
-            end
+        else
+            hide_pda(pda)
         end
     end
 end

@@ -60,6 +60,15 @@
 		</status>
 	</user>
 
+    <faction_separator x="0" y="0" width="124" height="20">
+		<name x="5" y="0" width="119" height="20">
+			<text font="letterica16" align="l" vert_align="c"/>
+		</name>
+		<counter x="5" y="0" width="114" height="20">
+			<text font="letterica16" align="r" vert_align="c"/>
+		</counter>
+	</faction_separator>
+
 	<edit_box x="36" y="675" width="500" height="27" frame_mode="0" stretch="1">
 		<texture>ui_crc_textbox</texture>
 		<text x="-490" y="2" align="l" vert_align="c" font="letterica18"></text>

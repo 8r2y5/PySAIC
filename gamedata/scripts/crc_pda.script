@@ -1,14 +1,18 @@
---| Chernobyl Relay Chat GUI
---| By TKGP, Anchorpoint, Amon
+-- original script by Amon
+-- modified for PySAIC integration
 
 local xml = CScriptXmlInit()
-xml:ParseFile("pda_crc_chat.xml")
 
 local SINGLETON = nil
 
 --- returns the pda ui instance
 --- @return CRCPda
 function get_ui()
+	if not pysaic_state.USE_PDA then
+		-- remove instance if it was created
+		SINGLETON = nil
+		return SINGLETON
+	end
     SINGLETON = SINGLETON or CRCPda()
     return SINGLETON
 end
@@ -31,10 +35,17 @@ end
 
 --- saves information to the save file
 function save_state(m_data)
-	m_data.prevChannel = get_ui().channel
-	m_data.sort_by_date = get_ui().sort_by_date:GetCheck()
-	m_data.use_cyrillic = get_ui().use_cyrillic:GetCheck()
-	m_data.ignore_outsiders = get_ui().ignore_outsiders:GetCheck()
+	if SINGLETON then
+		m_data.prevChannel = SINGLETON.channel
+		m_data.sort_by_date = SINGLETON.sort_by_date:GetCheck()
+		m_data.use_cyrillic = SINGLETON.use_cyrillic:GetCheck()
+		m_data.ignore_outsiders = SINGLETON.ignore_outsiders:GetCheck()
+	else
+		m_data.prevChannel = data_from_save.start_channel
+		m_data.sort_by_date = data_from_save.sort_by_date
+		m_data.use_cyrillic = data_from_save.use_cyrillic
+		m_data.ignore_outsiders = data_from_save.ignore_outsiders
+	end
 end
 
 function on_game_start()
@@ -46,29 +57,8 @@ end
 
 class "CRCPda" (CUIScriptWnd)
 function CRCPda:__init() super()
-	--- all mesages displayed inside the PDA
-	--- @type Message[]
-    self.messages = {}
-
 	--- load last selected channel (data from the save file)
     self.channel = data_from_save.start_channel
-	--- all available  channels
-	self.table_channel = {
-		"#crcr_english",
-		"#crcr_english_rp",
-		"#crcr_english_shitposting",
-		"#crcr_russian",
-		"#crcr_russian_rp",
-		"#crcr_tech_support",
-	}
-
-	--- all users displayed inside the PDA
-	--- @type table<string, string>
-    self.users = {}
-
-	--- cached icons
-    --- @type table<string, string>
-	self.known_icons = {}
 
 	--- init gui
 	self:init_controls()
@@ -121,26 +111,33 @@ function CRCPda:init_controls()
 	self.ignore_outsiders:SetCheck(data_from_save.ignore_outsiders)
 	self:Register(self.ignore_outsiders, 'ignore_outsiders')
     self:AddCallback('ignore_outsiders', ui_events.BUTTON_CLICKED, self.__react_to_messages_filter_or_sort_update, self)
+end
 
-    self.messages = {}
+function CRCPda:UpdateChannels()
+    if #pysaic_state.table_channel == 0 then
+        pysaic_io.send_handshake("UpdateChannels")
+        return
+    end
+    for i=1,#pysaic_state.table_channel do
+        self.list_channel:add_item(pysaic_state.irc_name_to_description[pysaic_state.table_channel[i]], i)
+    end
+
+    self.list_channel:select_item(pysaic_state.irc_name_to_description[pysaic_state.prevChannel])
 end
 
 --- add channels to the channel list and select the last selected one
 function CRCPda:__init_channel_list()
-    for i=1, #self.table_channel do
-		self.list_channel:add_item(game.translate_string(self.table_channel[i]), i)
-	end
-
-	self.list_channel:select_item(self.channel)
+	self:UpdateChannels()
 end
 
 --- called by the list_channel component, when changing the channel it informs EXE applications of about the change
 --- @param channel number
 function CRCPda:on_select_channel(channel)
-	if self.channel ~= channel then
-		self.channel = channel
-		pysaic_io.send("Channel/%s", self.channel)
-    end
+	if pysaic_state.prevChannel == self.list_channel:GetText() then
+		return
+	end
+	pysaic_state.prevChannel = self.list_channel:GetText()
+	pysaic_io.send("ChannelChange/%s", pysaic_state.prevChannel)
 end
 
 --- load channel from the action message
@@ -181,7 +178,7 @@ function CRCPda:__complete_nick()
     local nick = text:match("@(%w+)")
 
     if nick then
-        for k, v in pairs(self.users) do
+        for k, v in pairs(pysaic_state.users) do
             if k:lower():find(nick:lower()) then
                 text = text:gsub("@"..nick, "@"..k)
                 self.edit_box:set_text(text)
@@ -201,16 +198,20 @@ function CRCPda:scroll_messages_to_the_latest()
 	end
 end
 
---- send the message from the textbox to the EXE application via crc_io.
+--- send the message from the textbox to the EXE application via pysaic_io.
 function CRCPda:send()
 	local input = self.edit_box:get_text()
-    news_manager.send_tip(db.actor, input, nil, nil, 1)
+    --news_manager.send_tip(db.actor, input, nil, nil, 1)
 
 	if input and input ~= "" then
 		self.edit_box:clear()
 		pysaic_io.send("Message/%s/%s", db.actor:character_community(), input)
 	end
 
+	--if pysaic_config.option.closeChat then
+	--	self:HideDialog()
+    --    crc_textbox.unregister_our_ui()
+	--end
 	if crc_config.get().close_chat then
 		crc_shortcut.hide_pda(crc_shortcut.load_pda())
 	end
@@ -234,6 +235,7 @@ end
 function CRCPda:update_ui()
 	self:update_users()
 	self:update_messages()
+	self:UpdateChannels()
 end
 
 --- redraw the user list
@@ -243,20 +245,36 @@ function CRCPda:update_users()
 
 	self.user_list:Clear()
 
-	for name, is_in_game in pairs(self.users) do
-		local user = xml:InitStatic("user", nil)
-		is_in_game = is_in_game == "True"
+    -- Use pysaic_state.users
+    local sorted_users = {}
+    for name, data in pairs(pysaic_state.users) do
+        table.insert(sorted_users, {name = name, data = data})
+    end
 
-		xml:InitStatic("user:icon", user):InitTexture(self.known_icons[name] or crc_user.unknown)
+    -- Use global USER_LIST_ORDER if available, otherwise default sort
+    if USER_LIST_ORDER then
+        table.sort(sorted_users, USER_LIST_ORDER)
+    else
+        table.sort(sorted_users, function(a, b) return a.name < b.name end)
+    end
+
+	for _, user_entry in ipairs(sorted_users) do
+        local name = user_entry.name
+        local data = user_entry.data
+        local is_in_game = data.location ~= "False"
+
+		local user = xml:InitStatic("user", nil)
+
+		xml:InitStatic("user:icon", user):InitTexture(data.icon or pysaic_icons.unknown)
 		xml:InitStatic("user:name", user):TextControl():SetText(name:sub(1, 20))
 		local user_status = xml:InitStatic("user:status", user)
 
 		if is_in_game then
 			user_status:TextControl():SetText(game.translate_string("crc_ingame"))
-			user_status:TextControl():SetTextColor(GetARGB(255, 128, 255, 154))
+			user_status:TextControl():SetTextColor(pysaic_config.IN_GAME_ARGB)
 		else
 			user_status:TextControl():SetText(game.translate_string("crc_notingame"))
-			user_status:TextControl():SetTextColor(GetARGB(255, 255, 128, 128))
+			user_status:TextControl():SetTextColor(pysaic_config.NOT_IN_GAME_ARGB)
 		end
 
 		self.user_list:AddWindow(user, true)
@@ -297,14 +315,19 @@ function CRCPda:update_messages()
 	local was_max_scrolled = self:is_list_max_scrolled(self.message_list)
 
 	--- display latest message as first or last depending on player preference
-	local start_index = (self.sort_by_date:GetCheck() and 1 or #self.messages)
-    local end_index = (self.sort_by_date:GetCheck() and #self.messages or 1)
+	local start_index = (
+		-- ... and 1 is required to return boolean value
+		self.sort_by_date:GetCheck() and 1 or #pysaic_state.messageLog
+	)
+    local end_index = (
+		self.sort_by_date:GetCheck() and #pysaic_state.messageLog or 1
+	)
     local iterator = (self.sort_by_date:GetCheck() and 1 or -1)
 
 	self.message_list:Clear()
 
 	for i = start_index, end_index, iterator do
-		local messageData = self.messages[i]
+		local messageData = pysaic_state.messageLog[i]
 
 		--- do not display message if the user filters out messages from outside of the zone and this is one of them
 		if self:__should_message_be_displayed(messageData) then
@@ -359,36 +382,27 @@ end
 --- @param text string
 --- @param author string
 function CRCPda:add_message(icon, title, text, author)
-    local max_messages = crc_config.get().max_messages_size
-	local messages_len = size_table(self.messages)
+    local max_messages = pysaic_config.MAX_MESSAGE_LOG_LENGTH
+	local messages_len = size_table(pysaic_state.messageLog)
 
 	if messages_len > max_messages then
 		for i=max_messages, messages_len, 1 do
-			table.remove(self.messages, i)
+			table.remove(pysaic_state.messageLog, i)
 		end
 	end
 
 	--- was sender inside the Zone when the message was added?
-	local from_zone = self:get_user(author) == "True"
+	local from_zone = false
+    if pysaic_state.users[author] and pysaic_state.users[author].location ~= "False" then
+        from_zone = true
+    end
+
 	local message = {title = title, text = text, icon = icon, from_zone = from_zone, author = author};
 
-	table.insert(self.messages, 1, message)
+	table.insert(pysaic_state.messageLog, 1, message)
 
 	if self:is_open() then
 		self:update_messages()
-	else
-		--- do not display message if the user filters it out
-		if self:__should_message_be_displayed(message) then
-			--- skip notification if pda isn't equipped
-			if self:__is_pda_equipped() then
-				-- TODO -> Change give_game_news to custom news implementation
-				db.actor:give_game_news(message.title, message.text, icon, 0, crc_config.get().news_duration)
-			end
-		end
-	end
-
-    if crc_config.get().news_sound then
-		xr_sound.set_sound_play(db.actor:id(), self:sound_picker(title))
 	end
 end
 
@@ -398,27 +412,12 @@ function CRCPda:__is_pda_equipped()
 	return db.actor:item_in_slot(8)
 end
 
---- Saves the player's icon, for later use
---- (displaying messages sent by that player, user list).
---- @param name string
---- @param icon string
 function CRCPda:save_icon(name, icon)
-    self.known_icons[name] = icon
-end
-
---- returns
-function CRCPda:get_user(user)
-    return self.users[user]
+    -- No-op
 end
 
 function CRCPda:load_users(users)
-    self.users = {}
-
-    for name, faction, is_in_game in users do
-        self.users[name] = is_in_game
-		crc_pda.get_ui():save_icon(name, crc_user.get_icon(name, faction))
-    end
-
+    -- No-op
     if self:is_open() then
         self:update_users()
     end

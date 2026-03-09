@@ -1,5 +1,31 @@
 <?xml version="1.0" encoding="windows-1251"?>
 <string_table>
+<!-- for Amon integration -->
+	<string id="crc_entermessage">
+		<text>Enter your message here</text>
+	</string>
+	<string id="crc_pda_tab">
+		<text>PySAIC</text>
+	</string>
+	<string id="crc_sort_by_date">
+		<text>Sort messages by newest</text>
+	</string>
+
+	<string id="crc_use_cyrillic">
+		<text>Type in cyrillic</text>
+	</string>
+
+	<string id="crc_ignore_outsiders">
+		<text>Show only messages from the Zone</text>
+	</string>
+	<string id="crc_pda_messages">
+		<text>Chat Messages</text>
+	</string>
+
+	<string id="crc_pda_users">
+		<text>Users</text>
+	</string>
+<!-- -->
 	<string id="crc_info">
 		<text>Information</text>
 	</string>

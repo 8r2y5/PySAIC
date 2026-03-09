@@ -1,0 +1,53 @@
+function sort_by_nick(nick, other_nick)
+	return nick:lower() < other_nick:lower()
+end
+
+function sort_by_online_status(nick, other_nick)
+    local user = pysaic_state.users[nick]
+    local other_user = pysaic_state.users[other_nick]
+    if user.location == "False" and other_user.location ~= "False" then
+        return false
+    elseif user.location ~= "False" and other_user.location == "False" then
+        return true
+    else
+        return sort_by_nick(nick, other_nick)
+    end
+end
+
+function sort_by_faction(nick, other_nick)
+    local user = pysaic_state.users[nick]
+    local other_user = pysaic_state.users[other_nick]
+    local anonymous_faction = "actor_anonymous"
+    local size_user = pysaic_state.FACTION_SIZE[user.faction] or 0
+    local size_other = pysaic_state.FACTION_SIZE[other_user.faction] or 0
+    if size_user ~= size_other then
+        return size_user > size_other
+    end
+    if user.faction ~= other_user.faction then
+        if user.faction == anonymous_faction then
+            return false
+        end
+        if other_user.faction == anonymous_faction then
+            return true
+        end
+        return gt('crc_' .. user.faction) < gt('crc_' .. other_user.faction)
+    end
+    return sort_by_online_status(nick, other_nick)
+end
+
+function sort_by_faction_and_counter(nick, other_nick)
+    return sort_by_faction(nick, other_nick)
+end
+
+function pairsByKeys(t, f)
+	local a = {}
+	for n in pairs(t) do
+		a[#a+1] = n
+	end
+	table.sort(a, f)
+	local i = 0
+	return function() -- iterator
+		i = i + 1
+		return a[i], t[a[i]]
+	end
+end

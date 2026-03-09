@@ -364,6 +364,7 @@ class Config:
     font: FontConfig = NestedObjectFiled(FontConfig)
     theme_name: str = ConfigField(default="pysaic")
     colors: ColorsConfig = NestedObjectFiled(ColorsConfig)
+    in_game_pda_instead_of_window: bool = BoolField(default=True)
 
     @classmethod
     def load_config(cls):

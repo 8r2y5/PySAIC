@@ -3,25 +3,15 @@
 local SCRIPT_VERSION = 14
 
 -- Etc
-local config = system_ini()
 local lastUpdate = 0
-messageLog = {}
 chatBox = nil
 local showChatBox = false
 local ChatBoxEnabled = true
-users = {}
-local knownIcons = {}
 local prev_money = 0
 local prev_actor
 local prev_level
 local prev_reputation
 local prev_rank
-table_channel = {}
-irc_name_to_description = {}
-prevChannel = ''
-USER_LIST_ORDER = nil
-COLORED_NICKS = false
-FACTION_SIZE = {}
 
 local function gt(id)
 	local result = game.translate_string(id)
@@ -49,14 +39,14 @@ local function getNewsSound(messageType)
 end
 
 local function add_message_to_history(icon, title, text, reputation, rank)
-	local messageLogLength = size_table(messageLog)
+	local messageLogLength = size_table(pysaic_state.messageLog)
 	if messageLogLength > pysaic_config.MAX_MESSAGE_LOG_LENGTH then
 		local toRemove = messageLogLength - pysaic_config.MAX_MESSAGE_LOG_LENGTH
 		for _ = toRemove, 1, -1 do
-			table.remove(messageLog, 1)
+			table.remove(pysaic_state.messageLog, 1)
 		end
 	end
-	messageLog[#messageLog +1 ] = {
+	pysaic_state.messageLog[#pysaic_state.messageLog +1 ] = {
 		title = title,
 		text = text,
 		icon = icon,
@@ -74,7 +64,7 @@ local function addMessage(icon, title, text, reputation, rank)
 	if chatBox then
 		chatBox:UpdateMessages()
 	end
-    if crc_pda then
+    if crc_pda.get_ui() then
         crc_pda.get_ui():add_message(icon, title, text, "system")
     end
 end
@@ -187,10 +177,10 @@ end
 
 function handle_icon(name, faction, icon_id, user_type)
 	local icon
-	if not knownIcons[name] then
+	if not pysaic_state.knownIcons[name] then
 		icon = pysaic_icons.getIconSafe(name, faction, icon_id, user_type)
 	else
-		icon = knownIcons[name]
+		icon = pysaic_state.knownIcons[name]
 	end
 	return icon
 end
@@ -210,7 +200,7 @@ function parseChannelMessage (body)
         reputation,
         rank
     )
-    if crc_pda then
+    if crc_pda.get_ui() then
         crc_pda.get_ui():add_message(icon, name..', '.._get_title_value(faction, user_type), text, name)
     end
 end
@@ -222,7 +212,7 @@ function parsePrivateMessage(body)
 		chatBox:UpdateUsers()
 	end
 	addMessage(icon, from .. " -> " .. to, pysaic_config.QUERY_COLOR .. message, reputation, rank)
-    if crc_pda then
+    if crc_pda.get_ui() then
         crc_pda.get_ui():add_message(icon, from .. " -> " .. to, pysaic_config.QUERY_COLOR .. message, from)
     end
 end
@@ -235,7 +225,7 @@ function parseSendingMoney(body)
 	local title = from .. " " .. (gt("crc_money")) .. " " .. to
 	local text = pysaic_config.MONEY_COLOR .. amount .. " RUB"
 	addMessage(pysaic_icons.info, title, text, reputation, rank)
-	if users[from] then
+	if pysaic_state.users[from] then
 		db.actor:give_money(-amount)
 	end
 end
@@ -277,7 +267,7 @@ function parseActorStatus()
 end
 
 function parseCurrentChannel(value)
-	prevChannel = value
+	pysaic_state.prevChannel = value
 end
 
 function parseDisconnectWhenBlowoutOrUnderground(value)
@@ -292,11 +282,11 @@ function parseUserDisplayStyle(value)
 end
 
 function parseChannels(value)
-	table_channel = {}
+	pysaic_state.table_channel = {}
 	for channel_tuple in value:gmatch("([^,]+)") do
 		for irc_name, description_name in channel_tuple:gmatch("([^/]+)%s=%s([^/]+)") do
-			table_channel[#table_channel+1] = irc_name
-			irc_name_to_description[irc_name] = description_name
+			pysaic_state.table_channel[#pysaic_state.table_channel+1] = irc_name
+			pysaic_state.irc_name_to_description[irc_name] = description_name
 		end
 	end
 	if chatBox then
@@ -316,15 +306,15 @@ end
 
 function parseInGameDisplayOrder(value)
     if value == pysaic_constants.InGameDisplayStyleEnum.Faction then
-        USER_LIST_ORDER = sort_by_faction
+        pysaic_state.USER_LIST_ORDER = pysaic_utils.sort_by_faction
     elseif value == pysaic_constants.InGameDisplayStyleEnum.Faction_Counter then
-        USER_LIST_ORDER = sort_by_faction_and_counter
+        pysaic_state.USER_LIST_ORDER = pysaic_utils.sort_by_faction_and_counter
     elseif value == pysaic_constants.InGameDisplayStyleEnum.OnlineStatus then
-        USER_LIST_ORDER = sort_by_online_status
+        pysaic_state.USER_LIST_ORDER = pysaic_utils.sort_by_online_status
     else
-        USER_LIST_ORDER = sort_by_nick
+        pysaic_state.USER_LIST_ORDER = pysaic_utils.sort_by_nick
     end
-    printf("User list order updated to: %s", USER_LIST_ORDER)
+    printf("User list order updated to: %s", value)
     if chatBox then
         chatBox:UpdateUsers()
     end
@@ -336,6 +326,13 @@ function parseFactionColors(value)
     if chatBox then
         chatBox:UpdateUsers()
     end
+end
+
+function parseUsePda(value)
+	pysaic_state.USE_PDA = isTrue(value)
+	if not pysaic_state.USE_PDA then
+		crc_textbox.unregister_our_ui()
+	end
 end
 
 
@@ -353,7 +350,8 @@ local settingsParserMap = {
 	AFK = parseAFK,
 	Handshake = parseHandshake,
     InGameUserDisplayOrder = parseInGameDisplayOrder,
-    FactionColoredNicks = parseFactionColors
+    FactionColoredNicks = parseFactionColors,
+	UsePDA = parseUsePda
 }
 
 
@@ -368,12 +366,12 @@ function parseSettings(body)
 end
 
 function parseUsers(body)
-	users = {}
-    knownIcons = {}
-    FACTION_SIZE = {}
+	pysaic_state.users = {}
+    pysaic_state.knownIcons = {}
+    pysaic_state.FACTION_SIZE = {}
 	for user_nick, faction, rank, reputation, afk, avatar_id, user_type, location in body:gmatch("([^/]+),([^/]+),([^/]+),([^/]+),([^/]+),([^/]+),([^/]+)%s=%s([^/]+)") do
 		local user_icon = pysaic_icons.getIconSafe(user_nick, faction, avatar_id, user_type)
-		users[user_nick] = {
+		pysaic_state.users[user_nick] = {
 			faction = faction,
 			rank = rank,
 			reputation = reputation,
@@ -383,26 +381,15 @@ function parseUsers(body)
 			nick = user_nick,
             user_type = user_type
 		}
-		knownIcons[user_nick] = user_icon
-        FACTION_SIZE[faction] = (FACTION_SIZE[faction] or 0) + 1
+		pysaic_state.knownIcons[user_nick] = user_icon
+        pysaic_state.FACTION_SIZE[faction] = (pysaic_state.FACTION_SIZE[faction] or 0) + 1
 	end
 	if chatBox then
 		chatBox:UpdateUsers()
 	end
-    if crc_pda then
-        -- Adapt users table to what crc_pda expects or update crc_pda to use pysaic's users table
-        -- crc_pda expects users as a table of name -> is_in_game (string "True"/"False")
-        -- pysaic users is name -> table { location = "...", ... }
-        local crc_users = {}
-        for name, data in pairs(users) do
-            crc_users[name] = (data.location ~= "False") and "True" or "False"
-            -- Also need to save icon for crc_pda
-            crc_pda.get_ui():save_icon(name, data.icon)
-        end
-        crc_pda.get_ui().users = crc_users
-        if crc_pda.get_ui():is_open() then
-            crc_pda.get_ui():update_users()
-        end
+    local pda_ui = crc_pda.get_ui()
+    if pda_ui and pda_ui:is_open() then
+        pda_ui:update_users()
     end
 end
 
@@ -504,14 +491,28 @@ local function onDeath(whoID)
 end
 
 local function onKeyPress(dik)
-	if dik == pysaic_config.option.chatKey and not chatBox then
+	if dik == pysaic_config.option.chatKey then
 		if IS_SIGNAL_LOST then
 			db.actor:give_game_news(gt("crc_info"), gt("crc_signallost"), pysaic_icons.info, 0, pysaic_config.option.newsDuration)
 			xr_sound.set_sound_play(db.actor:id(), "pda_tips")
 			pysaic_io.send("ConnLost/%s/%s", prev_fake_conn_status, get_disconnect_reason())
+			return
+		end
+
+		if pysaic_state.USE_PDA then
+			local pda_ui = crc_pda.get_ui()
+			if pda_ui then
+				if pda_ui:is_open() then
+					pda_ui:HideDialog()
+					crc_textbox.unregister_our_ui()
+				else
+					pda_ui:ShowDialog()
+				end
+			end
 		else
-			-- Defer to next update to avoid this keypress being sent to the UI as well
-			showChatBox = true
+			if not chatBox then
+				showChatBox = true
+			end
 		end
 	end
 end
@@ -629,13 +630,13 @@ end
 
 function save_state(m_data)
 	m_data.connstatus = prev_fake_conn_status
-	m_data.prevChannel = prevChannel
+	m_data.prevChannel = pysaic_state.prevChannel
 end
 
 function load_state(m_data)
-    USER_LIST_ORDER = sort_by_nick
+    pysaic_state.USER_LIST_ORDER = pysaic_utils.sort_by_nick
 	prev_fake_conn_status = m_data.connstatus or false
-	prevChannel = m_data.prevChannel or ''
+	pysaic_state.prevChannel = m_data.prevChannel or ''
 end
 
 function actor_on_net_destroy()
@@ -655,65 +656,11 @@ function start_pysaic()
     pysaic_io.send_handshake('startup')
 end
 
-function sort_by_nick(nick, other_nick)
-	return nick:lower() < other_nick:lower()
-end
-
-function sort_by_online_status(nick, other_nick)
-    local user = users[nick]
-    local other_user = users[other_nick]
-    if user.location == "False" and other_user.location ~= "False" then
-        return false
-    elseif user.location ~= "False" and other_user.location == "False" then
-        return true
-    else
-        return sort_by_nick(nick, other_nick)
-    end
-end
-
-function sort_by_faction(nick, other_nick)
-    local user = users[nick]
-    local other_user = users[other_nick]
-    local anonymous_faction = "actor_anonymous"
-    local size_user = FACTION_SIZE[user.faction] or 0
-    local size_other = FACTION_SIZE[other_user.faction] or 0
-    if size_user ~= size_other then
-        return size_user > size_other
-    end
-    if user.faction ~= other_user.faction then
-        if user.faction == anonymous_faction then
-            return false
-        end
-        if other_user.faction == anonymous_faction then
-            return true
-        end
-        return gt('crc_' .. user.faction) < gt('crc_' .. other_user.faction)
-    end
-    return sort_by_online_status(nick, other_nick)
-end
-
-function sort_by_faction_and_counter(nick, other_nick)
-    return sort_by_faction(nick, other_nick)
-end
-
-function pairsByKeys(t, f)
-	local a = {}
-	for n in pairs(t) do
-		a[#a+1] = n
-	end
-	table.sort(a, f)
-	local i = 0
-	return function() -- iterator
-		i = i + 1
-		return a[i], t[a[i]]
-	end
-end
-
 function on_game_start()
     printf('PySAIC script started with version %s', SCRIPT_VERSION)
 	isDead = false
 	ChatBoxEnabled = true
-    USER_LIST_ORDER = sort_by_nick
+    pysaic_state.USER_LIST_ORDER = pysaic_utils.sort_by_nick
 	AddUniqueCall(update)
 	RegisterScriptCallback("save_state", save_state)
 	RegisterScriptCallback("load_state", load_state)

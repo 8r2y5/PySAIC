@@ -581,6 +581,26 @@ class Options:
             **self.default_style_kwargs,
         ).grid(row=4, column=2, sticky="e", pady=2)
 
+        Label(
+            frame,
+            text="PySAIC in PDA",
+            background=self.background_color,
+            foreground=self.text_color,
+            font=self.font_normal_size,
+        ).grid(row=5, column=0, sticky="w", pady=2)
+        self.in_game_pda_instead_of_window_var = BooleanVar(
+            value=self.config.in_game_pda_instead_of_window
+        )
+        logger.debug(
+            "Pop up on ping: %r", self.config.in_game_pda_instead_of_window
+        )
+        Checkbutton(
+            frame,
+            text="Yes",
+            variable=self.in_game_pda_instead_of_window_var,
+            **self.default_style_kwargs,
+        ).grid(row=5, column=1, sticky="w", pady=2)
+
     def _toggle_death_report_type(self):
         self.death_report_type_option.config(
             state=(NORMAL if self.report_death_var.get() else DISABLED)
@@ -757,6 +777,14 @@ class Options:
             self.notification_popop_sound_var.get(),
         )
         self.config.pop_up_sound = self.notification_popop_sound_var.get()
+
+        logger.debug(
+            "in_game_pda_instead_of_window_var: %r",
+            self.in_game_pda_instead_of_window_var.get(),
+        )
+        self.config.in_game_pda_instead_of_window = (
+            self.in_game_pda_instead_of_window_var.get()
+        )
 
     def destroy_this_window(self):
         logger.debug("Destroying options window")

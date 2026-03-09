@@ -1,5 +1,6 @@
 --| UI textbox implementation for PDA
 --| By Amon
+--| modified for PySAIC integration
 
 --- An empty UI class that displays nothing. Stalker gives you the ability
 --- to block keyboard-related actions, such as player movement, when displaying the UI.
@@ -141,7 +142,11 @@ end
 --- modifies the checkbox's text, inserting a cursor character
 --- at the location specified by the selector_pos variable
 function CRCTextbox:__insert_cursor()
-    self.checkbox:TextControl():SetText(self:__txt_before_selector() .. self.selector_char .. self:__txt_after_selector())
+    self.checkbox:TextControl():SetText(
+        self:__txt_before_selector()
+        .. self.selector_char
+        .. self:__txt_after_selector()
+    )
 end
 
 --- adds a letter to the checkbox's text after the cursor, and updates its position.
@@ -235,6 +240,10 @@ function CRCTextbox:focus()
     end)
 end
 
+function unregister_our_ui()
+    Unregister_UI("crc_fake_ui")
+end
+
 --- Setting textbox into the display mode
 function CRCTextbox:unfocus()
     --- make checkbox unpressed to indicate the display mode
@@ -255,7 +264,7 @@ function CRCTextbox:unfocus()
 
     --- unlock all game's shortcuts registered in lua
     --- this will also reset the cursor position to its original position ( i.e. before entering the edit mode).
-    Unregister_UI("crc_fake_ui")
+    unregister_our_ui()
 end
 
 --- Reacts to the keys pressed by the player. After pressing the appropriate key, it exits the editing mode, changes the size of letters, moves the cursor.
