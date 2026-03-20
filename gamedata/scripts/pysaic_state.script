@@ -6,5 +6,5 @@ prevChannel = ''
 USER_LIST_ORDER = nil
 COLORED_NICKS = false
 FACTION_SIZE = {}
-USE_PDA = true;
+USE_PDA = true
 knownIcons = {}
