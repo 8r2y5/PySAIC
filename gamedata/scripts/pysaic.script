@@ -38,7 +38,7 @@ local function getNewsSound(messageType)
     return newsSoundMap[messageType] or newsSoundMap["default"]
 end
 
-local function add_message_to_history(icon, title, text, reputation, rank)
+local function add_message_to_history(icon, title, text, reputation, rank, author)
 	local messageLogLength = size_table(pysaic_state.messageLog)
 	if messageLogLength > pysaic_config.MAX_MESSAGE_LOG_LENGTH then
 		local toRemove = messageLogLength - pysaic_config.MAX_MESSAGE_LOG_LENGTH
@@ -51,12 +51,13 @@ local function add_message_to_history(icon, title, text, reputation, rank)
 		text = text,
 		icon = icon,
 		reputation = reputation,
-		rank = rank
+		rank = rank,
+        author = author
 	}
 end
 
 local function addMessage(icon, title, text, reputation, rank, author)
-	add_message_to_history(icon, title, text, reputation, rank)
+	add_message_to_history(icon, title, text, reputation, rank, author)
 	db.actor:give_game_news(title, text, icon, 0, pysaic_config.option.newsDuration)
 	if pysaic_config.option.newsSound then
 		xr_sound.set_sound_play(db.actor:id(), getNewsSound(icon))
@@ -99,7 +100,7 @@ function historyChannelHandler(message, highlight, name, faction, icon_id, messa
 	local icon = handle_icon(name, faction, icon_id, user_type)
 	local title = name..', '.._get_title_value(faction, user_type)
 	local text = ((highlight and pysaic_config.HIGHLIGHT_COLOR) or pysaic_config.MESSAGE_COLOR) .. message
-	add_message_to_history(icon, title, text, reputation, rank)
+	add_message_to_history(icon, title, text, reputation, rank, name)
 end
 
 
@@ -107,14 +108,14 @@ function historyFromPrivateHandler(message, highlight, name, faction, icon_id, m
 	local icon = handle_icon(name, faction, icon_id, user_type)
 	local title = name .. " -> " .. message_params
 	local text = pysaic_config.QUERY_COLOR .. message
-	add_message_to_history(icon, title, text, reputation, rank)
+	add_message_to_history(icon, title, text, reputation, rank, name)
 end
 
 function historyToPrivateHandler(message, highlight, name, faction, icon_id, message_params, reputation, rank, user_type)
 	local icon = handle_icon(name, faction, icon_id, user_type)
 	local title = message_params .. " -> " .. name
 	local text = pysaic_config.QUERY_COLOR .. message
-	add_message_to_history(icon, title, text, reputation, rank)
+	add_message_to_history(icon, title, text, reputation, rank, name)
 end
 
 function addInformationMessage(body)
@@ -123,7 +124,8 @@ function addInformationMessage(body)
 		gt("crc_info"),
 		body,
 		nil,
-		nil
+		nil,
+        "system"
 	)
 end
 
@@ -133,7 +135,8 @@ function addErrorMessage(body)
 		gt("crc_error"),
 		pysaic_config.ERROR_COLOR .. body,
 		nil,
-		nil
+		nil,
+        "system"
 	)
 end
 
@@ -141,14 +144,14 @@ function historyMoneyFromHandler(message, highlight, name, faction, icon_id, mes
 	local icon = handle_icon(name, faction, icon_id, user_type)
 	local title = name .. " " .. (gt("crc_money_recv"))
 	local text = pysaic_config.MONEY_COLOR .. message .. " RUB"
-	add_message_to_history(icon, title, text, reputation, rank)
+	add_message_to_history(icon, title, text, reputation, rank, name)
 end
 
 function historyMoneyToHandler(message, highlight, name, faction, icon_id, message_params, reputation, rank, user_type)
 	local icon = handle_icon(name, faction, icon_id, user_type)
 	local title = message_params .. " " .. (gt("crc_money")) .. " " .. name
 	local text = pysaic_config.MONEY_COLOR .. message .. " RUB"
-	add_message_to_history(icon, title, text, reputation, rank)
+	add_message_to_history(icon, title, text, reputation, rank, name)
 end
 
 historyHandlers = {
@@ -329,8 +332,24 @@ end
 
 function parseUsePda(value)
 	pysaic_state.USE_PDA = isTrue(value)
-	if not pysaic_state.USE_PDA then
+	if pysaic_state.USE_PDA then
+        -- Switching TO 3D PDA: close and unregister ChatBox
+		Unregister_UI("ChatBox")
+		if chatBox then
+			chatBox:HideDialog()
+			chatBox = nil
+            showChatBox = false
+		end
+	else
+        -- Switching TO ChatBox: unregister fake UI and close PDA chat if open
 		crc_textbox.unregister_our_ui()
+        local pda_menu = ActorMenu.get_pda_menu()
+        if pda_menu and pda_menu:IsShown() then
+            local sub = pda_menu:GetActiveSubdialog()
+            if sub and sub.st_name == "eptChat" then
+                pda_menu:HideDialog()
+            end
+        end
 	end
 end
 
