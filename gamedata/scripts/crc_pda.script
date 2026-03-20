@@ -115,6 +115,11 @@ end
 
 function CRCPda:OnHide()
     self.edit_box:unfocus()
+    -- Sync state back to data_from_save so it can be saved
+    data_from_save.start_channel = self.channel
+    data_from_save.sort_by_date = self.sort_by_date:GetCheck()
+    data_from_save.use_cyrillic = self.use_cyrillic:GetCheck()
+    data_from_save.ignore_outsiders = self.ignore_outsiders:GetCheck()
 end
 
 function CRCPda:UpdateChannels()
@@ -160,6 +165,10 @@ function CRCPda:handle_edit_key_press(key)
 	--- close the pda when CHAT_KEY is pressed
 	if key == pysaic_config.option.chatKey then
         self.edit_box:unfocus()
+        -- We return true to consume the key, but we don't close the PDA here.
+        -- The main key listener will handle the toggle if we weren't focused.
+        -- But since we were focused, we just unfocus.
+        -- If the user wants to close PDA, they press chat key again.
         return true
     end
 
@@ -214,6 +223,10 @@ function CRCPda:send()
 
 	if pysaic_config.option.closeChat then
 		self.edit_box:unfocus()
+        -- We don't close the PDA here, just unfocus.
+        -- If closeChat is true, maybe we should close PDA?
+        -- But we can't easily close the engine PDA menu from here without side effects.
+        -- Unfocusing is safer.
 	end
 
 	self:scroll_messages_to_the_latest()
@@ -262,8 +275,8 @@ function CRCPda:update_users()
 		local user = xml:InitStatic("user", nil)
 
 		xml:InitStatic("user:icon", user):InitTexture(data.icon or pysaic_icons.unknown)
-		name = xml:InitStatic("user:name", data.nick)
-		name:TextControl():SetText(name:sub(1, 20))
+		name = xml:InitStatic("user:name", user)
+		name:TextControl():SetText(data.nick)
 		if pysaic_state.COLORED_NICKS and data.faction then
 			name:TextControl():SetTextColor(
 				pysaic_constants.FACTION_COLORS[data.faction]
@@ -281,11 +294,11 @@ function CRCPda:update_users()
 			else
 				text = game.translate_string(data.location) or game.translate_string("crc_ingame")
 			end
-			status:TextControl():SetText(text)
+			user_status:TextControl():SetText(text)
 			if data.afk then
-				status:TextControl():SetTextColor(pysaic_config.AFK_ARGB)
+				user_status:TextControl():SetTextColor(pysaic_config.AFK_ARGB)
 			else
-				status:TextControl():SetTextColor(pysaic_config.IN_GAME_ARGB)
+				user_status:TextControl():SetTextColor(pysaic_config.IN_GAME_ARGB)
 			end
 		end
 
