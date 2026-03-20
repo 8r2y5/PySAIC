@@ -82,8 +82,3 @@ function on_key_release(key)
         end
     end
 end
-
-function on_game_start()
-	-- RegisterScriptCallback("on_key_release", on_key_release)
-    -- Disabled: pysaic.script calls on_key_release directly when USE_PDA is true.
-end
