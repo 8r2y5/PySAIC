@@ -13,15 +13,6 @@ local prev_level
 local prev_reputation
 local prev_rank
 
-local function gt(id)
-	local result = game.translate_string(id)
-	if result == id then
-		return nil
-	else
-		return result
-	end
-end
-
 local function isTrue(value)
 	return value == "True"
 end
@@ -75,21 +66,21 @@ local function _get_title_value(faction, user_type)
     local title_value = ''
     local faction_value = ''
     if user_type == pysaic_constants.IRCUserModeEnum.Operator then
-        title_value = gt("pysaic_irc_operator")
+        title_value = pysaic_utils.gt("pysaic_irc_operator")
     elseif user_type == pysaic_constants.IRCUserModeEnum.HalfOp then
-        title_value = gt("pysaic_irc_halfop")
+        title_value = pysaic_utils.gt("pysaic_irc_halfop")
     elseif user_type == pysaic_constants.IRCUserModeEnum.Voice then
-        title_value = gt("pysaic_irc_voice")
+        title_value = pysaic_utils.gt("pysaic_irc_voice")
     end
     if title_value ~= '' then
         title_value = title_value .. ', '
     end
     if faction then
-        faction_value = gt("crc_"..faction)
-    elseif gt("crc_actor_anonymous") then
-        faction_value = gt("crc_actor_anonymous")
+        faction_value = pysaic_utils.gt("crc_"..faction)
+    elseif pysaic_utils.gt("crc_actor_anonymous") then
+        faction_value = pysaic_utils.gt("crc_actor_anonymous")
     else
-        faction_value = gt("crc_unknown")
+        faction_value = pysaic_utils.gt("crc_unknown")
     end
     return title_value .. faction_value
 end
@@ -121,7 +112,7 @@ end
 function addInformationMessage(body)
 	addMessage(
 		pysaic_icons.info,
-		gt("crc_info"),
+		pysaic_utils.gt("crc_info"),
 		body,
 		nil,
 		nil,
@@ -132,7 +123,7 @@ end
 function addErrorMessage(body)
 	addMessage(
 		pysaic_icons.error,
-		gt("crc_error"),
+		pysaic_utils.gt("crc_error"),
 		pysaic_config.ERROR_COLOR .. body,
 		nil,
 		nil,
@@ -142,14 +133,14 @@ end
 
 function historyMoneyFromHandler(message, highlight, name, faction, icon_id, message_params, reputation, rank, user_type)
 	local icon = handle_icon(name, faction, icon_id, user_type)
-	local title = name .. " " .. (gt("crc_money_recv"))
+	local title = name .. " " .. (pysaic_utils.gt("crc_money_recv"))
 	local text = pysaic_config.MONEY_COLOR .. message .. " RUB"
 	add_message_to_history(icon, title, text, reputation, rank, name)
 end
 
 function historyMoneyToHandler(message, highlight, name, faction, icon_id, message_params, reputation, rank, user_type)
 	local icon = handle_icon(name, faction, icon_id, user_type)
-	local title = message_params .. " " .. (gt("crc_money")) .. " " .. name
+	local title = message_params .. " " .. (pysaic_utils.gt("crc_money")) .. " " .. name
 	local text = pysaic_config.MONEY_COLOR .. message .. " RUB"
 	add_message_to_history(icon, title, text, reputation, rank, name)
 end
@@ -220,7 +211,7 @@ function parseSendingMoney(body)
 	if chatBox then
 		chatBox:UpdateUsers()
 	end
-	local title = from .. " " .. (gt("crc_money")) .. " " .. to
+	local title = from .. " " .. (pysaic_utils.gt("crc_money")) .. " " .. to
 	local text = pysaic_config.MONEY_COLOR .. amount .. " RUB"
 	addMessage(pysaic_icons.info, title, text, reputation, rank)
 	if pysaic_state.users[from] then
@@ -234,7 +225,7 @@ function parseGettingMoney(body)
 	if chatBox then
 		chatBox:UpdateUsers()
 	end
-	local title = from .. " " .. (gt("crc_money_recv"))
+	local title = from .. " " .. (pysaic_utils.gt("crc_money_recv"))
 	local text = pysaic_config.MONEY_COLOR .. amount .. " RUB"
 	addMessage(pysaic_icons.info, title, text, reputation, rank)
 	db.actor:give_money(amount)
@@ -507,7 +498,7 @@ end
 local function onKeyPress(dik)
 	if dik == pysaic_config.option.chatKey then
 		if IS_SIGNAL_LOST then
-			db.actor:give_game_news(gt("crc_info"), gt("crc_signallost"), pysaic_icons.info, 0, pysaic_config.option.newsDuration)
+			db.actor:give_game_news(pysaic_utils.gt("crc_info"), pysaic_utils.gt("crc_signallost"), pysaic_icons.info, 0, pysaic_config.option.newsDuration)
 			xr_sound.set_sound_play(db.actor:id(), "pda_tips")
 			pysaic_io.send("ConnLost/%s/%s", prev_fake_conn_status, get_disconnect_reason())
 			return
