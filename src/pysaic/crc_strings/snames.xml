@@ -1059,6 +1059,47 @@
 			<string>Piotrowski</string>
 			<string>Grabowski</string>
 		</actor_isg>
+		<actor_killer>
+			<string>Anderson</string>
+			<string>Baker</string>
+			<string>Bane</string>
+			<string>Blackwood</string>
+			<string>Callahan</string>
+			<string>Collins</string>
+			<string>Cross</string>
+			<string>Davis</string>
+			<string>Fisher</string>
+			<string>Garrison</string>
+			<string>Graves</string>
+			<string>Griffin</string>
+			<string>Hammer</string>
+			<string>Hayes</string>
+			<string>Hendrix</string>
+			<string>Irons</string>
+			<string>Johnson</string>
+			<string>Jones</string>
+			<string>Knight</string>
+			<string>Lynch</string>
+			<string>Miller</string>
+			<string>Morgan</string>
+			<string>Murphy</string>
+			<string>Pierce</string>
+			<string>Price</string>
+			<string>Reed</string>
+			<string>Rhodes</string>
+			<string>Richards</string>
+			<string>Sledge</string>
+			<string>Steele</string>
+			<string>Stone</string>
+			<string>Sullivan</string>
+			<string>Taylor</string>
+			<string>Thompson</string>
+			<string>Vance</string>
+			<string>Victor</string>
+			<string>Walker</string>
+			<string>West</string>
+			<string>Wilder</string>
+		</actor_killer>
 	</eng>
 	
 	<rus>

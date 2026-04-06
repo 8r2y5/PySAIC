@@ -190,6 +190,46 @@
 			<string>Researcher</string>
 			<string>Junior researcher</string>
 		</actor_isg>
+		<actor_killer>
+			<string>Aaron</string>
+			<string>Ace</string>
+			<string>Bishop</string>
+			<string>Buck</string>
+			<string>Chris</string>
+			<string>Cody</string>
+			<string>Colt</string>
+			<string>David</string>
+			<string>Duke</string>
+			<string>Dutch</string>
+			<string>Frank</string>
+			<string>Gabe</string>
+			<string>Ghost</string>
+			<string>Hank</string>
+			<string>Hunter</string>
+			<string>Jack</string>
+			<string>Jake</string>
+			<string>Jason</string>
+			<string>John</string>
+			<string>Josh</string>
+			<string>Kane</string>
+			<string>Kyle</string>
+			<string>Mason</string>
+			<string>Matt</string>
+			<string>Mike</string>
+			<string>Nash</string>
+			<string>Reaper</string>
+			<string>Rex</string>
+			<string>Ryan</string>
+			<string>Sam</string>
+			<string>Sarge</string>
+			<string>Seth</string>
+			<string>Tex</string>
+			<string>Travis</string>
+			<string>Tyler</string>
+			<string>Viper</string>
+			<string>Wolf</string>
+			<string>Wyatt</string>
+		</actor_killer>
 	</eng>
 	
 	<rus>

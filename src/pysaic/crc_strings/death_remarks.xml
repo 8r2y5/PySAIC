@@ -129,7 +129,7 @@
 		<string>Right. Is anyone not dead yet? Can we go?</string>
 		<string>Yawn. Seen worse.</string>
 		<string>Adds to the scenery, I guess.</string>
-		<string>Just another Tuesday in the Zone.</string>
+		<string>Just another {{day}} in the Zone.</string>
 		<string>Can we hurry up? I've got things to do.</string>
 		<string>Look at that! Even the blind dogs knew better than you.</string>
 		<string>Took you long enough. We were starting to think you were actually competent.</string>

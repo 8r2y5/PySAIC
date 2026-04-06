@@ -1,4 +1,5 @@
 import logging
+from contextlib import suppress
 from enum import Enum, StrEnum, auto
 
 import yaml
@@ -129,8 +130,9 @@ def _load_factions():
         with open(FACTIONS_FOR_ENUM_PATH, encoding="utf-8") as file:
             user_factions = yaml.safe_load(file) or {}
     except FileNotFoundError:
-        with open(FACTIONS_FOR_ENUM_PATH, mode="w", encoding="utf-8") as file:
-            yaml.safe_dump({}, file)
+        with suppress(FileNotFoundError):
+            with open(FACTIONS_FOR_ENUM_PATH, mode="w", encoding="utf-8") as file:
+                yaml.safe_dump({}, file)
         user_factions = {}
     except Exception:
         logger.exception(

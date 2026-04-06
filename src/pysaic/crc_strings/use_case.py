@@ -5,6 +5,7 @@ import os
 import re
 import xml.etree.ElementTree as ET
 from copy import deepcopy
+from datetime import date
 from pathlib import Path
 from random import choice, randint
 from typing import Union
@@ -93,8 +94,8 @@ def _load_faction_name(filename, faction):
     }
     if faction not in data:
         logger.warning(
-            "Faction %r not found in faction file, using random faction name",
-            faction,
+            "Faction %r not found in faction file %r, using random faction name",
+            faction, filename
         )
         faction_node = choice(tuple(data.values()))
     else:
@@ -221,6 +222,8 @@ class DeathMessageUseCase(StringsController):
         message = message[0].upper() + message[1:]
         if randint(0, 8) == 0:
             message = f"{message} {self._load_random_comment()}"
+        if '{{day}}' in message:
+            message = message.replace('{{day}}', date.today().strftime("%A"))
 
         reporter_actor = self._get_reporter_actor()
         return (
