@@ -326,7 +326,7 @@ class App(Tk):
             title=title,
             msg=message,
             duration="long",
-            icon=str(PATH / "pysaic_icon.ico"),
+            icon=str(self.icon_path),
             launch="pysaic://open",
         )
         logger.debug(
@@ -335,9 +335,7 @@ class App(Tk):
         if self.pysaic_config.pop_up_sound:
             logger.debug("Playing popup sound")
             toast.set_audio(audio.Default, loop=False)
-        else:
-            logger.debug("Silent popup")
-            toast.set_audio(audio.Silent, loop=False)
+
         toast.show()
 
     def _nick_auto_complete(self, _event):
