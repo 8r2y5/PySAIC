@@ -66,6 +66,7 @@ class Options:
             "selectcolor": self.background_color,
             "font": self.font_normal_size,
         }
+        self._save_callbacks = []
 
     def main(self):
         for widget in self.this_window.winfo_children():
@@ -76,6 +77,7 @@ class Options:
         self.this_window.grid_rowconfigure(0, weight=1)
 
         self._configure_style()
+        self._save_callbacks.clear()
 
         main_frame = Frame(self.this_window, background=self.background_color)
         main_frame.grid(row=0, column=0, sticky="nsew", padx=10, pady=5)
@@ -176,9 +178,8 @@ class Options:
     @inject.autoparams()
     def save_options(self, incoming_queue: IncomingQueue):
         logger.debug("Saving options")
-        self.general_tab.update_config()
-        self.client_tab.update_config()
-        self.display_tab.update_config()
+        for callback in self._save_callbacks:
+            callback()
 
         logger.debug("Saving config")
         self.config.save_config()
@@ -263,3 +264,6 @@ class Options:
                 self._theme_button.config(state=NORMAL)
             case _:
                 logger.error("%r unexpected name to clear", name)
+
+    def add_save_callback(self, callback):
+        self._save_callbacks.append(callback)

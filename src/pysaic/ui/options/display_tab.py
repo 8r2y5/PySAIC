@@ -12,20 +12,10 @@ from tkinter import (
 from pysaic.config import InGameUserDisplayEnum, InGameUserDisplayOrderEnum
 from pysaic.controllers.ui.user_list import DISPLAY_MODES_MAP
 from pysaic.enums import UserListDisplayModeEnum, DeathReportTypeEnum
+from pysaic.ui.options.utils import RowCounter
 from pysaic.ui.utils import add_separator
 
 logger = logging.getLogger(__name__)
-
-
-class RowCounter:
-    def __init__(self):
-        self.current_row = 0
-
-    def __enter__(self):
-        return self.current_row
-
-    def __exit__(self, exc_type, exc_val, exc_tb):
-        self.current_row += 1
 
 
 class DisplayTab(Frame):
@@ -38,6 +28,7 @@ class DisplayTab(Frame):
         self.grid_columnconfigure(0, weight=1)
 
         self._setup_ui()
+        self.options.add_save_callback(self.update_config)
 
     def _setup_ui(self):
         row_index = 0

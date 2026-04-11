@@ -37,6 +37,7 @@ class GeneralTab(Frame):
         )
 
         self._setup_ui()
+        self.options.add_save_callback(self.update_config)
 
     def _setup_ui(self):
         row_index = 0
