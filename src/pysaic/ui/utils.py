@@ -3,7 +3,7 @@ from tkinter import Frame, TclError
 from tkinter.font import Font
 from tkinter.ttk import Separator, Style, Label
 
-from pysaic.config import ColorsConfig, Config
+from pysaic.config import Config
 from pysaic.enums import FactionsEnum
 
 
@@ -55,9 +55,12 @@ class BoldLabel(tkinter.Label):
     pass
 
 
-def apply_color_tags_to_text(widget: tkinter.Text, colors: ColorsConfig):
+def apply_color_tags_to_text(widget: tkinter.Text, config: Config):
     bold_font = Font(widget, widget.cget("font"))
-    bold_font.configure(weight="bold")
+    if not config.font.turn_off_bold_font:
+        bold_font.configure(weight="bold")
+
+    colors = config.colors
     widget.tag_config("Time", foreground=colors.content.time)
     widget.tag_config("Text", foreground=colors.content.text)
     widget.tag_config(
@@ -177,7 +180,7 @@ def apply_color_tags_to_text(widget: tkinter.Text, colors: ColorsConfig):
     )
 
 
-def configure_widget(widget, config):
+def configure_widget(widget, config: Config):
     if isinstance(widget, tkinter.Button):
         widget.configure(
             background=config.colors.background.app,
@@ -243,7 +246,7 @@ def configure_widget(widget, config):
             background=config.colors.background.content,
             insertbackground=config.colors.content.text,
         )
-        apply_color_tags_to_text(widget, config.colors)
+        apply_color_tags_to_text(widget, config)
 
 
 def apply_style_to_tkinter(container, config: Config):

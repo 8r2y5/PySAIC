@@ -36,7 +36,7 @@ class ChatTab(Frame):
             background=self.config.colors.background.content,
             font=(self.config.font.name, self.config.font.size),
         )
-        apply_color_tags_to_text(self.messages_list, self.config.colors)
+        apply_color_tags_to_text(self.messages_list, self.config)
 
 
 class TabbedChat(Frame):

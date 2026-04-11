@@ -25,7 +25,6 @@ class ClientTab(Frame):
         self.grid_columnconfigure(0, weight=1)
 
         self._setup_ui()
-        self.options.add_save_callback(self.update_config)
 
     def _setup_ui(self):
         row_index = 0
@@ -66,13 +65,6 @@ class ClientTab(Frame):
         self._disconnect_when_emission_var = StringVar(
             value=self.config.disconnect_when_emission
         )
-        disconnect_when_network = self.options._create_option_menu(
-            frame,
-            self._disconnect_when_emission_var,
-            disconnect_config_values,
-            22,
-        )
-        disconnect_when_network.grid(row=0, column=1, sticky="e", pady=2)
 
         Label(
             frame,
@@ -84,6 +76,36 @@ class ClientTab(Frame):
         self._disconnect_when_underground_var = StringVar(
             value=self.config.disconnect_when_underground
         )
+
+        @self.options.add_save_callback
+        def save_emission_settings():
+            logger.debug(
+                "disconnect_when_emission: %r",
+                self._disconnect_when_emission_var.get(),
+            )
+            self.config.disconnect_when_emission = (
+                DisconnectOnNetworkDestructionSetting(
+                    self._disconnect_when_emission_var.get()
+                )
+            )
+            logger.debug(
+                "disconnect_when_underground: %r",
+                self._disconnect_when_underground_var.get(),
+            )
+            self.config.disconnect_when_underground = (
+                DisconnectOnNetworkDestructionSetting(
+                    self._disconnect_when_underground_var.get()
+                )
+            )
+
+        disconnect_when_network = self.options._create_option_menu(
+            frame,
+            self._disconnect_when_emission_var,
+            disconnect_config_values,
+            22,
+        )
+        disconnect_when_network.grid(row=0, column=1, sticky="e", pady=2)
+
         disconnect_when_underground = self.options._create_option_menu(
             frame,
             self._disconnect_when_underground_var,
@@ -95,6 +117,16 @@ class ClientTab(Frame):
         self.block_money_transfer_var = BooleanVar(
             value=self.config.block_money_transfer
         )
+
+        @self.options.add_save_callback
+        def save_money_transfer():
+            logger.debug(
+                "block_money_transfer: %r", self.block_money_transfer_var.get()
+            )
+            self.config.block_money_transfer = (
+                self.block_money_transfer_var.get()
+            )
+
         Checkbutton(
             frame,
             text="Block money transfer",
@@ -103,6 +135,7 @@ class ClientTab(Frame):
         ).grid(row=2, column=0, sticky="w")
 
         self.sound_notification_var = BooleanVar(value=self.config.news_sound)
+
         Checkbutton(
             frame,
             text="Sound notification",
@@ -133,6 +166,26 @@ class ClientTab(Frame):
         self.news_duration_spinbox.delete(0, "end")
         self.news_duration_spinbox.insert(0, str(self.config.news_duration))
         self.news_duration_spinbox.grid(row=0, column=1, sticky="w")
+
+        @self.options.add_save_callback
+        def save_notification_settings():
+            logger.debug(
+                "sound_notification: %r", self.sound_notification_var.get()
+            )
+            self.config.news_sound = self.sound_notification_var.get()
+
+            try:
+                self.config.news_duration = int(
+                    self.news_duration_spinbox.get()
+                )
+            except ValueError:
+                # Handle the case where the input is not a valid integer.
+                # You might want to log an error or reset to a default value.
+                logger.error("Invalid notification duration format.")
+                self.news_duration_spinbox.delete(0, "end")
+                self.news_duration_spinbox.insert(
+                    0, str(self.config.news_duration)
+                )
 
         Label(
             frame,
@@ -172,56 +225,35 @@ class ClientTab(Frame):
             foreground=self.options.text_color,
             font=self.options.font_normal_size,
         ).grid(row=6, column=0, sticky="w", pady=(5, 0))
+        self.turn_off_bold_font_var = BooleanVar(
+            value=self.config.font.turn_off_bold_font
+        )
+
+        @self.options.add_save_callback
+        def save_bold_font_settings():
+            logger.debug(
+                "turn_off_bold_font_var: %r", self.turn_off_bold_font_var.get()
+            )
+            self.config.font.turn_off_bold_font = (
+                self.turn_off_bold_font_var.get()
+            )
+
+        font_frame = Frame(frame, background=self.options.background_color)
+        Checkbutton(
+            font_frame,
+            text="Turn off bold font",
+            variable=self.turn_off_bold_font_var,
+            **self.options.default_style_kwargs,
+        ).grid(row=0, column=0, sticky="w", pady=(5, 0))
         self.options._font_button = Button(
-            frame,
+            font_frame,
             text="Font Config",
             background=self.options.background_color,
             foreground=self.options.text_color,
             font=self.options.font_normal_size,
             command=self.options._spawn_font_options,
         )
-
         self.options._font_button.grid(
-            row=6, column=1, sticky="e", pady=(5, 0)
+            row=0, column=1, sticky="e", pady=(5, 0)
         )
-
-    def update_config(self):
-        logger.debug(
-            "disconnect_when_emission: %r",
-            self._disconnect_when_emission_var.get(),
-        )
-        self.config.disconnect_when_emission = (
-            DisconnectOnNetworkDestructionSetting(
-                self._disconnect_when_emission_var.get()
-            )
-        )
-        logger.debug(
-            "disconnect_when_underground: %r",
-            self._disconnect_when_underground_var.get(),
-        )
-        self.config.disconnect_when_underground = (
-            DisconnectOnNetworkDestructionSetting(
-                self._disconnect_when_underground_var.get()
-            )
-        )
-
-        logger.debug(
-            "block_money_transfer: %r", self.block_money_transfer_var.get()
-        )
-        self.config.block_money_transfer = self.block_money_transfer_var.get()
-
-        logger.debug(
-            "sound_notification: %r", self.sound_notification_var.get()
-        )
-        self.config.news_sound = self.sound_notification_var.get()
-
-        try:
-            self.config.news_duration = int(self.news_duration_spinbox.get())
-        except ValueError:
-            # Handle the case where the input is not a valid integer.
-            # You might want to log an error or reset to a default value.
-            logger.error("Invalid notification duration format.")
-            self.news_duration_spinbox.delete(0, "end")
-            self.news_duration_spinbox.insert(
-                0, str(self.config.news_duration)
-            )
+        font_frame.grid(row=6, column=1, sticky="e", pady=(5, 0))

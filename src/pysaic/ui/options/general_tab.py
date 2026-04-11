@@ -36,8 +36,21 @@ class GeneralTab(Frame):
             value=self.config.current_faction.name.replace("_", " "),
         )
 
+        @self.options.add_save_callback
+        def save_faction_settings():
+            logger.debug("Faction setting: %r", self.faction_var.get())
+            self.config.faction_setting = FactionSetting(
+                self.faction_var.get()
+            )
+            if self.config.faction_setting == FactionSetting.Static:
+                logger.debug(
+                    "Current faction: %r", self.static_faction_var.get()
+                )
+                self.config.current_faction = FactionsEnum[
+                    self.static_faction_var.get().replace(" ", "_")
+                ]
+
         self._setup_ui()
-        self.options.add_save_callback(self.update_config)
 
     def _setup_ui(self):
         row_index = 0
@@ -154,26 +167,19 @@ class GeneralTab(Frame):
         self.password_entry.insert(0, self.config.password)
         self.password_entry.grid(row=0, column=3, sticky="we", padx=5)
 
-    def update_config(self):
-        logger.debug("Faction setting: %r", self.faction_var.get())
-        self.config.faction_setting = FactionSetting(self.faction_var.get())
-        if self.config.faction_setting == FactionSetting.Static:
-            logger.debug("Current faction: %r", self.static_faction_var.get())
-            self.config.current_faction = FactionsEnum[
-                self.static_faction_var.get().replace(" ", "_")
-            ]
-
-        logger.debug("Name: %r", self.name_entry.get())
-        new_nick = sanitize_nick(self.name_entry.get())
-        if new_nick != self.name_entry.get():
-            inject.instance(IncomingQueue).put_nowait(
-                IncomingEvent.create_error_event(
-                    f'Invalid nickname. Using old one: "{self.name_entry.get()}". '
-                    "Available characters are a-zA-Z0-9_{}[]\\|^-"
+        @self.options.add_save_callback
+        def save_account_details():
+            logger.debug("Name: %r", self.name_entry.get())
+            new_nick = sanitize_nick(self.name_entry.get())
+            if new_nick != self.name_entry.get():
+                inject.instance(IncomingQueue).put_nowait(
+                    IncomingEvent.create_error_event(
+                        f'Invalid nickname. Using old one: "{self.name_entry.get()}". '
+                        "Available characters are a-zA-Z0-9_{}[]\\|^-"
+                    )
                 )
-            )
-        else:
-            self.config.nick = new_nick
+            else:
+                self.config.nick = new_nick
 
-        logger.debug("Password: %r", self.password_entry.get())
-        self.config.password = self.password_entry.get()
+            logger.debug("Password: %r", self.password_entry.get())
+            self.config.password = self.password_entry.get()

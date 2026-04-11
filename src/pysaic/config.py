@@ -106,22 +106,6 @@ class Server:
         )
 
 
-@dataclass
-class FontConfig:
-    name: str = "JetBrains Mono"
-    size: int = 10
-
-    @classmethod
-    def load_from_config(cls, config: None | dict[str, int | str] = None):
-        try:
-            return cls(
-                config.get("name") or cls.name, config.get("size") or cls.size
-            )
-        except Exception:
-            logger.exception("Could not read font config, creating default")
-            return cls()
-
-
 def load_and_sanitize_nick(nick):
     from pysaic.use_cases.nick import sanitize_nick
 
@@ -233,6 +217,25 @@ class NestedObjectFiled(ConfigField):
 
     def dump_value(self, instance) -> dict:
         return asdict(getattr(instance, self.name))
+
+
+@dataclass
+class FontConfig:
+    name: str = "JetBrains Mono"
+    size: int = 10
+    turn_off_bold_font: bool = False
+
+    @classmethod
+    def load_from_config(cls, config: None | dict[str, int | str] = None):
+        try:
+            return cls(
+                config.get("name") or cls.name,
+                config.get("size") or cls.size,
+                config.get("turn_off_bold_font") or cls.turn_off_bold_font,
+            )
+        except Exception:
+            logger.exception("Could not read font config, creating default")
+            return cls()
 
 
 class Colors:

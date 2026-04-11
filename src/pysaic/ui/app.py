@@ -494,7 +494,7 @@ class App(Tk):
         self.tabbed_chat.update_styles()
 
     def set_color_tags(self):
-        apply_color_tags_to_text(self.users_list, self.pysaic_config.colors)
+        apply_color_tags_to_text(self.users_list, self.pysaic_config)
         self.tabbed_chat.update_styles()
 
     def update_colors(self):
