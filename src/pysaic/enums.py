@@ -131,7 +131,9 @@ def _load_factions():
             user_factions = yaml.safe_load(file) or {}
     except FileNotFoundError:
         with suppress(FileNotFoundError):
-            with open(FACTIONS_FOR_ENUM_PATH, mode="w", encoding="utf-8") as file:
+            with open(
+                FACTIONS_FOR_ENUM_PATH, mode="w", encoding="utf-8"
+            ) as file:
                 yaml.safe_dump({}, file)
         user_factions = {}
     except Exception:

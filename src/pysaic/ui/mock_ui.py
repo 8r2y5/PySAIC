@@ -54,7 +54,7 @@ def gen_chat_users():
                     SAICStateEnum.underground,
                 )
             ),
-            irc_mode=choice(tuple(MODE_TRANSLATOR.values()))
+            irc_mode=choice(tuple(MODE_TRANSLATOR.values())),
         )
         for x in range(30)
     }

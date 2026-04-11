@@ -1,5 +1,13 @@
 import logging
-from tkinter import Frame, StringVar, Radiobutton, Label, Entry, NORMAL, DISABLED
+from tkinter import (
+    Frame,
+    StringVar,
+    Radiobutton,
+    Label,
+    Entry,
+    NORMAL,
+    DISABLED,
+)
 import inject
 
 from pysaic.config import FactionSetting
@@ -10,9 +18,12 @@ from pysaic.use_cases.nick import sanitize_nick
 
 logger = logging.getLogger(__name__)
 
+
 class GeneralTab(Frame):
     def __init__(self, master, options):
-        super().__init__(master, background=options.background_color, padx=5, pady=5)
+        super().__init__(
+            master, background=options.background_color, padx=5, pady=5
+        )
         self.options = options
         self.config = options.config
         self.grid_columnconfigure(0, weight=1)

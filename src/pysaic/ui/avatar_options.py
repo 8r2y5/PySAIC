@@ -59,7 +59,9 @@ faction_file = {
 logger = logging.getLogger(__name__)
 
 
-def show_custom_info_dialog(icon_path, parent, title, message, bg_color, text_color):
+def show_custom_info_dialog(
+    icon_path, parent, title, message, bg_color, text_color
+):
     dialog = Toplevel()
     dialog.title(title)
     dialog.config(bg=bg_color)

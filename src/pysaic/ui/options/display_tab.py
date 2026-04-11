@@ -1,5 +1,13 @@
 import logging
-from tkinter import Frame, StringVar, BooleanVar, Label, Checkbutton, NORMAL, DISABLED
+from tkinter import (
+    Frame,
+    StringVar,
+    BooleanVar,
+    Label,
+    Checkbutton,
+    NORMAL,
+    DISABLED,
+)
 
 from pysaic.config import InGameUserDisplayEnum, InGameUserDisplayOrderEnum
 from pysaic.controllers.ui.user_list import DISPLAY_MODES_MAP
@@ -7,6 +15,7 @@ from pysaic.enums import UserListDisplayModeEnum, DeathReportTypeEnum
 from pysaic.ui.utils import add_separator
 
 logger = logging.getLogger(__name__)
+
 
 class RowCounter:
     def __init__(self):
@@ -18,9 +27,12 @@ class RowCounter:
     def __exit__(self, exc_type, exc_val, exc_tb):
         self.current_row += 1
 
+
 class DisplayTab(Frame):
     def __init__(self, master, options):
-        super().__init__(master, background=options.background_color, padx=5, pady=5)
+        super().__init__(
+            master, background=options.background_color, padx=5, pady=5
+        )
         self.options = options
         self.config = options.config
         self.grid_columnconfigure(0, weight=1)
@@ -73,7 +85,12 @@ class DisplayTab(Frame):
                 32,
             )
             user_list_display_option.grid(
-                row=row, column=1, sticky="e", pady=2, padx=(5, 0), columnspan=2
+                row=row,
+                column=1,
+                sticky="e",
+                pady=2,
+                padx=(5, 0),
+                columnspan=2,
             )
 
         with row_counter as row:
@@ -82,7 +99,7 @@ class DisplayTab(Frame):
             )
             Checkbutton(
                 frame,
-                text='Enable IRC user information',
+                text="Enable IRC user information",
                 variable=self.enable_irc_user_display_var,
                 **self.options.default_style_kwargs,
             ).grid(row=row, column=0, sticky="w", pady=2)
@@ -92,7 +109,7 @@ class DisplayTab(Frame):
             )
             Checkbutton(
                 frame,
-                text='Show less information messages',
+                text="Show less information messages",
                 variable=self.show_less_information_var,
                 **self.options.default_style_kwargs,
             ).grid(row=row, column=1, sticky="w", pady=2)
@@ -179,7 +196,9 @@ class DisplayTab(Frame):
             self.death_report_type_option = self.options._create_option_menu(
                 frame, self.death_report_type_var, death_report_options, 15
             )
-            self.death_report_type_option.grid(row=row, column=2, sticky="e", pady=2)
+            self.death_report_type_option.grid(
+                row=row, column=2, sticky="e", pady=2
+            )
 
         self._toggle_death_report_type()
 
@@ -261,8 +280,10 @@ class DisplayTab(Frame):
         )
         logger.debug(
             "show_less_information: %r", self.show_less_information_var.get()
-            )
-        self.config.show_less_information = self.show_less_information_var.get()
+        )
+        self.config.show_less_information = (
+            self.show_less_information_var.get()
+        )
 
         logger.debug(
             "faction_colored_nicks: %r", self._faction_colored_nicks.get()

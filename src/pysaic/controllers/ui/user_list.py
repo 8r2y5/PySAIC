@@ -2,7 +2,6 @@ import logging
 from collections import Counter
 from tkinter import END
 
-from pysaic.config import Config
 from pysaic.entities import ChatUser
 from pysaic.enums import FactionsEnum, UserListDisplayModeEnum, SAICStateEnum
 
@@ -45,7 +44,9 @@ class SortedMixin:
         faction_tag = get_faction_tag(chat_user.faction)
         self.users_list.insert(END, f" {icon} ", tag)
         self.users_list.insert(
-            END, f"{chat_user.irc_mode if self.config.enable_irc_user_display else ''}{chat_user.name}\n", faction_tag
+            END,
+            f"{chat_user.irc_mode if self.config.enable_irc_user_display else ''}{chat_user.name}\n",
+            faction_tag,
         )
 
 

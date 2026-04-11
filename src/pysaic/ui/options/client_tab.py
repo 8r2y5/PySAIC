@@ -1,5 +1,12 @@
 import logging
-from tkinter import Frame, StringVar, BooleanVar, Label, Button, Checkbutton, NORMAL, DISABLED
+from tkinter import (
+    Frame,
+    StringVar,
+    BooleanVar,
+    Label,
+    Button,
+    Checkbutton,
+)
 from tkinter.ttk import Spinbox
 
 from pysaic.enums import DisconnectOnNetworkDestructionSetting
@@ -7,9 +14,12 @@ from pysaic.ui.utils import add_separator
 
 logger = logging.getLogger(__name__)
 
+
 class ClientTab(Frame):
     def __init__(self, master, options):
-        super().__init__(master, background=options.background_color, padx=5, pady=5)
+        super().__init__(
+            master, background=options.background_color, padx=5, pady=5
+        )
         self.options = options
         self.config = options.config
         self.grid_columnconfigure(0, weight=1)
@@ -99,7 +109,9 @@ class ClientTab(Frame):
             **self.options.default_style_kwargs,
         ).grid(row=3, column=0, sticky="w")
 
-        news_duration_frame = Frame(frame, background=self.options.background_color)
+        news_duration_frame = Frame(
+            frame, background=self.options.background_color
+        )
         news_duration_frame.grid(row=4, column=0, sticky="w")
 
         Label(
@@ -168,7 +180,9 @@ class ClientTab(Frame):
             command=self.options._spawn_font_options,
         )
 
-        self.options._font_button.grid(row=6, column=1, sticky="e", pady=(5, 0))
+        self.options._font_button.grid(
+            row=6, column=1, sticky="e", pady=(5, 0)
+        )
 
     def update_config(self):
         logger.debug(

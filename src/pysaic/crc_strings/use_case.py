@@ -95,7 +95,8 @@ def _load_faction_name(filename, faction):
     if faction not in data:
         logger.warning(
             "Faction %r not found in faction file %r, using random faction name",
-            faction, filename
+            faction,
+            filename,
         )
         faction_node = choice(tuple(data.values()))
     else:
@@ -222,8 +223,8 @@ class DeathMessageUseCase(StringsController):
         message = message[0].upper() + message[1:]
         if randint(0, 8) == 0:
             message = f"{message} {self._load_random_comment()}"
-        if '{{day}}' in message:
-            message = message.replace('{{day}}', date.today().strftime("%A"))
+        if "{{day}}" in message:
+            message = message.replace("{{day}}", date.today().strftime("%A"))
 
         reporter_actor = self._get_reporter_actor()
         return (
