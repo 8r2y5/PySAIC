@@ -54,7 +54,7 @@ class AltFontSize:
         if "font" in kwargs:
             font = kwargs["font"]
             if isinstance(font, (list, tuple)) and len(font) > 1:
-                font = (font[0], max(font[1] + self.delta, 1))
+                font = (font[0], max(font[1] + self.delta, 9))
                 kwargs["font"] = font
 
         self.widget.config(**kwargs)
@@ -480,6 +480,7 @@ class App(Tk):
         for widget in (
             self.users_list,
             AltFontSize(self.input_message, -1),
+            self.input_message,
             AltFontSize(self.send_button, -1),
             AltFontSize(self.channels_dropbox, -2),
             AltFontSize(self.options_button, -2),
