@@ -365,6 +365,8 @@ class Config:
     theme_name: str = ConfigField(default="pysaic")
     colors: ColorsConfig = NestedObjectFiled(ColorsConfig)
     in_game_pda_instead_of_window: bool = BoolField(default=True)
+    enable_irc_user_display: bool = BoolField(default=True)
+    show_less_information: bool = BoolField(default=False)
 
     @classmethod
     def load_config(cls):

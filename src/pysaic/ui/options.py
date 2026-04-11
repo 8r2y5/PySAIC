@@ -459,8 +459,8 @@ class Options:
             2, weight=1
         )  # last column should also be stretchable
 
-        # Chat App list display
         row_counter = RowCounter()
+        # Chat App list display
         with row_counter as row:
             Label(
                 frame,
@@ -481,6 +481,27 @@ class Options:
             user_list_display_option.grid(
                 row=row, column=1, sticky="e", pady=2, padx=(5, 0), columnspan=2
             )
+
+        with row_counter as row:
+            self.enable_irc_user_display_var = BooleanVar(
+                frame, self.config.enable_irc_user_display
+            )
+            Checkbutton(
+                frame,
+                text='Enable IRC user information',
+                variable=self.enable_irc_user_display_var,
+                **self.default_style_kwargs,
+            ).grid(row=row, column=0, sticky="w", pady=2)
+
+            self.show_less_information_var = BooleanVar(
+                frame, self.config.show_less_information
+            )
+            Checkbutton(
+                frame,
+                text='Show less information messages',
+                variable=self.show_less_information_var,
+                **self.default_style_kwargs,
+            ).grid(row=row, column=1, sticky="w", pady=2)
 
         # In-game list display
         with row_counter as row:
@@ -763,6 +784,19 @@ class Options:
         self.config.in_game_users_display = InGameUserDisplayEnum(
             self.in_game_display_var.get()
         )
+
+        logger.debug(
+            "enable_irc_user_display: %r",
+            self.enable_irc_user_display_var.get(),
+        )
+        self.config.enable_irc_user_display = (
+            self.enable_irc_user_display_var.get()
+        )
+        logger.debug(
+            "show_less_information: %r", self.show_less_information_var.get()
+            )
+        self.config.show_less_information = self.show_less_information_var.get()
+
         logger.debug(
             "faction_colored_nicks: %r", self._faction_colored_nicks.get()
         )
