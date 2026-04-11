@@ -103,7 +103,8 @@ class App(Tk):
         self.create_widgets()
         update_style(self, config)
         # self.after(250, self.process_incoming_events)
-        self.iconbitmap(PATH / "pysaic_icon.ico")
+        self.icon_path = PATH / "pysaic_icon.ico"
+        self.iconbitmap(self.icon_path)
         self.disable_input()
         self._options_window: None | Options = None
 

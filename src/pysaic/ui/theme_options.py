@@ -35,7 +35,7 @@ class ThemeOptions:
         self.this_window = Toplevel(self.parent.this_window)
         self.this_window.protocol(WM_DELETE_WINDOW, self.destroy_this_window)
         self.this_window.title("Theme Management")
-        self.this_window.iconbitmap(PATH / "pysaic_icon.ico")
+        self.this_window.iconbitmap(parent.icon_path)
 
         self.background_color = self.config.colors.background.app
         self.text_color = self.config.colors.content.text

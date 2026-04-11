@@ -28,6 +28,7 @@ class FontOptions:
         self.config = config
 
         self._setup_window()
+        self.this_window.iconbitmap(parent.icon_path)
         self._create_widgets()
 
     def _setup_window(self):

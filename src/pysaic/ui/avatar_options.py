@@ -59,11 +59,11 @@ faction_file = {
 logger = logging.getLogger(__name__)
 
 
-def show_custom_info_dialog(parent, title, message, bg_color, text_color):
+def show_custom_info_dialog(icon_path, parent, title, message, bg_color, text_color):
     dialog = Toplevel()
     dialog.title(title)
     dialog.config(bg=bg_color)
-    dialog.iconbitmap(PATH / "pysaic_icon.ico")
+    dialog.iconbitmap(icon_path)
 
     label = Label(
         dialog, text=message, bg=bg_color, fg=text_color, wraplength=600
@@ -99,7 +99,8 @@ class AvatarOptions:
         self.this_window.protocol("WM_DELETE_WINDOW", self.destroy_this_window)
         self.this_window.title("Avatar Options")
         self.this_window.resizable(True, True)
-        self.this_window.iconbitmap(PATH / "pysaic_icon.ico")
+        self.icon_path = parent.icon_path
+        self.this_window.iconbitmap(self.icon_path)
         self.config = config
         self.avatar_data = {}
         self._parse_avatar_data()
@@ -199,6 +200,7 @@ class AvatarOptions:
         else:
             message += f"Copied file to {textures_path / 'pysaic_player.dds'}. Make sure this is is Anomaly/gamedata/textures/ui folder."
         show_custom_info_dialog(
+            self.icon_path,
             self.this_window,
             "Avatar Saved",
             message,

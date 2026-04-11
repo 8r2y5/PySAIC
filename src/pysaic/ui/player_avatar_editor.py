@@ -32,6 +32,7 @@ class PlayerAvatarEditor:
         self.window.configure(background=self.config.colors.background.app)
         self.window.wm_minsize(400, 300)
         self.window.resizable(True, True)
+        self.window.iconbitmap(parent.icon_path)
         if master_window:
             self.window.grab_set()
         self.original_rect_coords = (0, 0, 0, 0)

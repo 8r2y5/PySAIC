@@ -91,13 +91,13 @@ class ColorsOptions:
         self._setup_window()
         self._create_widgets()
         self.update_colors()
+        self.this_window.iconbitmap(parent.icon_path)
 
     def _setup_window(self):
         self.this_window = Toplevel(self.parent.this_window)
         self.this_window.protocol(WM_DELETE_WINDOW, self.destroy_this_window)
         self.this_window.title("Color Options")
         self.this_window.minsize(450, 610)
-        self.this_window.iconbitmap(PATH / "pysaic_icon.ico")
 
         # Initialize Fonts
         font_name = self.config.font.name
@@ -309,8 +309,7 @@ class ColorsOptions:
             setattr(colors, key.lower(), hex_code)
             self.update_colors()
 
-    @inject.autoparams()
-    def update_colors(self, incoming_queue: IncomingQueue):
+    def update_colors(self):
         """Refreshes all widget styles based on current config."""
         bg_app = self.config.colors.background.app
 
