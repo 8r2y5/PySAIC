@@ -48,6 +48,17 @@ logger = logging.getLogger(__name__)
 PATH = Path(os.path.abspath(os.path.dirname(__file__)))
 
 
+class RowCounter:
+    def __init__(self):
+        self.current_row = 0
+
+    def __enter__(self):
+        return self.current_row
+
+    def __exit__(self, exc_type, exc_val, exc_tb):
+        self.current_row += 1
+
+
 class Options:
     def __init__(self, config: Config, main_window):
         self.config = config
@@ -449,157 +460,164 @@ class Options:
         )  # last column should also be stretchable
 
         # Chat App list display
-        Label(
-            frame,
-            text="Chat App list display",
-            background=self.background_color,
-            foreground=self.text_color,
-            font=self.font_normal_size,
-        ).grid(row=0, column=0, sticky="w", pady=2)
-        self.user_list_display_var = StringVar(
-            frame, value=self.config.user_list_display
-        )
-        user_list_display_option = self._create_option_menu(
-            frame,
-            self.user_list_display_var,
-            [x.value for x in DISPLAY_MODES_MAP.keys()],
-            32,
-        )
-        user_list_display_option.grid(
-            row=0, column=1, sticky="e", pady=2, padx=(5, 0), columnspan=2
-        )
+        row_counter = RowCounter()
+        with row_counter as row:
+            Label(
+                frame,
+                text="Chat App list display",
+                background=self.background_color,
+                foreground=self.text_color,
+                font=self.font_normal_size,
+            ).grid(row=row, column=0, sticky="w", pady=2)
+            self.user_list_display_var = StringVar(
+                frame, value=self.config.user_list_display
+            )
+            user_list_display_option = self._create_option_menu(
+                frame,
+                self.user_list_display_var,
+                [x.value for x in DISPLAY_MODES_MAP.keys()],
+                32,
+            )
+            user_list_display_option.grid(
+                row=row, column=1, sticky="e", pady=2, padx=(5, 0), columnspan=2
+            )
 
         # In-game list display
-        Label(
-            frame,
-            text="In-game list display type",
-            background=self.background_color,
-            foreground=self.text_color,
-            font=self.font_normal_size,
-        ).grid(row=1, column=0, sticky="w", pady=2)
-        self._faction_colored_nicks = BooleanVar(
-            value=self.config.faction_colored_nicks
-        )
-        Checkbutton(
-            frame,
-            text="Faction colored nicks",
-            variable=self._faction_colored_nicks,
-            **self.default_style_kwargs,
-        ).grid(row=1, column=1, sticky="w", pady=2)
-        self.in_game_display_var = StringVar(
-            frame, value=self.config.in_game_users_display
-        )
-        in_game_options = [enum.value for enum in InGameUserDisplayEnum]
-        in_game_display_option = self._create_option_menu(
-            frame, self.in_game_display_var, in_game_options, 15
-        )
-        in_game_display_option.grid(
-            row=1, column=2, sticky="e", pady=2, padx=(5, 0)
-        )
+        with row_counter as row:
+            Label(
+                frame,
+                text="In-game list display type",
+                background=self.background_color,
+                foreground=self.text_color,
+                font=self.font_normal_size,
+            ).grid(row=row, column=0, sticky="w", pady=2)
+            self._faction_colored_nicks = BooleanVar(
+                value=self.config.faction_colored_nicks
+            )
+            Checkbutton(
+                frame,
+                text="Faction colored nicks",
+                variable=self._faction_colored_nicks,
+                **self.default_style_kwargs,
+            ).grid(row=row, column=1, sticky="w", pady=2)
+            self.in_game_display_var = StringVar(
+                frame, value=self.config.in_game_users_display
+            )
+            in_game_options = [enum.value for enum in InGameUserDisplayEnum]
+            in_game_display_option = self._create_option_menu(
+                frame, self.in_game_display_var, in_game_options, 15
+            )
+            in_game_display_option.grid(
+                row=row, column=2, sticky="e", pady=2, padx=(5, 0)
+            )
 
         # In-game users display order
-        Label(
-            frame,
-            text="In-game list display order",
-            background=self.background_color,
-            foreground=self.text_color,
-            font=self.font_normal_size,
-        ).grid(row=2, column=0, sticky="w", pady=2)
-        self.in_game_display_order_var = StringVar(
-            frame, value=self.config.in_game_users_display_order
-        )
-        in_game_display_order_option = self._create_option_menu(
-            frame,
-            self.in_game_display_order_var,
-            [
-                InGameUserDisplayOrderEnum.Nick.value,
-                InGameUserDisplayOrderEnum.Faction.value,
-                InGameUserDisplayOrderEnum.Faction_Counter.value,
-                InGameUserDisplayOrderEnum.OnlineStatus.value,
-            ],
-            15,
-        )
-        in_game_display_order_option.grid(
-            row=2, column=2, sticky="e", pady=2, padx=(5, 0)
-        )
+        with row_counter as row:
+            Label(
+                frame,
+                text="In-game list display order",
+                background=self.background_color,
+                foreground=self.text_color,
+                font=self.font_normal_size,
+            ).grid(row=row, column=0, sticky="w", pady=2)
+            self.in_game_display_order_var = StringVar(
+                frame, value=self.config.in_game_users_display_order
+            )
+            in_game_display_order_option = self._create_option_menu(
+                frame,
+                self.in_game_display_order_var,
+                [
+                    InGameUserDisplayOrderEnum.Nick.value,
+                    InGameUserDisplayOrderEnum.Faction.value,
+                    InGameUserDisplayOrderEnum.Faction_Counter.value,
+                    InGameUserDisplayOrderEnum.OnlineStatus.value,
+                ],
+                15,
+            )
+            in_game_display_order_option.grid(
+                row=row, column=2, sticky="e", pady=2, padx=(5, 0)
+            )
 
         # Death report
-        Label(
-            frame,
-            text="Death report",
-            background=self.background_color,
-            foreground=self.text_color,
-            font=self.font_normal_size,
-        ).grid(row=3, column=0, sticky="w", pady=2)
+        with row_counter as row:
+            Label(
+                frame,
+                text="Death report",
+                background=self.background_color,
+                foreground=self.text_color,
+                font=self.font_normal_size,
+            ).grid(row=row, column=0, sticky="w", pady=2)
 
-        self.report_death_var = BooleanVar(value=self.config.death_reports)
-        Checkbutton(
-            frame,
-            text="Report death?",
-            variable=self.report_death_var,
-            command=self._toggle_death_report_type,
-            **self.default_style_kwargs,
-        ).grid(row=3, column=1, sticky="w", pady=2)
+            self.report_death_var = BooleanVar(value=self.config.death_reports)
+            Checkbutton(
+                frame,
+                text="Report death?",
+                variable=self.report_death_var,
+                command=self._toggle_death_report_type,
+                **self.default_style_kwargs,
+            ).grid(row=row, column=1, sticky="w", pady=2)
 
-        self.death_report_type_var = StringVar(
-            frame, value=self.config.death_report_type
-        )
-        death_report_options = [enum.value for enum in DeathReportTypeEnum]
-        self.death_report_type_option = self._create_option_menu(
-            frame, self.death_report_type_var, death_report_options, 15
-        )
-        self.death_report_type_option.grid(row=3, column=2, sticky="e", pady=2)
+            self.death_report_type_var = StringVar(
+                frame, value=self.config.death_report_type
+            )
+            death_report_options = [enum.value for enum in DeathReportTypeEnum]
+            self.death_report_type_option = self._create_option_menu(
+                frame, self.death_report_type_var, death_report_options, 15
+            )
+            self.death_report_type_option.grid(row=row, column=2, sticky="e", pady=2)
 
         self._toggle_death_report_type()
 
         # Notification options
-        Label(
-            frame,
-            text="Popup settings",
-            background=self.background_color,
-            foreground=self.text_color,
-            font=self.font_normal_size,
-        ).grid(row=4, column=0, sticky="w", pady=2)
-        self.notification_on_ping_var = BooleanVar(
-            value=self.config.pop_up_on_ping
-        )
-        logger.debug("Pop up on ping: %r", self.config.pop_up_on_ping)
-        Checkbutton(
-            frame,
-            text="Show popup on ping",
-            variable=self.notification_on_ping_var,
-            **self.default_style_kwargs,
-        ).grid(row=4, column=1, sticky="w", pady=2)
-        self.notification_popop_sound_var = BooleanVar(
-            value=self.config.pop_up_sound
-        )
-        logger.debug("Play sound on ping: %r", self.config.pop_up_sound)
-        Checkbutton(
-            frame,
-            text="Play sound on ping",
-            variable=self.notification_popop_sound_var,
-            **self.default_style_kwargs,
-        ).grid(row=4, column=2, sticky="e", pady=2)
+        with row_counter as row:
+            Label(
+                frame,
+                text="Popup settings",
+                background=self.background_color,
+                foreground=self.text_color,
+                font=self.font_normal_size,
+            ).grid(row=row, column=0, sticky="w", pady=2)
+            self.notification_on_ping_var = BooleanVar(
+                value=self.config.pop_up_on_ping
+            )
+            logger.debug("Pop up on ping: %r", self.config.pop_up_on_ping)
+            Checkbutton(
+                frame,
+                text="Show popup on ping",
+                variable=self.notification_on_ping_var,
+                **self.default_style_kwargs,
+            ).grid(row=row, column=1, sticky="w", pady=2)
+            self.notification_popop_sound_var = BooleanVar(
+                value=self.config.pop_up_sound
+            )
+            logger.debug("Play sound on ping: %r", self.config.pop_up_sound)
+            Checkbutton(
+                frame,
+                text="Play sound on ping",
+                variable=self.notification_popop_sound_var,
+                **self.default_style_kwargs,
+            ).grid(row=row, column=2, sticky="e", pady=2)
 
-        Label(
-            frame,
-            text="PySAIC in PDA",
-            background=self.background_color,
-            foreground=self.text_color,
-            font=self.font_normal_size,
-        ).grid(row=5, column=0, sticky="w", pady=2)
-        self.in_game_pda_instead_of_window_var = BooleanVar(
-            value=self.config.in_game_pda_instead_of_window
-        )
-        logger.debug(
-            "Pop up on ping: %r", self.config.in_game_pda_instead_of_window
-        )
-        Checkbutton(
-            frame,
-            text="Yes",
-            variable=self.in_game_pda_instead_of_window_var,
-            **self.default_style_kwargs,
-        ).grid(row=5, column=1, sticky="w", pady=2)
+        with row_counter as row:
+            Label(
+                frame,
+                text="PySAIC in PDA",
+                background=self.background_color,
+                foreground=self.text_color,
+                font=self.font_normal_size,
+            ).grid(row=row, column=0, sticky="w", pady=2)
+            self.in_game_pda_instead_of_window_var = BooleanVar(
+                value=self.config.in_game_pda_instead_of_window
+            )
+            logger.debug(
+                "Pop up on ping: %r", self.config.in_game_pda_instead_of_window
+            )
+            Checkbutton(
+                frame,
+                text="Yes",
+                variable=self.in_game_pda_instead_of_window_var,
+                **self.default_style_kwargs,
+            ).grid(row=row, column=1, sticky="w", pady=2)
 
     def _toggle_death_report_type(self):
         self.death_report_type_option.config(
@@ -621,7 +639,7 @@ class Options:
         Button(
             frame,
             text="Join Discord",
-            command=lambda: os.system("start https://discord.gg/wqETk83bvh"),
+            command=lambda: os.system("start https://discord.gg/9ef8NKjEjg"),
             background=self.background_color,
             foreground=self.text_color,
             font=self.font_normal_size,

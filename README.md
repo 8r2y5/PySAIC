@@ -3,8 +3,14 @@ or PySAIC for short.
 Based on [CRCR / Chernobyl Relay Chat Rebirth](https://github.com/8r2y5/Chernobyl-Relay-Chat-Rebirth), rewritten in Python with additional features and improvements.  
 Compatible with any Stalker Anomaly version and modpack that uses Stalker Anomaly.
 
-# <a href="https://github.com/8r2y5/PySAIC/releases/latest"><img src="https://img.shields.io/badge/Download-something?style=for-the-badge&link=https://github.com/8r2y5/PySAIC/releases/latest" alt="Download"></a>
+## Stable
+<a href="https://github.com/8r2y5/PySAIC/releases/latest"><img src="https://img.shields.io/badge/Download-something?style=for-the-badge&link=https://github.com/8r2y5/PySAIC/releases/latest" alt="Download Stable"></a>
+
 ![Version](https://img.shields.io/github/v/release/8r2y5/PySAIC?style=flat-square) ![License](https://img.shields.io/github/license/8r2y5/PySAIC?style=flat-square) ![Downloads](https://img.shields.io/github/downloads/8r2y5/PySAIC/total?style=flat-square)
+## Beta
+<a href="https://github.com/8r2y5/PySAIC/releases/0.3.0b9"><img src="https://img.shields.io/badge/Download-Beta?style=for-the-badge&link=https://github.com/8r2y5/PySAIC/releases/latest" alt="Download Beta"></a>
+
+![GitHub Downloads (specific asset, specific tag)](https://img.shields.io/github/downloads/8r2y5/PySAIC/0.3.0b9/total?style=flat-square)
 
 # Features
 - **Compatible with [CRCR / Chernobyl Relay Chat Rebirth](https://github.com/8r2y5/Chernobyl-Relay-Chat-Rebirth) and addons**
@@ -98,7 +104,7 @@ It is stored inside `config.yml` file.
 # Discord Server
 <div>
     <p>
-        <a href="https://discord.gg/wqETk83bvh">
+        <a href="https://discord.gg/9ef8NKjEjg">
             <img src="https://img.shields.io/discord/1254093654172110898?color=5865F2&label=Discord%20Server&logo=discord&logoColor=5865F2&style=for-the-badge" alt="Discord Server">
         </a>
     </p>
