@@ -13,7 +13,7 @@ from asyncirc.util.backoff import AsyncDelayer
 from irclib.parser import Message
 
 from pysaic.entities import IncomingEvent, IncomingQueue
-from pysaic.enums import AppEventEnum
+from pysaic.enums import AppEventEnum, InformationType
 
 SEND_TYPE = Union[str, bytes]
 
@@ -71,13 +71,15 @@ class PySaicIrcProtocol(IrcProtocol):
                 self.logger.info("Attempting to connect to %s", server_address)
                 incoming_queue.put_nowait(
                     IncomingEvent.create_information_event(
-                        f"Trying to connect to the server {server_address}."
+                        f"Trying to connect to the server {server_address}.",
+                        type=InformationType.debug,
                     )
                 )
                 if await self._connect(server):
                     incoming_queue.put_nowait(
                         IncomingEvent.create_information_event(
                             f"Connected to the server {server_address}, waiting for response...",
+                            type=InformationType.debug,
                         )
                     )
                     self.logger.info(
@@ -122,6 +124,7 @@ class PySaicIrcProtocol(IrcProtocol):
                 incoming_queue.put_nowait(
                     IncomingEvent.create_information_event(
                         f"Reconnecting to {connection.host}:{connection.port}.",
+                        type=InformationType.debug,
                     )
                 )
                 self.logger.info(
@@ -131,6 +134,7 @@ class PySaicIrcProtocol(IrcProtocol):
                 incoming_queue.put_nowait(
                     IncomingEvent.create_information_event(
                         f"Connecting to {connection.host}:{connection.port}.",
+                        type=InformationType.debug,
                     )
                 )
                 self.logger.info(

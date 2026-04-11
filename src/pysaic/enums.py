@@ -106,6 +106,11 @@ class ReputationEnum(StrEnum):
     st_reputation_excellent = "Excellent"
 
 
+class InformationType(StrEnum):
+    info = auto()
+    debug = auto()
+
+
 BASE_FACTIONS = {
     "Clear_Sky": "actor_csky",
     "Loner": "actor_stalker",

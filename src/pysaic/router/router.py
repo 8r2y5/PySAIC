@@ -17,7 +17,12 @@ from pysaic.entities import (
     InformationEvent,
     OutgoingCTCP,
 )
-from pysaic.enums import AvatarEnum, FactionsEnum, HistoryMessageEnum
+from pysaic.enums import (
+    AvatarEnum,
+    FactionsEnum,
+    HistoryMessageEnum,
+    InformationType,
+)
 from pysaic.router.utils import send_saic_avatar
 from pysaic.settings import END_OF_ACTOR_CHARACTER
 from pysaic.state import State
@@ -171,6 +176,10 @@ class Router:
 
     def _add_information_event(self, event):
         logger.debug("Adding information event: %r", event)
+        if isinstance(event.event, InformationEvent):
+            if event.event.type == InformationType.debug:
+                if self.config.show_less_information:
+                    return
         tag, game_callback = (
             (
                 "Error",

@@ -14,6 +14,7 @@ from pysaic.enums import (
     SAICStateEnum,
     RankEnum,
     ReputationEnum,
+    InformationType,
 )
 from pysaic.events.enum import GameEvents
 
@@ -104,13 +105,14 @@ class IncomingMessage:
 @dataclass
 class IrcEvent:
     type: IrcEvents
-    payload: Optional[dict[str, any]] = None
+    payload: Optional[dict[str, Any]] = None
 
 
 @dataclass
 class InformationEvent:
     content: str
     created_at: datetime = field(default_factory=datetime.now)
+    type: InformationType = InformationType.info
 
 
 @dataclass
@@ -163,11 +165,16 @@ class IncomingEvent:
     created_at: datetime = field(default_factory=datetime.now)
 
     @classmethod
-    def create_information_event(cls, content: str, target: str = ""):
+    def create_information_event(
+        cls,
+        content: str,
+        target: str = "",
+        type: InformationType = InformationType.info,
+    ):
         return cls(
             author="",
             target=target,
-            event=InformationEvent(content),
+            event=InformationEvent(content, type=type),
         )
 
     @classmethod
