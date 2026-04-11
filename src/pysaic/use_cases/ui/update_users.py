@@ -35,7 +35,7 @@ class UpdateUsersUseCase:
             self.users_list.delete("0.0", END)
 
             DISPLAY_MODES_MAP[config.user_list_display](
-                self.users_list, self.chat_users
+                config, self.users_list, self.chat_users
             ).write()
 
         if len(self.ui.position) == 2:

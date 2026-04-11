@@ -2,6 +2,7 @@ import logging
 from collections import Counter
 from tkinter import END
 
+from pysaic.config import Config
 from pysaic.entities import ChatUser
 from pysaic.enums import FactionsEnum, UserListDisplayModeEnum, SAICStateEnum
 
@@ -19,7 +20,8 @@ def get_faction_tag(faction):
 
 
 class SortedMixin:
-    def __init__(self, users_list, users):
+    def __init__(self, config, users_list, users):
+        self.config = config
         self.users_list = users_list
         self.users = users
 
@@ -43,7 +45,7 @@ class SortedMixin:
         faction_tag = get_faction_tag(chat_user.faction)
         self.users_list.insert(END, f" {icon} ", tag)
         self.users_list.insert(
-            END, f"{chat_user.irc_mode}{chat_user.name}\n", faction_tag
+            END, f"{chat_user.irc_mode if self.config.enable_irc_user_display else ''}{chat_user.name}\n", faction_tag
         )
 
 
@@ -93,8 +95,8 @@ class GroupByFactionAndName(SortedMixin):
 
 
 class GroupByFactionWithCounter(SortedMixin):
-    def __init__(self, users_list, users):
-        super().__init__(users_list, users)
+    def __init__(self, config, users_list, users):
+        super().__init__(config, users_list, users)
         self.counter = Counter(
             [chat_user.faction for chat_user in self.users.values()]
         )

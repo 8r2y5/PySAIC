@@ -33,6 +33,7 @@ from pysaic.state import State
 from pysaic.tasks.app import update_app
 from pysaic.tasks.incoming_queue import incoming_queue_processing
 from pysaic.ui.app import App
+from pysaic.use_cases.ui.mode_change import MODE_TRANSLATOR
 from pysaic.use_cases.ui.update_users import UpdateUsersUseCase
 
 logger = logging.getLogger(__name__)
@@ -53,6 +54,7 @@ def gen_chat_users():
                     SAICStateEnum.underground,
                 )
             ),
+            irc_mode=choice(tuple(MODE_TRANSLATOR.values()))
         )
         for x in range(30)
     }
