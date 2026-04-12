@@ -9,6 +9,7 @@ from tkinter import (
 )
 from tkinter.ttk import Spinbox
 
+from pysaic.config import Config
 from pysaic.enums import DisconnectOnNetworkDestructionSetting
 from pysaic.ui.utils import add_separator
 
@@ -21,7 +22,7 @@ class ClientTab(Frame):
             master, background=options.background_color, padx=5, pady=5
         )
         self.options = options
-        self.config = options.config
+        self.config: Config = options.config
         self.grid_columnconfigure(0, weight=1)
 
         self._setup_ui()
@@ -224,27 +225,50 @@ class ClientTab(Frame):
             background=self.options.background_color,
             foreground=self.options.text_color,
             font=self.options.font_normal_size,
-        ).grid(row=6, column=0, sticky="w", pady=(5, 0))
-        self.turn_off_bold_font_var = BooleanVar(
-            value=self.config.font.turn_off_bold_font
+        ).grid(row=6, column=0, sticky="nw", pady=(7, 0))
+
+        self.turn_off_bold_font_chat_var = BooleanVar(
+            value=self.config.font.turn_off_bold_font_username_in_chat
         )
 
         @self.options.add_save_callback
-        def save_bold_font_settings():
+        def save_bold_font_chat_settings():
             logger.debug(
-                "turn_off_bold_font_var: %r", self.turn_off_bold_font_var.get()
+                "turn_off_bold_font_chat_var: %r",
+                self.turn_off_bold_font_chat_var.get(),
             )
-            self.config.font.turn_off_bold_font = (
-                self.turn_off_bold_font_var.get()
+            self.config.font.turn_off_bold_font_username_in_chat = (
+                self.turn_off_bold_font_chat_var.get()
             )
 
         font_frame = Frame(frame, background=self.options.background_color)
         Checkbutton(
             font_frame,
-            text="Turn off bold font",
-            variable=self.turn_off_bold_font_var,
+            text="Turn off bold font in chat",
+            variable=self.turn_off_bold_font_chat_var,
             **self.options.default_style_kwargs,
-        ).grid(row=0, column=0, sticky="w", pady=(5, 0))
+        ).grid(row=0, column=1, sticky="w", pady=(5, 0))
+        self.turn_off_bold_font_user_var = BooleanVar(
+            value=self.config.font.turn_off_bold_font_username_in_list
+        )
+
+        @self.options.add_save_callback
+        def save_bold_font_user_settings():
+            logger.debug(
+                "turn_off_bold_font_user_var: %r",
+                self.turn_off_bold_font_user_var.get(),
+            )
+            self.config.font.turn_off_bold_font_username_in_list = (
+                self.turn_off_bold_font_user_var.get()
+            )
+
+        Checkbutton(
+            font_frame,
+            text="Turn off bold font in user list",
+            variable=self.turn_off_bold_font_user_var,
+            **self.options.default_style_kwargs,
+        ).grid(row=1, column=1, sticky="w", pady=(5, 0))
+
         self.options._font_button = Button(
             font_frame,
             text="Font Config",
@@ -254,6 +278,6 @@ class ClientTab(Frame):
             command=self.options._spawn_font_options,
         )
         self.options._font_button.grid(
-            row=0, column=1, sticky="e", pady=(5, 0)
+            row=0, column=2, sticky="e", pady=(5, 0)
         )
         font_frame.grid(row=6, column=1, sticky="e", pady=(5, 0))

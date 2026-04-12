@@ -20,7 +20,11 @@ from tkinter.ttk import Scrollbar
 
 from pysaic.ui.constants import WM_DELETE_WINDOW
 from pysaic.ui.tabbed_chat import TabbedChat
-from pysaic.ui.utils import update_style, apply_color_tags_to_text
+from pysaic.ui.utils import (
+    update_style,
+    apply_color_tags_to_text,
+    UserListText,
+)
 from winotify import Notification, audio
 
 from pysaic.config import Config
@@ -269,7 +273,7 @@ class App(Tk):
         self.users_list_scroll = Scrollbar(
             right_bottom_frame,
         )
-        self.users_list = Text(
+        self.users_list = UserListText(
             right_bottom_frame,
             yscrollcommand=self.users_list_scroll.set,
             width=22,
@@ -492,7 +496,11 @@ class App(Tk):
         self.tabbed_chat.update_styles()
 
     def set_color_tags(self):
-        apply_color_tags_to_text(self.users_list, self.pysaic_config)
+        apply_color_tags_to_text(
+            self.users_list,
+            self.pysaic_config.colors,
+            not self.pysaic_config.font.turn_off_bold_font_username_in_list,
+        )
         self.tabbed_chat.update_styles()
 
     def update_colors(self):

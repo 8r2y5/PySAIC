@@ -3,7 +3,7 @@ from tkinter import Frame, TclError
 from tkinter.font import Font
 from tkinter.ttk import Separator, Style, Label
 
-from pysaic.config import Config
+from pysaic.config import Config, Colors
 from pysaic.enums import FactionsEnum
 
 
@@ -55,12 +55,21 @@ class BoldLabel(tkinter.Label):
     pass
 
 
-def apply_color_tags_to_text(widget: tkinter.Text, config: Config):
-    bold_font = Font(widget, widget.cget("font"))
-    if not config.font.turn_off_bold_font:
-        bold_font.configure(weight="bold")
+class UserListText(tkinter.Text):
+    pass
 
-    colors = config.colors
+
+class MessagesListText(tkinter.Text):
+    pass
+
+
+def apply_color_tags_to_text(
+    widget: tkinter.Text, colors: Colors, bold_font: bool = False
+):
+    font = Font(widget, widget.cget("font"))
+    if bold_font:
+        font.configure(weight="bold")
+
     widget.tag_config("Time", foreground=colors.content.time)
     widget.tag_config("Text", foreground=colors.content.text)
     widget.tag_config(
@@ -81,102 +90,102 @@ def apply_color_tags_to_text(widget: tkinter.Text, config: Config):
     widget.tag_config(
         FactionsEnum.Clear_Sky.name,
         foreground=colors.factions.clear_sky,
-        font=bold_font,
+        font=font,
     )
     widget.tag_config(
         FactionsEnum.Loner.name,
         foreground=colors.factions.loner,
-        font=bold_font,
+        font=font,
     )
     widget.tag_config(
         FactionsEnum.Ecologist.name,
         foreground=colors.factions.ecologist,
-        font=bold_font,
+        font=font,
     )
     widget.tag_config(
         FactionsEnum.Bandit.name,
         foreground=colors.factions.bandit,
-        font=bold_font,
+        font=font,
     )
     widget.tag_config(
         FactionsEnum.Monolith.name,
         foreground=colors.factions.monolith,
-        font=bold_font,
+        font=font,
     )
     widget.tag_config(
         FactionsEnum.Duty.name,
         foreground=colors.factions.duty,
-        font=bold_font,
+        font=font,
     )
     widget.tag_config(
         FactionsEnum.Freedom.name,
         foreground=colors.factions.freedom,
-        font=bold_font,
+        font=font,
     )
     widget.tag_config(
         FactionsEnum.Mercenary.name,
         foreground=colors.factions.mercenary,
-        font=bold_font,
+        font=font,
     )
     widget.tag_config(
         FactionsEnum.Military.name,
         foreground=colors.factions.military,
-        font=bold_font,
+        font=font,
     )
     widget.tag_config(
         FactionsEnum.Renegade.name,
         foreground=colors.factions.renegade,
-        font=bold_font,
+        font=font,
     )
     widget.tag_config(
         FactionsEnum.Zombie.name,
         foreground=colors.factions.zombie,
-        font=bold_font,
+        font=font,
     )
     widget.tag_config(
         FactionsEnum.Anonymous.name,
         foreground=colors.factions.anonymous,
-        font=bold_font,
+        font=font,
     )
     widget.tag_config(
         FactionsEnum.UNISG.name,
         foreground=colors.factions.unisg,
-        font=bold_font,
+        font=font,
     )
     widget.tag_config(
         FactionsEnum.SIN.name,
         foreground=colors.factions.sin,
-        font=bold_font,
+        font=font,
     )
     widget.tag_config(
         "DM",
         foreground=colors.content.direct_message,
-        font=bold_font,
+        font=font,
     )
     widget.tag_config(
         "online",
         foreground=colors.content.online,
-        font=bold_font,
+        font=font,
     )
     widget.tag_config(
         "offline",
         foreground=colors.content.offline,
-        font=bold_font,
+        font=font,
     )
     widget.tag_config(
         "afk",
         foreground=colors.content.afk,
-        font=bold_font,
+        font=font,
     )
     widget.tag_config(
         "emission",
         foreground=colors.content.surge,
-        font=bold_font,
+        font=font,
     )
     widget.tag_config(
         "underground",
         foreground=colors.content.underground,
-        font=bold_font,
+        font=font,
     )
 
 
@@ -246,7 +255,13 @@ def configure_widget(widget, config: Config):
             background=config.colors.background.content,
             insertbackground=config.colors.content.text,
         )
-        apply_color_tags_to_text(widget, config)
+        bold_font = False
+        if isinstance(widget, MessagesListText):
+            bold_font = not config.font.turn_off_bold_font_username_in_chat
+        elif isinstance(widget, UserListText):
+            bold_font = not config.font.turn_off_bold_font_username_in_list
+
+        apply_color_tags_to_text(widget, config.colors, bold_font=bold_font)
 
 
 def apply_style_to_tkinter(container, config: Config):

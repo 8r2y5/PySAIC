@@ -223,7 +223,8 @@ class NestedObjectFiled(ConfigField):
 class FontConfig:
     name: str = "JetBrains Mono"
     size: int = 10
-    turn_off_bold_font: bool = False
+    turn_off_bold_font_username_in_list: bool = False
+    turn_off_bold_font_username_in_chat: bool = False
 
     @classmethod
     def load_from_config(cls, config: None | dict[str, int | str] = None):
@@ -231,7 +232,10 @@ class FontConfig:
             return cls(
                 config.get("name") or cls.name,
                 config.get("size") or cls.size,
-                config.get("turn_off_bold_font") or cls.turn_off_bold_font,
+                config.get("turn_off_bold_font_username_in_list")
+                or cls.turn_off_bold_font_username_in_list,
+                config.get("turn_off_bold_font_username_in_chat")
+                or cls.turn_off_bold_font_username_in_chat,
             )
         except Exception:
             logger.exception("Could not read font config, creating default")

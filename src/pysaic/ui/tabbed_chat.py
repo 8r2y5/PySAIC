@@ -1,9 +1,9 @@
 import logging
-from tkinter import Frame, Text, Menu
+from tkinter import Frame, Menu
 from tkinter.ttk import Notebook, Scrollbar
 
 from pysaic.ui.hyper_links import HyperlinkManager
-from pysaic.ui.utils import apply_color_tags_to_text
+from pysaic.ui.utils import apply_color_tags_to_text, MessagesListText
 
 logger = logging.getLogger(__name__)
 
@@ -17,7 +17,7 @@ class ChatTab(Frame):
         self.rowconfigure(0, weight=1)
 
         self.chat_scroll = Scrollbar(self)
-        self.messages_list = Text(
+        self.messages_list = MessagesListText(
             self,
             yscrollcommand=self.chat_scroll.set,
             background=self.config.colors.background.content,
@@ -36,7 +36,11 @@ class ChatTab(Frame):
             background=self.config.colors.background.content,
             font=(self.config.font.name, self.config.font.size),
         )
-        apply_color_tags_to_text(self.messages_list, self.config)
+        apply_color_tags_to_text(
+            self.messages_list,
+            self.config.colors,
+            bold_font=not self.config.font.turn_off_bold_font_username_in_chat,
+        )
 
 
 class TabbedChat(Frame):
