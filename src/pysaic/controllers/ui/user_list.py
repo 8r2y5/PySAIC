@@ -54,7 +54,7 @@ class NamesInAlphabeticalOrder(SortedMixin):
     @property
     def sorted_users(self):
         return sorted(
-            self.users.values(), key=lambda chat_user: chat_user.name
+            self.users.values(), key=lambda chat_user: chat_user.name.lower()
         )
 
     def write(self):
@@ -67,7 +67,10 @@ class OnlineFirstInAlphabeticalOrder(NamesInAlphabeticalOrder):
     def sorted_users(self):
         return sorted(
             self.users.values(),
-            key=lambda chat_user: (not chat_user.in_game, chat_user.name),
+            key=lambda chat_user: (
+                not chat_user.in_game,
+                chat_user.name.lower(),
+            ),
         )
 
 
@@ -76,7 +79,7 @@ class NamesInReverseAlphabeticalOrder(NamesInAlphabeticalOrder):
     def sorted_users(self):
         return sorted(
             self.users.values(),
-            key=lambda chat_user: chat_user.name,
+            key=lambda chat_user: chat_user.name.lower(),
             reverse=True,
         )
 
@@ -87,7 +90,7 @@ class GroupByFactionAndName(SortedMixin):
         return (
             get_faction_tag(chat_user.faction),
             1 if faction == FactionsEnum.Anonymous.name else 0,
-            chat_user.name,
+            chat_user.name.lower(),
         )
 
     def write(self):
@@ -109,7 +112,7 @@ class GroupByFactionWithCounter(SortedMixin):
             1 if faction == FactionsEnum.Anonymous.name else 0,
             faction,
             -int(chat_user.in_game),
-            chat_user.name,
+            chat_user.name.lower(),
         )
 
     def write(self):
