@@ -174,7 +174,8 @@ class IrcEventRouter(Router):
             self._add_content_to_message(self.event)
 
     def _handle_end_of_names(self):
-        self._add_information_text("Connected to the channel.")
+        if not self.config.show_less_information:
+            self._add_information_text("Connected to the channel.")
 
         self.ui.enable_input()
         self.state.set_in_channel()
@@ -259,10 +260,12 @@ class IrcEventRouter(Router):
         self._send_saicsync_message()
 
     def _handle_message_of_the_day_start(self):
-        self._add_information_text("Received response from the server.")
+        if not self.config.show_less_information:
+            self._add_information_text("Received response from the server.")
 
     def _handle_message_of_the_day_end(self):
-        self._add_information_text("Finishing initialization.")
+        if not self.config.show_less_information:
+            self._add_information_text("Finishing initialization.")
         for command in self.config.server.commands:
             logger.info("Sending server command: %r", command)
             self.outgoing_queue.put_nowait(
