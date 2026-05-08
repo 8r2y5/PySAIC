@@ -206,9 +206,9 @@ end
 --- scrolls the message list up or down as much as possible depending on the current sorting mode
 function CRCPda:scroll_messages_to_the_latest()
 	if self.sort_by_date:GetCheck() then
-		self.message_list:ScrollToBegin()
-	else
 		self.message_list:ScrollToEnd()
+	else
+		self.message_list:ScrollToBegin()
 	end
 end
 
@@ -250,6 +250,7 @@ function CRCPda:update_ui()
 	self:update_users()
 	self:update_messages()
 	self:UpdateChannels()
+	self:scroll_messages_to_the_latest()
 end
 
 --- redraw the user list
@@ -282,11 +283,6 @@ end
 
 --- redraw the displayed messages
 function CRCPda:update_messages()
-	--- clearing the scroll list set its scroll position to zero, so we need to store it
-	local last_scroll_pos = self.message_list:GetCurrentScrollPos()
-	local was_max_scrolled = self:is_list_max_scrolled(self.message_list)
-
-	--- display latest message as first or last depending on player preference
 	local start_index = (self.sort_by_date:GetCheck() and 1 or #pysaic_state.messageLog)
     local end_index = (self.sort_by_date:GetCheck() and #pysaic_state.messageLog or 1)
     local iterator = (self.sort_by_date:GetCheck() and 1 or -1)
@@ -308,14 +304,6 @@ function CRCPda:update_messages()
 			message:SetAutoDelete(true)
 		end
 	end
-
-	--- restore scroll position
-	self.message_list:SetScrollPos(last_scroll_pos)
-
-	--- auto scroll to the latest message in sort_by_date mode
-	if not self.sort_by_date:GetCheck() and was_max_scrolled then
-		self.message_list:ScrollToEnd()
-	end
 end
 
 --- enters/exits connection lost mode
@@ -335,6 +323,7 @@ end
 function CRCPda:add_message(icon, title, text, author)
 	if self:is_open() then
 		self:update_messages()
+		self:scroll_messages_to_the_latest()
 	end
 end
 
