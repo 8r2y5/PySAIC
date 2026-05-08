@@ -162,20 +162,12 @@ end
 --- @param key number
 --- @return boolean
 function CRCPda:handle_edit_key_press(key)
-	--- close the pda when CHAT_KEY is pressed
-	if key == pysaic_config.option.chatKey then
-        self.edit_box:unfocus()
-        -- We return true to consume the key, but we don't close the PDA here.
-        -- The main key listener will handle the toggle if we weren't focused.
-        -- But since we were focused, we just unfocus.
-        -- If the user wants to close PDA, they press chat key again.
-        return true
-    end
-
-	--- send message when enter pressed
-	if key == DIK_keys.DIK_RETURN then
+	--- send message when enter pressed OR chat key pressed
+	if key == DIK_keys.DIK_RETURN or key == pysaic_config.option.chatKey then
         self:send()
-        return true
+        -- The send() function already handles unfocusing if pysaic_config.option.closeChat is true.
+        -- If closeChat is false, we want to stay focused, so return false.
+        return false -- Return false to keep the textbox focused after sending
     end
 
 	if key == pysaic_config.option.nickAutoCompleteKey then
