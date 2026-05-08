@@ -2,17 +2,20 @@
 
 ## `0.3.0b10` - 2026-01-xx
 ### Short summary
-- **Themes**: Customize the app's look! You can now create, select, and delete themes in `Options -> Themes`.
+- **PDA Chat Integration**: Chat directly from your in-game PDA! This fully integrates the chat experience into the game world, making it more immersive and accessible without needing to switch windows.
+- **Completely Redesigned Settings**: The in-game settings menu has been rebuilt from the ground up, making it much easier to navigate, find, and customize all your preferences, including new options for themes and chat behavior.
+- **New Tabbed Chat Interface**: The main chat window now supports tabs, allowing for better organization of different chat channels and private messages.
+- **Themes**: Customize the app's look! You can now create, select, and delete themes in the new `Options -> Themes` section.
 - **Payment Shortcuts**: Typing large amounts is easier. Example: `/pay user 1.5k` sends 1500.
 - **New Maps**: Added support for Grimwood, Promazone, and Town Yuzhniy.
 - **Mod Organizer 2**: Fully supported. You don't need to install manually into the game folder anymore.
-- **Performance**: Faster and smoother synchronization between chat and game.
+- **Performance & Stability**: Significant under-the-hood improvements to make the chat faster, more stable, and smoother, especially during synchronization between the client and the game. This includes a major refactoring of the game scripts for better maintainability and future updates.
 - **Fixes**:
-  - Fixed compatibility with mod that fixes "Mags Redux" compatibility.
-  - Improved nickname auto-completion.
+  - Fixed compatibility with a mod that addresses "Mags Redux" issues.
+  - Improved nickname auto-completion for a smoother typing experience.
 
 ### Do I need to do anything?
-- You need to copy all the files and restart your game.
+- This is a major update. You need to copy all the new files into your game directory and restart your game to ensure all new features and improvements are applied correctly. Or should I say... install it via MO2 :)
 
 ---
 
