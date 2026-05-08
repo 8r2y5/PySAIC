@@ -70,9 +70,9 @@
 	</faction_separator>
 
 	<pysaic_compact x="0" y="0" width="220" height="39">
-		<icon x="120" y="5" width="41" height="29" stretch="1"/>
+		<icon x="80" y="5" width="41" height="29" stretch="1"/>
 
-		<name x="0" y="0" width="114" height="29">
+		<name x="-40" y="0" width="114" height="29">
 			<text font="letterica16" align="r" vert_align="c"/>
 		</name>
 
@@ -84,7 +84,7 @@
 			<text font="letterica16" align="l" vert_align="c"/>
 		</reputation>
 
-		<status x="0" y="15" width="114" height="29">
+		<status x="-40" y="15" width="114" height="29">
 			<text font="letterica16" align="r" vert_align="c"/>
 		</status>
 	</pysaic_compact>
