@@ -1,0 +1,111 @@
+-- Shared utility functions for rendering user lists in PySAIC UI components.
+
+function get_user_node_name(xml_init)
+	local user_node_name = pysaic_constants.userDisplayToNodeMap[pysaic_config.option.userDisplayStyle]
+	if not user_node_name then
+		user_node_name = "user"
+	end
+	return user_node_name
+end
+
+function set_pysaic_card(xml_init, data, user_static)
+	if data.rank ~= "unknown" then
+		xml_init:InitStatic("pysaic_card:rank", user_static):InitTexture("pysaic_rank_" .. data.rank)
+	end
+
+	if data.reputation == "Terrible" or data.reputation == "Dreary" or data.reputation == "Awful" or data.reputation == "Bad" then
+		xml_init:InitStatic("pysaic_card:reputation", user_static):InitTexture("pysaic_reputation_bad")
+	elseif data.reputation == "Good" or data.reputation == "Great" or data.reputation == "Brilliant" or data.reputation == "Excellent" then
+		xml_init:InitStatic("pysaic_card:reputation", user_static):InitTexture("pysaic_reputation_good")
+	end
+end
+
+function set_pysaic_compact(xml_init, data, user_static)
+	xml_init:InitStatic("pysaic_compact:rank", user_static):TextControl():SetText(tostring(data.rank))
+	xml_init:InitStatic("pysaic_compact:reputation", user_static):TextControl():SetText(tostring(data.reputation))
+end
+
+function add_user_to_list(xml_init, scroll_view, user_node_name, user_data)
+    local user_static, icon, name_static, status_static
+    local NotInGame = user_data.location == "False"
+    user_static = xml_init:InitStatic(user_node_name, nil)
+    icon = xml_init:InitStatic(user_node_name .. ":icon", user_static)
+    name_static = xml_init:InitStatic(user_node_name .. ":name", user_static)
+    status_static = xml_init:InitStatic(user_node_name .. ":status", user_static)
+
+    if pysaic_config.option.userDisplayStyle == pysaic_constants.UserDisplayStyleEnum.PySAIC_Card then
+        set_pysaic_card(xml_init, user_data, user_static)
+    elseif pysaic_config.option.userDisplayStyle == pysaic_constants.UserDisplayStyleEnum.PySAIC_Compact then
+        set_pysaic_compact(xml_init, user_data, user_static)
+    end
+
+    icon:InitTexture(user_data.icon or pysaic_icons.unknown)
+    name_static:TextControl():SetText(user_data.nick)
+    if pysaic_state.COLORED_NICKS and user_data.faction then
+        name_static:TextControl():SetTextColor(
+            pysaic_constants.FACTION_COLORS[user_data.faction]
+        )
+    end
+    if NotInGame then
+        if user_data.afk then
+            status_static:TextControl():SetText(game.translate_string("crc_afk"))
+            status_static:TextControl():SetTextColor(pysaic_config.AFK_ARGB)
+        else
+            status_static:TextControl():SetText(game.translate_string("crc_notingame"))
+            status_static:TextControl():SetTextColor(pysaic_config.NOT_IN_GAME_ARGB)
+        end
+    else
+		local text
+        if pysaic_config.option.userDisplayStyle == "CRCR" then
+            text = game.translate_string("crc_ingame")
+        else
+            text = game.translate_string(user_data.location) or game.translate_string("crc_ingame")
+        end
+        status_static:TextControl():SetText(text)
+        if user_data.afk then
+            status_static:TextControl():SetTextColor(pysaic_config.AFK_ARGB)
+        else
+            status_static:TextControl():SetTextColor(pysaic_config.IN_GAME_ARGB)
+        end
+    end
+    scroll_view:AddWindow(user_static, true)
+    user_static:SetAutoDelete(true)
+end
+
+function render_user_list(xml_init, scroll_view)
+    local last_scroll_pos = scroll_view:GetCurrentScrollPos()
+    scroll_view:Clear()
+
+    local user_node_name = get_user_node_name(xml_init)
+    local separator = (
+        pysaic_state.USER_LIST_ORDER == pysaic_utils.sort_by_faction
+        or pysaic_state.USER_LIST_ORDER == pysaic_utils.sort_by_faction_and_counter
+    )
+    local counter = (
+        pysaic_state.USER_LIST_ORDER == pysaic_utils.sort_by_faction_and_counter
+    )
+    local last_faction
+    for _, data in pysaic_utils.pairsByKeys(pysaic_state.users, pysaic_state.USER_LIST_ORDER) do
+        if separator and last_faction ~= data.faction then
+            last_faction = data.faction
+            local faction_separator = xml_init:InitStatic("faction_separator", nil)
+            local faction_text = xml_init:InitStatic("faction_separator:name", faction_separator)
+            faction_text:TextControl():SetText(
+                game.translate_string("crc_"..(last_faction or "unknown") )
+            )
+            faction_text:TextControl():SetTextColor(
+                pysaic_constants.FACTION_COLORS[data.faction]
+            )
+            if counter then
+                local faction_name_counter = xml_init:InitStatic("faction_separator:counter", faction_separator)
+                faction_name_counter:TextControl():SetText(
+                    "(" .. tostring(pysaic_state.FACTION_SIZE[data.faction] or 1) .. ")"
+                )
+            end
+            scroll_view:AddWindow(faction_separator, true)
+            faction_separator:SetAutoDelete(true)
+        end
+        add_user_to_list(xml_init, scroll_view, user_node_name, data)
+    end
+    scroll_view:SetScrollPos(last_scroll_pos)
+end

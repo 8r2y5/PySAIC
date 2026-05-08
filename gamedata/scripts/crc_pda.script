@@ -20,7 +20,7 @@ end
 --- information from the save file
 local data_from_save = {
 	start_channel = 1,
-	sort_by_date = false,
+	sort_by_date = true,
 	use_cyrillic = false,
 	ignore_outsiders = false,
 }
@@ -28,7 +28,7 @@ local data_from_save = {
 --- loads information from the save file
 function load_state(m_data)
 	data_from_save.start_channel = m_data.prevChannel or 1
-	data_from_save.sort_by_date = m_data.sort_by_date or false
+	data_from_save.sort_by_date = m_data.sort_by_date or true
 	data_from_save.use_cyrillic = m_data.use_cyrillic or false
 	data_from_save.ignore_outsiders = m_data.ignore_outsiders or false
 end
@@ -216,6 +216,7 @@ end
 function CRCPda:send()
 	local input = self.edit_box:get_text()
 
+	printf("Sending message: %s", input)
 	if input and input ~= "" then
 		self.edit_box:clear()
 		pysaic_io.send("Message/%s/%s", db.actor:character_community(), input)
@@ -253,61 +254,7 @@ end
 
 --- redraw the user list
 function CRCPda:update_users()
-	--- clearing the scroll list set its scroll position to zero, so we need to store it
-	local last_scroll_pos = self.user_list:GetCurrentScrollPos()
-
-	self.user_list:Clear()
-
-    local sorted_users = {}
-    for name, data in pairs(pysaic_state.users) do
-        table.insert(sorted_users, data)
-    end
-
-    if pysaic_state.USER_LIST_ORDER then
-        table.sort(sorted_users, pysaic_state.USER_LIST_ORDER)
-    else
-        table.sort(sorted_users, function(a, b) return a.nick < b.nick end)
-    end
-
-	for _, data in ipairs(sorted_users) do
-        local is_in_game = data.location ~= "False"
-
-		local user = xml:InitStatic("user", nil)
-
-		xml:InitStatic("user:icon", user):InitTexture(data.icon or pysaic_icons.unknown)
-		name = xml:InitStatic("user:name", user)
-		name:TextControl():SetText(data.nick)
-		if pysaic_state.COLORED_NICKS and data.faction then
-			name:TextControl():SetTextColor(
-				pysaic_constants.FACTION_COLORS[data.faction]
-			)
-		end
-		local user_status = xml:InitStatic("user:status", user)
-
-		if is_in_game then
-			user_status:TextControl():SetText(game.translate_string("crc_ingame"))
-			user_status:TextControl():SetTextColor(pysaic_config.IN_GAME_ARGB)
-		else
-			local text
-			if pysaic_config.option.userDisplayStyle == "CRCR" then
-				text = game.translate_string("crc_ingame")
-			else
-				text = game.translate_string(data.location) or game.translate_string("crc_ingame")
-			end
-			user_status:TextControl():SetText(text)
-			if data.afk then
-				user_status:TextControl():SetTextColor(pysaic_config.AFK_ARGB)
-			else
-				user_status:TextControl():SetTextColor(pysaic_config.IN_GAME_ARGB)
-			end
-		end
-
-		self.user_list:AddWindow(user, true)
-		user:SetAutoDelete(true)
-	end
-
-	--- restore scroll position
-	self.user_list:SetScrollPos(last_scroll_pos)
+	pysaic_user_list_utils.render_user_list(xml, self.user_list)
 end
 
 --- returns true if the message was not filtered by user filters

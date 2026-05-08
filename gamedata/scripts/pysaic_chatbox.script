@@ -1,6 +1,6 @@
 --| PySAIC ChatBox UI
 
-local DELETION_STOP_CHARS = {[" "] = true, [","] = true, ["."] = true, [":"] = true, [";"] = true, ["@"] = true, ["!"] = true, ["("] = true, [")"] = true}
+local DELETION_STOP_CHARS = {[" "] = true, [","] = true, [". "] = true, [":"] = true, [";"] = true, ["@"] = true, ["!"] = true, ["("] = true, [")"] = true}
 
 class "ChatBox" (CUIScriptWnd)
 function ChatBox:__init() super()
@@ -73,115 +73,8 @@ function ChatBox:OnKeyboard(dik, keyboard_action)
     return true
 end
 
-
-function ChatBox:getUserNodeName()
-	local user_node_name = pysaic_constants.userDisplayToNodeMap[pysaic_config.option.userDisplayStyle]
-	if not user_node_name then
-		user_node_name = "user"
-	end
-	return user_node_name
-end
-
-
-function ChatBox:setPySAICCard(data, user)
-	if data.rank ~= "unknown" then
-		self.xml:InitStatic("pysaic_card:rank", user):InitTexture("pysaic_rank_" .. data.rank)
-	end
-
-	if data.reputation == "Terrible" or data.reputation == "Dreary" or data.reputation == "Awful" or data.reputation == "Bad" then
-		self.xml:InitStatic("pysaic_card:reputation", user):InitTexture("pysaic_reputation_bad")
-	elseif data.reputation == "Good" or data.reputation == "Great" or data.reputation == "Brilliant" or data.reputation == "Excellent" then
-		self.xml:InitStatic("pysaic_card:reputation", user):InitTexture("pysaic_reputation_good")
-	end
-end
-
-
-function ChatBox:setPySAICCompact(data, user)
-	self.xml:InitStatic("pysaic_compact:rank", user):TextControl():SetText(tostring(data.rank))
-	self.xml:InitStatic("pysaic_compact:reputation", user):TextControl():SetText(tostring(data.reputation))
-end
-
-function ChatBox:_add_user_to_user_list(user_node_name, user_data)
-    local user, icon, name, status
-    local NotInGame = user_data.location == "False"
-    user = self.xml:InitStatic(user_node_name, nil)
-    icon = self.xml:InitStatic(user_node_name .. ":icon", user)
-    name = self.xml:InitStatic(user_node_name .. ":name", user)
-    status = self.xml:InitStatic(user_node_name .. ":status", user)
-    if pysaic_config.option.userDisplayStyle == pysaic_constants.UserDisplayStyleEnum.PySAIC_Card then
-        self:setPySAICCard(user_data, user)
-    elseif pysaic_config.option.userDisplayStyle == pysaic_constants.UserDisplayStyleEnum.PySAIC_Compact then
-        self:setPySAICCompact(user_data, user)
-    end
-
-    icon:InitTexture(user_data.icon or pysaic_icons.unknown)
-    name:TextControl():SetText(user_data.nick)
-    if pysaic_state.COLORED_NICKS and user_data.faction then
-        name:TextControl():SetTextColor(
-            pysaic_constants.FACTION_COLORS[user_data.faction]
-        )
-    end
-    if NotInGame then
-        if user_data.afk then
-            status:TextControl():SetText(game.translate_string("crc_afk"))
-            status:TextControl():SetTextColor(pysaic_config.AFK_ARGB)
-        else
-            status:TextControl():SetText(game.translate_string("crc_notingame"))
-            status:TextControl():SetTextColor(pysaic_config.NOT_IN_GAME_ARGB)
-        end
-    else
-		local text
-        if pysaic_config.option.userDisplayStyle == "CRCR" then
-            text = game.translate_string("crc_ingame")
-        else
-            text = game.translate_string(user_data.location) or game.translate_string("crc_ingame")
-        end
-        status:TextControl():SetText(text)
-        if user_data.afk then
-            status:TextControl():SetTextColor(pysaic_config.AFK_ARGB)
-        else
-            status:TextControl():SetTextColor(pysaic_config.IN_GAME_ARGB)
-        end
-    end
-    self.scroll:AddWindow(user, true)
-    user:SetAutoDelete(true)
-end
-
 function ChatBox:UpdateUsers()
-    local last_scroll_pos = self.scroll:GetCurrentScrollPos()
-    self.scroll:Clear()
-	local user_node_name = self:getUserNodeName()
-    local separator = (
-        pysaic_state.USER_LIST_ORDER == pysaic_utils.sort_by_faction
-        or pysaic_state.USER_LIST_ORDER == pysaic_utils.sort_by_faction_and_counter
-    )
-    local counter = (
-        pysaic_state.USER_LIST_ORDER == pysaic_utils.sort_by_faction_and_counter
-    )
-    local last_faction
-    for _, data in pysaic_utils.pairsByKeys(pysaic_state.users, pysaic_state.USER_LIST_ORDER) do
-        if separator and last_faction ~= data.faction then
-            last_faction = data.faction
-            local faction_separator = self.xml:InitStatic("faction_separator", nil)
-            local faction_text = self.xml:InitStatic("faction_separator:name", faction_separator)
-            faction_text:TextControl():SetText(
-                game.translate_string("crc_"..(last_faction or "unknown") )
-            )
-            faction_text:TextControl():SetTextColor(
-                pysaic_constants.FACTION_COLORS[data.faction]
-            )
-            if counter then
-                local faction_name_counter = self.xml:InitStatic("faction_separator:counter", faction_separator)
-                faction_name_counter:TextControl():SetText(
-                    "(" .. tostring(pysaic_state.FACTION_SIZE[data.faction] or 1) .. ")"
-                )
-            end
-            self.scroll:AddWindow(faction_separator, true)
-            faction_separator:SetAutoDelete(true)
-        end
-        self:_add_user_to_user_list(user_node_name, data)
-    end
-    self.scroll:SetScrollPos(last_scroll_pos)
+    pysaic_user_list_utils.render_user_list(self.xml, self.scroll)
 end
 
 function ChatBox:UpdateChannels()

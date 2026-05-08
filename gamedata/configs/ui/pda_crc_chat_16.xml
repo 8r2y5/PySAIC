@@ -69,6 +69,42 @@
 		</counter>
 	</faction_separator>
 
+	<pysaic_compact x="0" y="0" width="220" height="39">
+		<icon x="120" y="5" width="41" height="29" stretch="1"/>
+
+		<name x="0" y="0" width="114" height="29">
+			<text font="letterica16" align="r" vert_align="c"/>
+		</name>
+
+		<rank x="-60" y="5" width="9" height="15">
+			<text font="letterica16" align="l" vert_align="c"/>
+		</rank>
+
+		<reputation x="-60" y="22" width="13" height="13">
+			<text font="letterica16" align="l" vert_align="c"/>
+		</reputation>
+
+		<status x="0" y="15" width="114" height="29">
+			<text font="letterica16" align="r" vert_align="c"/>
+		</status>
+	</pysaic_compact>
+
+	<pysaic_card x="0" y="0" width="180" height="66">
+		<icon x="80" y="5" width="52" height="37" stretch="1"/>
+
+		<name x="-40" y="0" width="114" height="56">
+			<text font="letterica16" align="r" vert_align="c"/>
+		</name>
+
+		<rank x="83" y="12" width="9" height="30" stretch="1"/>
+
+		<reputation x="87" y="9" width="9" height="16" stretch="1"/>
+
+		<status x="-40" y="15" width="114" height="56">
+			<text font="letterica16" align="r" vert_align="c"/>
+		</status>
+	</pysaic_card>
+
 	<edit_box x="36" y="675" width="500" height="27" frame_mode="0" stretch="1">
 		<texture>ui_crc_textbox</texture>
 		<text x="-490" y="2" align="l" vert_align="c" font="letterica18"></text>
