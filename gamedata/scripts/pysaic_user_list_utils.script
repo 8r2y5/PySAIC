@@ -55,11 +55,13 @@ function add_user_to_list(xml_init, scroll_view, user_node_name, user_data)
             status_static:TextControl():SetTextColor(pysaic_config.NOT_IN_GAME_ARGB)
         end
     else
-		local text
+        local text
         if pysaic_config.option.userDisplayStyle == "CRCR" then
             text = game.translate_string("crc_ingame")
+        elseif user_data.location ~= 'unknown' then
+            text = game.translate_string(user_data.location)
         else
-            text = game.translate_string(user_data.location) or game.translate_string("crc_ingame")
+            text = game.translate_string("crc_ingame")
         end
         status_static:TextControl():SetText(text)
         if user_data.afk then
