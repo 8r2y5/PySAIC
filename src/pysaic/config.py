@@ -287,6 +287,7 @@ class ContentColors(Colors):
     surge: str = "#5b5bff"
     underground: str = "#5b5bff"
     afk: str = "#ffff00"
+    static_nick: str = "#808080"
 
 
 @dataclass
@@ -374,6 +375,7 @@ class Config:
     in_game_pda_instead_of_window: bool = BoolField(default=True)
     enable_irc_user_display: bool = BoolField(default=True)
     show_less_information: bool = BoolField(default=False)
+    use_static_nick_color: bool = BoolField(default=False)
 
     @classmethod
     def load_config(cls):

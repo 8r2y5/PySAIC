@@ -71,16 +71,18 @@ class UiUseCase:
                 f"{prepare_date(event)}: {normalized_content}",
             )
 
-    def _get_faction_color(self, author) -> str:
+    def _get_faction_color(self, author) -> list[str]:
         if "NickServ" == author:
             try:
                 return self.chat_users[self.state.nick].faction.name
             except (KeyError, ValueError, AttributeError):
-                return FactionsEnum.Anonymous.name
+                return [FactionsEnum.Anonymous.name]
         try:
-            return str(
-                self.chat_users[author].faction.name
-                or FactionsEnum.Anonymous.name
-            )
+            return [
+                str(
+                    self.chat_users[author].faction.name
+                    or FactionsEnum.Anonymous.name
+                )
+            ] + (["OwnMessage"] if author == self.state.nick else [])
         except (KeyError, ValueError, AttributeError):
-            return FactionsEnum.Anonymous.name
+            return [FactionsEnum.Anonymous.name]

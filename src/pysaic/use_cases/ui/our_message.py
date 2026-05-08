@@ -2,7 +2,7 @@ import logging
 from tkinter import END
 
 from pysaic.controllers.game import add_channel_message_to_game
-from pysaic.entities import IncomingEvent, OutgoingMessage
+from pysaic.entities import IncomingEvent, OutgoingMessage, ChatUser
 from pysaic.enums import FactionsEnum, HistoryMessageEnum
 from pysaic.use_cases.irc_mode_to_user_type import parsed_mode_to_name
 from pysaic.use_cases.text import make_content_malformed
@@ -17,20 +17,28 @@ logger = logging.getLogger(__name__)
 
 class TkinterMessageListController:
     @staticmethod
-    def add_message(messages_list, hyperlinks, chat_user, content, created_at):
+    def add_message(
+        messages_list,
+        hyperlinks,
+        chat_user,
+        content,
+        created_at,
+        use_static_nick_color: bool,
+    ):
         with enable_disable(messages_list):
             messages_list.insert(
                 END, f"[{created_at.strftime('%H:%M:%S')}] ", "Time"
             )
-            messages_list.insert(
-                END,
-                f"{chat_user.name}",
+            tags = [
                 (
                     chat_user.faction.name
                     if chat_user.faction
                     else FactionsEnum.Anonymous.name
-                ),
-            )
+                )
+            ]
+            if use_static_nick_color:
+                tags.append("OwnMessage")
+            messages_list.insert(END, f"{chat_user.name}", tags)
             add_content_of_message_to_messages_list(
                 messages_list, hyperlinks, f": {content}", ["Text"]
             )
@@ -56,7 +64,7 @@ class OurMessageUseCase:
         self.outgoing_queue = outgoing_queue
         self.incoming_queue = incoming_queue
 
-    def _add_our_message(self, user, outgoing_message, target=""):
+    def _add_our_message(self, user: ChatUser, outgoing_message, target=""):
         logger.debug("Adding our message: %r", outgoing_message)
 
         tab_id = "main"
@@ -72,6 +80,8 @@ class OurMessageUseCase:
             user,
             outgoing_message.content,
             outgoing_message.created_at,
+            user.name == self.state.player.name
+            and self.config.use_static_nick_color,
         )
 
     def execute(self, content, target=""):

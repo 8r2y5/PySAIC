@@ -3,7 +3,7 @@
 ## `0.3.0b10` - 2026-01-xx
 ### Short summary
 - **Themes**: Customize the app's look! You can now create, select, and delete themes in `Options -> Themes`.
-- **Payment Shortcuts**: Typing large amounts is easier. Example: `/pay user 1.5k` works for 1500.
+- **Payment Shortcuts**: Typing large amounts is easier. Example: `/pay user 1.5k` sends 1500.
 - **New Maps**: Added support for Grimwood, Promazone, and Town Yuzhniy.
 - **Mod Organizer 2**: Fully supported. You don't need to install manually into the game folder anymore.
 - **Performance**: Faster and smoother synchronization between chat and game.

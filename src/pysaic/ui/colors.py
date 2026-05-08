@@ -232,6 +232,7 @@ class ColorsOptions:
             (f"{SURGE_ICON} Surge", "surge"),
             (f"{UNDERGROUND_ICON} Underground", "underground"),
             ("[13:37] time", "time"),
+            ("Own Nick", "static_nick"),
         ]
         for i, (label, key) in enumerate(text_items):
             self._create_color_row(

@@ -500,6 +500,7 @@ class App(Tk):
             self.users_list,
             self.pysaic_config.colors,
             not self.pysaic_config.font.turn_off_bold_font_username_in_list,
+            self.pysaic_config.use_static_nick_color,
         )
         self.tabbed_chat.update_styles()
 

@@ -248,6 +248,7 @@ class ClientTab(Frame):
             variable=self.turn_off_bold_font_chat_var,
             **self.options.default_style_kwargs,
         ).grid(row=0, column=1, sticky="w", pady=(5, 0))
+
         self.turn_off_bold_font_user_var = BooleanVar(
             value=self.config.font.turn_off_bold_font_username_in_list
         )
@@ -268,6 +269,27 @@ class ClientTab(Frame):
             variable=self.turn_off_bold_font_user_var,
             **self.options.default_style_kwargs,
         ).grid(row=1, column=1, sticky="w", pady=(5, 0))
+
+        self.use_static_nick_color_var = BooleanVar(
+            value=self.config.use_static_nick_color
+        )
+
+        @self.options.add_save_callback
+        def save_use_static_nick_color():
+            logger.debug(
+                "static nick: %r",
+                self.use_static_nick_color_var.get(),
+            )
+            self.config.use_static_nick_color = (
+                self.use_static_nick_color_var.get()
+            )
+
+        Checkbutton(
+            font_frame,
+            text="User static nick color",
+            variable=self.use_static_nick_color_var,
+            **self.options.default_style_kwargs,
+        ).grid(row=2, column=1, sticky="w", pady=(5, 0))
 
         self.options._font_button = Button(
             font_frame,

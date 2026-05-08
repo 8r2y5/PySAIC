@@ -2,8 +2,9 @@ import tkinter
 from tkinter import Frame, TclError
 from tkinter.font import Font
 from tkinter.ttk import Separator, Style, Label
+from typing import Callable
 
-from pysaic.config import Config, Colors
+from pysaic.config import Config, ColorsConfig
 from pysaic.enums import FactionsEnum
 
 
@@ -64,7 +65,10 @@ class MessagesListText(tkinter.Text):
 
 
 def apply_color_tags_to_text(
-    widget: tkinter.Text, colors: Colors, bold_font: bool = False
+    widget: tkinter.Text,
+    colors: ColorsConfig,
+    bold_font: bool = False,
+    own_above_faction: bool = True,
 ):
     font = Font(widget, widget.cget("font"))
     if bold_font:
@@ -187,6 +191,15 @@ def apply_color_tags_to_text(
         foreground=colors.content.underground,
         font=font,
     )
+    widget.tag_config(
+        "OwnMessage", foreground=colors.content.static_nick, font=font
+    )
+
+    method: Callable[[str, str], None] = (
+        widget.tag_raise if own_above_faction else widget.tag_lower
+    )
+    for faction in FactionsEnum:
+        method("OwnMessage", faction.name)
 
 
 def configure_widget(widget, config: Config):
@@ -261,7 +274,12 @@ def configure_widget(widget, config: Config):
         elif isinstance(widget, UserListText):
             bold_font = not config.font.turn_off_bold_font_username_in_list
 
-        apply_color_tags_to_text(widget, config.colors, bold_font=bold_font)
+        apply_color_tags_to_text(
+            widget,
+            config.colors,
+            bold_font=bold_font,
+            own_above_faction=config.use_static_nick_color,
+        )
 
 
 def apply_style_to_tkinter(container, config: Config):

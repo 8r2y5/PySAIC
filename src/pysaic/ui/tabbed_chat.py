@@ -40,6 +40,7 @@ class ChatTab(Frame):
             self.messages_list,
             self.config.colors,
             bold_font=not self.config.font.turn_off_bold_font_username_in_chat,
+            own_above_faction=self.config.use_static_nick_color,
         )
 
 
