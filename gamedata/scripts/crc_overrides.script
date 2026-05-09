@@ -7,12 +7,11 @@ function create_overrides()
 
     --- @param section string
     pda.set_active_subdialog = function (section)
-        if (section == "eptLogs") then
-            our_pda = crc_pda.get_ui()
+        if pysaic_state.USE_PDA and section == "eptLogs" then
+            local our_pda = crc_pda.get_ui()
             if our_pda then
                 our_pda:update_ui()
             end
-
             return our_pda
         else
             return original_set_active_subdialog(section)
