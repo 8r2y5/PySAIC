@@ -344,7 +344,7 @@ function parseUsePda(value)
         local pda_menu = ActorMenu.get_pda_menu()
         if pda_menu and pda_menu:IsShown() then
             local sub = pda_menu:GetActiveSubdialog()
-            if sub and sub.st_name == "eptChat" then
+            if sub and sub.st_name == "eptLogs" then
                 pda_menu:HideDialog()
             end
         end

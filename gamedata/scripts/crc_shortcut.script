@@ -42,7 +42,7 @@ end
 --- open the pda chat menu
 --- @param pda PDA
 function open_crcr_gui(pda)
-    pda.ui:SetActiveSubdialog("eptChat")
+    pda.ui:SetActiveSubdialog("eptLogs")
 end
 
 --- returns true if pda currently in use
@@ -63,9 +63,9 @@ function on_key_release(key)
     if not pysaic_state.USE_PDA then
         return
     end
-    if key ~= crc_config.get().chat_key then
-        return
-    end
+    -- Removed the redundant check: if key ~= crc_config.get().chat_key then return end
+    -- The key is already checked in pysaic.script's onKeyPress
+
     local pda = load_pda()
 
     --- open pda if it's closed
