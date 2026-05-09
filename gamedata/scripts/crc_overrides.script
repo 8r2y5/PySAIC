@@ -3,13 +3,11 @@
 
 --- here are all the modifications the mod makes to the game's original functions
 function create_overrides()
-    --- A function that displays the selected gui inside the pda
     local original_set_active_subdialog = pda.set_active_subdialog
 
-    --- I added the display of the CRCR GUI inside the pda.
     --- @param section string
     pda.set_active_subdialog = function (section)
-        if (section == "eptChat") then
+        if (section == "eptLogs") then
             our_pda = crc_pda.get_ui()
             if our_pda then
                 our_pda:update_ui()

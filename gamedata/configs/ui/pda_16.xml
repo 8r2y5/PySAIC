@@ -143,7 +143,7 @@
 			</text_color>
 		</button>
 
-		<button x="476" y="0" width="79" height="27" id="eptChat" frame_mode="0"> <!-- Added tab for crc Chat - Amon -->
+		<button x="476" y="0" width="79" height="27" id="eptChat" frame_mode="0">
 			<text align="c" vert_align="c" x="0" y="0" font="letterica16">crc_pda_tab</text>
             <texture>ui_inGame2_pda_button</texture>
 			<text_color>
