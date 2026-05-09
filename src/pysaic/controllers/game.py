@@ -136,6 +136,7 @@ def _get_message_metadata(
 def add_message_history(
     history: Iterable[tuple[HistoryMessageEnum, ChatUser, ChatUser, str]]
 ):
+    add_to_crc_input_file("HistoryClear")
     for message_type, source, me, message_content in history:
         add_to_crc_input_file(
             "/".join(
@@ -155,6 +156,7 @@ def add_message_history(
         )
 
 
+# noinspection PyTypeHints
 def _get_chat_user_faction(faction: Optional[FactionsEnum]):
     return faction or FactionsEnum.Anonymous
 

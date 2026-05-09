@@ -160,7 +160,7 @@ def _load_factions():
     return factions
 
 
-FactionsEnum = Enum("FactionsEnum", _load_factions())
+FactionsEnum: Enum = Enum("FactionsEnum", _load_factions())
 # Monkey-patch __str__ to return the value, matching previous behavior
 FactionsEnum.__str__ = lambda self: self.value
 

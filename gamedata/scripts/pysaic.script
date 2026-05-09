@@ -145,6 +145,11 @@ function historyMoneyToHandler(message, highlight, name, faction, icon_id, messa
 	add_message_to_history(icon, title, text, reputation, rank, name)
 end
 
+function parseHistoryClear(body)
+    pysaic_state.messageLog = {}
+end
+
+
 historyHandlers = {
 	dm_from = historyFromPrivateHandler,
 	dm_to = historyToPrivateHandler,
@@ -411,6 +416,7 @@ local inputActions = {
 	Error = addErrorMessage,
 	Message = parseChannelMessage,
 	Query = parsePrivateMessage,
+    HistoryClear = parseHistoryClear,
 	History = parseHistoryMessage,
 	Money = parseSendingMoney,
 	MoneyRecv = parseGettingMoney,
