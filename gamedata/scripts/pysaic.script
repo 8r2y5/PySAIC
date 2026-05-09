@@ -651,6 +651,8 @@ end
 function actorOnItemTake(item)
 	if IsArtefact(item) then
 		pysaic_io.send('ArtifactFound/%s/%s/%s', item:name(), level.name(), item:section())
+	else
+		pysaic_io.send('Item/%s/%s/%s', item:name(), level.name(), item:section())
 	end
 end
 
