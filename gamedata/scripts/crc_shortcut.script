@@ -42,7 +42,7 @@ end
 --- open the pda chat menu
 --- @param pda PDA
 function open_crcr_gui(pda)
-    pda.ui:SetActiveSubdialog("eptLogs")
+    pda.ui:SetActiveSubdialog(crc_overrides.NODE_ID)
 end
 
 --- returns true if pda currently in use
