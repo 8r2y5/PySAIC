@@ -3,7 +3,7 @@
 
 local conn = require("pysaic_cm")
 local handshake_sent = false
-local SCRIPT_VERSION = 14
+local SCRIPT_VERSION = 15
 
 function init()
     conn.init()

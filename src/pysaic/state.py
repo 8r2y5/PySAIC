@@ -216,7 +216,7 @@ class State:
         self.last_death: Optional[datetime] = None
         self.last_messages: deque[
             tuple[HistoryMessageEnum, ChatUser, ChatUser, str]
-        ] = deque(maxlen=20)
+        ] = deque(maxlen=100)
         self.player_update_task: Optional[asyncio.Future] = None
         self.player_changed_values_queue: asyncio.Queue = asyncio.Queue()
         self._is_currently_under_network_destruction: (
