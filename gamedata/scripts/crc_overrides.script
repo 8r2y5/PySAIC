@@ -1,5 +1,5 @@
 --| Adding a new tab to the pda
---| Inspirated by iTheon's PDA Tasbar
+--| Inspired by iTheon's PDA Taskbar
 
 NODE_ID = "eptChat"
 

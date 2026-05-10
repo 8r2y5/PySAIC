@@ -49,17 +49,18 @@ end
 
 local function addMessage(icon, title, text, reputation, rank, author)
 	add_message_to_history(icon, title, text, reputation, rank, author)
-	db.actor:give_game_news(title, text, icon, 0, pysaic_config.option.newsDuration)
 	if pysaic_config.option.newsSound then
 		xr_sound.set_sound_play(db.actor:id(), getNewsSound(icon))
+	end
+	local pda_ui = crc_pda.get_ui()
+	if pda_ui and pda_ui:is_open() then
+		pda_ui:add_message(icon, title, text, author or "system")
+	else
+		db.actor:give_game_news(title, text, icon, 0, pysaic_config.option.newsDuration)
 	end
 	if chatBox then
 		chatBox:UpdateMessages()
 	end
-    local pda_ui = crc_pda.get_ui()
-    if pda_ui then
-        pda_ui:add_message(icon, title, text, author or "system")
-    end
 end
 
 local function _get_title_value(faction, user_type)
