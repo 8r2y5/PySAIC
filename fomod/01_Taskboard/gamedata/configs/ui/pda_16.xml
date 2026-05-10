@@ -75,7 +75,7 @@
 		</button>
 
 		<button x="61" y="0" width="69" height="27" id="eptTaskboard" frame_mode="0">
-			<text align="c" vert_align="c" x="0" y="0" font="letterica16">Taskboard</text>
+			<text align="c" vert_align="c" x="0" y="0" font="letterica16">pda_btn_taskboard</text>
             <texture>ui_inGame2_pda_button</texture>
 			<text_color>
 				<t r="255" g="255" b="255"/>
