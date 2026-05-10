@@ -70,7 +70,7 @@ class OurMessageUseCase:
         tab_id = "main"
         if target:
             tab_id = target
-            self.ui.tabbed_chat.add_tab(tab_id, tab_id)
+            self.ui.tabbed_chat.add_tab(tab_id, tab_id, is_app_tab=True)
 
         tab = self.ui.tabbed_chat.get_tab(tab_id)
 

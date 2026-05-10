@@ -33,6 +33,9 @@ class AddMessageUseCase(UiUseCase):
         additional_tags = ["Highlight"] if highlight else []
         show_popup = self.ui.should_show_popups and highlight
 
+        # tab_id = self.event.target  # multiple channels support?
+        self.ui.tabbed_chat.notify_new_message('main')
+
         with enable_disable(self.messages_list):
             self._add_date_to_message()
             if START_OF_ACTOR_CHARACTER in self.event.content:

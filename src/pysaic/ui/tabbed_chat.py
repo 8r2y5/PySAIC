@@ -55,6 +55,7 @@ class TabbedChat(Frame):
         self.add_tab("main", "Main")
 
         self.notebook.bind("<Button-3>", self.show_context_menu)
+        self.notebook.bind("<<NotebookTabChanged>>", self._on_tab_changed)
         self.context_menu = Menu(
             self,
             tearoff=0,
@@ -65,22 +66,29 @@ class TabbedChat(Frame):
             label="Close Tab", command=self.close_current_tab
         )
 
-    def add_tab(self, tab_id, title):
+    def add_tab(self, tab_id, title, is_app_tab=False):
         if tab_id in self.tabs:
-            return self.tabs[tab_id]
+            return self.tabs[tab_id]["widget"]
 
         tab = ChatTab(self.notebook, self.config)
         self.notebook.add(tab, text=title)
-        self.tabs[tab_id] = tab
+        self.tabs[tab_id] = {
+            "widget": tab,
+            "is_app_tab": is_app_tab,
+            "original_title": title,
+            "has_unread_messages": False,
+        }
+        self._update_tab_style(tab_id)
         return tab
 
     def get_tab(self, tab_id):
-        return self.tabs.get(tab_id)
+        tab_info = self.tabs.get(tab_id)
+        return tab_info["widget"] if tab_info else None
 
     def get_current_tab_id(self):
         current_tab_widget = self.notebook.nametowidget(self.notebook.select())
-        for tab_id, tab in self.tabs.items():
-            if tab == current_tab_widget:
+        for tab_id, tab_info in self.tabs.items():
+            if tab_info["widget"] == current_tab_widget:
                 return tab_id
         return "main"
 
@@ -89,8 +97,9 @@ class TabbedChat(Frame):
             return  # Cannot close main tab
 
         if tab_id in self.tabs:
-            self.notebook.forget(self.tabs[tab_id])
+            self.notebook.forget(self.tabs[tab_id]["widget"])
             del self.tabs[tab_id]
+            self._on_tab_changed()
 
     def show_context_menu(self, event):
         try:
@@ -106,6 +115,50 @@ class TabbedChat(Frame):
         tab_id = self.get_current_tab_id()
         self.close_tab(tab_id)
 
+    def notify_new_message(self, tab_id):
+        if tab_id not in self.tabs:
+            return
+
+        current_selected_tab_widget = self.notebook.nametowidget(
+            self.notebook.select()
+        )
+        tab_info = self.tabs[tab_id]
+
+        if tab_info["widget"] != current_selected_tab_widget:
+            tab_info["has_unread_messages"] = True
+            self._update_tab_style(tab_id)
+
+    def _on_tab_changed(self, event=None):
+        selected_tab_id = self.get_current_tab_id()
+        if selected_tab_id in self.tabs:
+            self.tabs[selected_tab_id]["has_unread_messages"] = False
+
+        for tab_id in self.tabs:
+            self._update_tab_style(tab_id)
+
+    def _update_tab_style(self, tab_id):
+        tab_info = self.tabs.get(tab_id)
+        if not tab_info:
+            return
+
+        tab_widget = tab_info["widget"]
+        original_title = tab_info["original_title"]
+        has_unread_messages = tab_info["has_unread_messages"]
+        is_app_tab = tab_info["is_app_tab"]
+        current_selected_tab_widget = self.notebook.nametowidget(
+            self.notebook.select()
+        )
+
+        if (
+            is_app_tab
+            and has_unread_messages
+            and tab_widget != current_selected_tab_widget
+        ):
+            self.notebook.tab(tab_widget, text=f"🔴 {original_title}")
+        else:
+            self.notebook.tab(tab_widget, text=original_title)
+
     def update_styles(self):
-        for tab in self.tabs.values():
-            tab.apply_styles()
+        for tab_info in self.tabs.values():
+            tab_info["widget"].apply_styles()
+        self._on_tab_changed()
