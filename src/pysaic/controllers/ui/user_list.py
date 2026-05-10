@@ -110,8 +110,8 @@ class GroupByFactionWithCounter(SortedMixin):
         return (
             -(self.counter[chat_user.faction] if chat_user.faction else 0),
             1 if faction == FactionsEnum.Anonymous.name else 0,
-            int(not chat_user.in_game),
             faction,
+            -int(chat_user.in_game),
             chat_user.name.lower(),
         )
 
