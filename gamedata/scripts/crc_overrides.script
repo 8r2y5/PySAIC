@@ -1,23 +1,11 @@
 --| Adding a new tab to the pda
 --| Inspirated by iTheon's PDA Tasbar
 
-NODE_ID = nil
+NODE_ID = "eptChat"
 
 --- here are all the modifications the mod makes to the game's original functions
 function create_overrides()
     local original_set_active_subdialog = pda.set_active_subdialog
-    local f = io.open("gamedata\\configs\\ui\\pda_16.xml", "r")
-    local content = ""
-    if f then
-        content = f:read("*all")
-        f:close()
-    end
-    if string.find(content, 'id="eptChat"') ~= nil then
-        NODE_ID = "eptChat"
-    else
-        NODE_ID = "eptLogs"
-    end
-
 
     --- @param section string
     pda.set_active_subdialog = function (section)

@@ -1,0 +1,46 @@
+<config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="http://qconsulting.ca/fo3/ModConfig5.0.xsd">
+    <moduleName>Interactive PDA Installer</moduleName>
+
+    <!-- 1. THESE FILES ALWAYS INSTALL -->
+    <requiredInstallFiles>
+        <folder source="00_Core/gamedata" destination="gamedata" priority="0"/>
+        <folder source="00_Core/res" destination="res" priority="0"/>
+        <folder source="00_Core/bin" destination="bin" priority="0"/>
+        <folder source="00_Core/pysaic" destination="pysaic" priority="0"/>
+    </requiredInstallFiles>
+
+    <!-- 2. THESE FILES ARE THE PLAYER'S CHOICE -->
+    <installSteps>
+        <installStep name="Choose your Version">
+            <optionalFileGroups>
+                <group name="UI XML Options" type="SelectExactlyOne">
+                    <plugins>
+
+                        <!-- Choice A -->
+                        <plugin name="No Taskboard">
+                            <description>Select this if you don't have a taskboard mod.</description>
+                            <files></files>
+                            <image path=""/>
+                            <typeDescriptor>
+                                <type name="Vanilla"/>
+                            </typeDescriptor>
+                        </plugin>
+
+                        <!-- Choice B -->
+                        <plugin name="Taskboard">
+                            <description>Select this if you have a taskboard mod.</description>
+                            <image path=""/>
+                            <files>
+                                <folder source="01_Taskboard/gamedata" destination="gamedata" priority="0"/>
+                            </files>
+                            <typeDescriptor>
+                                <type name="Optional"/>
+                            </typeDescriptor>
+                        </plugin>
+
+                    </plugins>
+                </group>
+            </optionalFileGroups>
+        </installStep>
+    </installSteps>
+</config>

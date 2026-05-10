@@ -1,0 +1,8 @@
+<fomod>
+    <Name>PySAIC</Name>
+    <Author>brzys</Author>
+    <Version MachineVersion="pysaicversion">pysaicversion</Version>
+    <Description>PySAIC is an acronym for Python Stalker Anomaly IRC Client.
+Similarly to CRCR, it is just an IRC client that knows how to talk with Stalker Anomaly game. it also means that it will work with anything that is Anomaly based or modpacks for Anomaly like GAMMA, EFP or HACR.
+PySAIC is also compatible with CRCR, meaning that you can talk with people that are using CRCR client.</Description>
+</fomod>
