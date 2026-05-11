@@ -2,7 +2,6 @@ import tkinter
 from tkinter import Frame, TclError
 from tkinter.font import Font
 from tkinter.ttk import Separator, Style, Label
-from typing import Callable
 
 from pysaic.config import Config, ColorsConfig
 from pysaic.enums import FactionsEnum
@@ -294,7 +293,7 @@ def apply_style_to_tkinter(container, config: Config):
             if widget.winfo_children():
                 apply_style_to_tkinter(widget, config)
     except TclError as e:
-        if 'bad window path name' not in str(e):
+        if "bad window path name" not in str(e):
             raise
 
 

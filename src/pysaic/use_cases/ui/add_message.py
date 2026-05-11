@@ -34,7 +34,7 @@ class AddMessageUseCase(UiUseCase):
         show_popup = self.ui.should_show_popups and highlight
 
         # tab_id = self.event.target  # multiple channels support?
-        self.ui.tabbed_chat.notify_new_message('main')
+        self.ui.tabbed_chat.notify_new_message("main")
 
         with enable_disable(self.messages_list):
             self._add_date_to_message()
