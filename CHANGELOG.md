@@ -1,5 +1,21 @@
 # Changelog
 
+## `0.3.0b11` - 2026-05-xx
+### Short summary
+- **Themes**: Customize the app's look! You can now create, select, and delete themes in `Options -> Themes`.
+- **Payment Shortcuts**: Typing large amounts is easier. Example: `/pay user 1.5k` sends 1500.
+- **New Maps**: Added support for Grimwood, Promazone, and Town Yuzhniy.
+- **Mod Organizer 2**: Fully supported. You don't need to install manually into the game folder anymore.
+- **Performance**: Faster and smoother synchronization between chat and game.
+- **Fixes**:
+  - Fixed compatibility with mod that fixes "Mags Redux" compatibility.
+  - Improved nickname auto-completion.
+
+### Do I need to do anything?
+- You need to copy all the files and restart your game.
+
+---
+
 ## `0.3.0b10` — 2026-05-11
 ## Short summary
 - Fix issue that prevented avatar picker from rendering
@@ -10,6 +26,8 @@
   - you only need to turn off client and update PySAIC, no game restart is required
 - if you are updating from anything else
   - You need to copy all the files and restart your game.
+
+---
 
 ## `0.3.0b9` — 2026-01-15
 ### Short summary
