@@ -97,7 +97,7 @@ It is stored inside `config.yml` file.
 # Discord Server
 <div>
     <p>
-        <a href="https://discord.gg/wqETk83bvh">
+        <a href="https://discord.gg/9ef8NKjEjg">
             <img src="https://img.shields.io/discord/1254093654172110898?color=5865F2&label=Discord%20Server&logo=discord&logoColor=5865F2&style=for-the-badge" alt="Discord Server">
         </a>
     </p>
