@@ -195,11 +195,11 @@ def apply_color_tags_to_text(
         "OwnMessage", foreground=colors.content.static_nick, font=font
     )
 
-    method: Callable[[str, str], None] = (
-        widget.tag_raise if own_above_faction else widget.tag_lower
-    )
-    for faction in FactionsEnum:
-        method("OwnMessage", faction.name)
+    if own_above_faction:
+        for faction in FactionsEnum:
+            widget.tag_raise("OwnMessage", faction.name)
+    else:
+        widget.tag_lower("OwnMessage")
 
 
 def configure_widget(widget, config: Config):

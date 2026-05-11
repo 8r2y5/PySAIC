@@ -381,7 +381,7 @@ class Config:
     def load_config(cls):
         should_save = False
         try:
-            with open("config.yml") as f:
+            with open(CONFIG_FILE) as f:
                 config = yaml.safe_load(f)
         except Exception:
             logger.exception("Error loading config file")
@@ -436,7 +436,7 @@ class Config:
             if value is not None:
                 data[name] = value
 
-        with open("config.yml", "w") as f:
+        with open(CONFIG_FILE, "w") as f:
             yaml.dump(data, f)
             for attr in separate_save:
                 attr.save_value(self)
