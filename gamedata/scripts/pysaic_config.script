@@ -11,6 +11,7 @@ MONEY_COLOR = "%c[255,255,139,1]"  -- orange
 AFK_ARGB = GetARGB(255, 255, 255, 32)  -- yellow
 NOT_IN_GAME_ARGB = GetARGB(255, 255, 128, 128) -- red
 IN_GAME_ARGB = GetARGB(255, 128, 255, 154)  -- green
+SCRIPT_VERSION = 15
 
 -- Options
 option = {

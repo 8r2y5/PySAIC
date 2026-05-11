@@ -3,7 +3,6 @@
 
 local conn = require("pysaic_cm")
 local handshake_sent = false
-local SCRIPT_VERSION = 15
 
 function init()
     conn.init()
@@ -15,7 +14,7 @@ end
 
 function send_handshake(body)
     printf("Sending handshake with body: %s", body)
-	send("Handshake/%s/%s", SCRIPT_VERSION, body or "null")
+	send("Handshake/%s/%s", pysaic_config.SCRIPT_VERSION, body or "null")
 end
 
 function update()

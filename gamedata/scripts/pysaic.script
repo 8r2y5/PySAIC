@@ -1,7 +1,5 @@
 --| PySAIC's Script by brzys
 
-local SCRIPT_VERSION = 15
-
 -- Etc
 local lastUpdate = 0
 chatBox = nil
@@ -663,7 +661,7 @@ function start_pysaic()
 end
 
 function on_game_start()
-    printf('PySAIC script started with version %s', SCRIPT_VERSION)
+    printf('PySAIC script started with version %s', pysaic_config.SCRIPT_VERSION)
 	isDead = false
 	ChatBoxEnabled = true
     pysaic_state.USER_LIST_ORDER = pysaic_utils.sort_by_nick

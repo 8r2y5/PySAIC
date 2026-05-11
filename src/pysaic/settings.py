@@ -5,9 +5,9 @@ from packaging.version import Version
 
 START_OF_ACTOR_CHARACTER = "☻"
 END_OF_ACTOR_CHARACTER = "☺"
-VERSION = "0.3.0b10"
+VERSION = "0.3.0b11"
 CURRENT_VERSION = Version(VERSION)
-SUPPORTED_SCRIPT_VERSION = (14,)
+SUPPORTED_SCRIPT_VERSION = (15,)
 APP_IDENTITY = f"PySAIC {VERSION}"
 
 # logs
@@ -34,6 +34,8 @@ else:
 
 RES_PATH = (GAMEDATA_PATH / ".." / "res").resolve()
 LOCATIONS_FOR_ENUM_PATH = RES_PATH / "locations.yml"
+FACTIONS_FOR_ENUM_PATH = RES_PATH / "factions.yml"
+THEMES_PATH = WORKDIR / "themes"
 
 ANOMALY_DIR_PATH = (os.environ.get("ANOMALY_DIR_PATH") or "").strip()
 if ANOMALY_DIR_PATH:
