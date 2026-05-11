@@ -1,6 +1,6 @@
 --| PySAIC's Script by brzys
 
-local SCRIPT_VERSION = 13
+local SCRIPT_VERSION = 14
 
 -- Constants
 local UPDATE_INTERVAL = 250  -- 250ms
