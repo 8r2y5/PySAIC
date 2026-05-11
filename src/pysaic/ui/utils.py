@@ -283,15 +283,19 @@ def configure_widget(widget, config: Config):
 
 
 def apply_style_to_tkinter(container, config: Config):
-    for widget in container.winfo_children():
-        try:
-            configure_widget(widget, config)
-        except TclError as e:
-            if "unknown option" not in str(e):
-                raise
+    try:
+        for widget in container.winfo_children():
+            try:
+                configure_widget(widget, config)
+            except TclError as e:
+                if "unknown option" not in str(e):
+                    raise
 
-        if widget.winfo_children():
-            apply_style_to_tkinter(widget, config)
+            if widget.winfo_children():
+                apply_style_to_tkinter(widget, config)
+    except TclError as e:
+        if 'bad window path name' not in str(e):
+            raise
 
 
 def update_style(container, config: Config):
