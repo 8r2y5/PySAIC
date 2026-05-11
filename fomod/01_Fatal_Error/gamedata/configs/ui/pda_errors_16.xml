@@ -1,0 +1,196 @@
+<w>
+	<text_center x="0" y="0" width="819" height="768" stretch="1">
+			<text complex_mode="1" r="200" g="200" b="200" vert_align="c" align="c" font="letterica25"/>
+	</text_center>
+	
+	<picture_base x="15" y="0" width="800" height="750" stretch="1">
+	</picture_base>
+
+	<picture_bsod x="15" y="10" width="800" height="750" stretch="1">
+	</picture_bsod>
+	
+	<bios x="35" y="100" width="750" height="600" stretch="1">
+
+		<upper_text x="0" y="60" width="819" height="768" stretch="1">
+			<text complex_mode="1" align="c" font="letterica25">Monolith - OS Setup</text>
+		</upper_text>
+		<bottom_text x="0" y="705" width="819" height="768" stretch="1">
+			<text complex_mode="1" align="c" font="letterica25"/>
+		</bottom_text>
+		
+		<main x="35" y="70" width="50" height="30" stretch="1">
+			<texture>bios_button</texture>
+			<text align="c" vert_align="c" font="letterica18">Main</text>
+		</main>
+		
+		<boot x="84" y="70" width="50" height="30" stretch="1">
+			<texture>bios_button</texture>		
+			<text align="c" vert_align="c" font="letterica18">Boot</text>
+		</boot>
+
+		<debug x="133" y="70" width="50" height="30" stretch="1">
+			<texture>bios_button</texture>		
+			<text align="c" vert_align="c" font="letterica18">Debug</text>
+		</debug>
+		
+		<button_1 x="36" y="115" width="518" height="30" stretch="1">
+			<texture>bios_button_colors</texture>
+		</button_1>
+		<text1_l x="50" y="120" width="819" height="768" stretch="1">
+			<text complex_mode="1" font="letterica18" a="255" r="100" g="200" b="255"/>
+		</text1_l>
+		<text1_r x="400" y="120" width="819" height="768" stretch="1">
+			<text complex_mode="1" font="letterica18"/>
+		</text1_r>
+		
+		<button_2 x="36" y="145" width="518" height="30" stretch="1">
+			<texture>bios_button_colors</texture>
+		</button_2>
+		<text2_l x="50" y="150" width="819" height="768" stretch="1">
+			<text complex_mode="1" font="letterica18" a="255" r="100" g="200" b="255"/>
+		</text2_l>
+		<text2_r x="400" y="150" width="819" height="768" stretch="1">
+			<text complex_mode="1" font="letterica18"/>
+		</text2_r>
+		
+		<username_button x="36" y="175" width="518" height="30" stretch="1">
+			<texture>bios_button_colors</texture>
+		</username_button>
+		<username x="50" y="180" width="819" height="768" stretch="1">
+			<text complex_mode="1" font="letterica18" a="255" r="100" g="200" b="255">Username:</text>
+		</username>
+		<username_username x="400" y="180" width="819" height="768" stretch="1">
+			<text complex_mode="1" font="letterica18"/>
+		</username_username>
+		
+		<detected_cpu_button x="36" y="205" width="518" height="45" stretch="1">
+			<texture>bios_button_colors</texture>
+		</detected_cpu_button>
+		<detected_cpu x="50" y="210" width="819" height="768" stretch="1">
+			<text complex_mode="1" font="letterica18" a="255" r="100" g="200" b="255">Processor Information:</text>
+		</detected_cpu>
+		<detected_cpu_cpu x="400" y="210" width="150" height="768" stretch="1">
+			<text complex_mode="1" font="letterica18"/>
+		</detected_cpu_cpu>
+		
+		<me_version_button x="36" y="250" width="518" height="30" stretch="1">
+			<texture>bios_button_colors</texture>
+		</me_version_button>
+		<me_version x="50" y="255" width="819" height="768" stretch="1">
+			<text complex_mode="1" font="letterica18" a="255" r="100" g="200" b="255">Modded Exes Version:</text>
+		</me_version>
+		<me_version_version x="400" y="255" width="150" height="768" stretch="1">
+			<text complex_mode="1" font="letterica18"/>
+		</me_version_version>
+		
+		<pda_name_button x="36" y="280" width="518" height="30" stretch="1">
+			<texture>bios_button_colors</texture>
+		</pda_name_button>
+		<pda_name x="50" y="285" width="819" height="768" stretch="1">
+			<text complex_mode="1" font="letterica18" a="255" r="100" g="200" b="255">PDA Model:</text>
+		</pda_name>
+		<pda_name_name x="400" y="285" width="150" height="768" stretch="1">
+			<text complex_mode="1" font="letterica18"/>
+		</pda_name_name>
+		
+		<oper_sys_name_button x="36" y="310" width="518" height="30" stretch="1">
+			<texture>bios_button_colors</texture>
+		</oper_sys_name_button>
+		<oper_sys_name x="50" y="315" width="819" height="768" stretch="1">
+			<text complex_mode="1" font="letterica18" a="255" r="100" g="200" b="255">Operating System:</text>
+		</oper_sys_name>
+		<oper_sys_name_name x="400" y="315" width="150" height="768" stretch="1">
+			<text complex_mode="1" font="letterica18"/>
+		</oper_sys_name_name>
+		
+		<beep_button x="36" y="340" width="518" height="45" stretch="1">
+			<texture>bios_button_colors</texture>
+		</beep_button>
+		<beep x="50" y="345" width="819" height="768" stretch="1">
+			<text complex_mode="1" font="letterica18" a="255" r="100" g="200" b="255">Beep Sound:</text>
+		</beep>
+		<beep_enable x="400" y="345" width="150" height="768" stretch="1">
+			<text complex_mode="1" font="letterica18" a="255" r="100" g="200" b="255"/>
+		</beep_enable>
+		
+		<s_key_button x="36" y="385" width="518" height="30" stretch="1">
+			<texture>bios_button_colors</texture>
+		</s_key_button>
+		<s_key x="50" y="390" width="819" height="768" stretch="1">
+			<text complex_mode="1" font="letterica18" a="255" r="100" g="200" b="255">Unique Security Key:</text>
+		</s_key>
+		<s_key_key x="400" y="390" width="150" height="768" stretch="1">
+			<text complex_mode="1" font="letterica18"/>
+		</s_key_key>
+		
+		<taskboard_button x="36" y="415" width="518" height="45" stretch="1">
+			<texture>bios_button_colors</texture>
+		</taskboard_button>
+		<taskboard x="50" y="420" width="819" height="768" stretch="1">
+			<text complex_mode="1" font="letterica18" a="255" r="100" g="200" b="255">Taskboard:</text>
+		</taskboard>
+		<taskboard_task x="400" y="420" width="150" height="768" stretch="1">
+			<text complex_mode="1" font="letterica18"/>
+		</taskboard_task>
+		<pysaic_button x="36" y="415" width="518" height="45" stretch="1">
+			<texture>bios_button_colors</texture>
+		</pysaic_button>
+		<pysaic x="50" y="420" width="819" height="768" stretch="1">
+			<text complex_mode="1" font="letterica18" a="255" r="100" g="200" b="255">PySAIC:</text>
+		</pysaic>
+		<taskboard_task x="400" y="420" width="150" height="768" stretch="1">
+			<text complex_mode="1" font="letterica18"/>
+		</taskboard_task>
+		
+		<interact_button x="36" y="460" width="518" height="45" stretch="1">
+			<texture>bios_button_colors</texture>
+		</interact_button>
+		<interact x="50" y="465" width="819" height="768" stretch="1">
+			<text complex_mode="1" font="letterica18" a="255" r="100" g="200" b="255">Interactive:</text>
+		</interact>
+		<interact_interact x="400" y="465" width="150" height="768" stretch="1">
+			<text complex_mode="1" font="letterica18"/>
+		</interact_interact>
+		
+		<razgon_button x="36" y="505" width="518" height="30" stretch="1">
+			<texture>bios_button_colors</texture>
+		</razgon_button>
+		<razgon x="50" y="510" width="819" height="768" stretch="1">
+			<text complex_mode="1" font="letterica18" a="255" r="100" g="200" b="255">Overclock:</text>
+		</razgon>
+		<razgon_razgon x="400" y="510" width="150" height="768" stretch="1">
+			<text complex_mode="1" font="letterica18" a="255" r="100" g="200" b="255"/>
+		</razgon_razgon>
+
+		<interface_button x="36" y="535" width="518" height="45" stretch="1">
+			<texture>bios_button_colors</texture>
+		</interface_button>
+		<interface x="50" y="540" width="819" height="768" stretch="1">
+			<text complex_mode="1" font="letterica18" a="255" r="100" g="200" b="255">User Interface:</text>
+		</interface>
+		<interface_interface x="400" y="540" width="150" height="768" stretch="1">
+			<text complex_mode="1" font="letterica18"/>
+		</interface_interface>
+
+		<debug_text x="40" y="105" width="745" height="300" stretch="1">
+			<text complex_mode="1" font="letterica16"/>
+		</debug_text>
+		
+		<hint x="558" y="150" width="230" height="700" stretch="0">
+			<text complex_mode="1" font="letterica18" a="255" r="100" g="200" b="255"/>
+		</hint>
+		
+		<help x="555" y="108" width="230" height="700" stretch="0">
+			<text complex_mode="1" align="c" font="letterica25">Item Specific Help</text>
+		</help>
+
+	</bios>
+	
+	<picture_no_map x="0" y="90" width="819" height="700" stretch="1">
+	</picture_no_map>
+
+	<btn_settings x="675" y="58" width="25" height="25" stretch="1">
+		<texture>settings</texture>
+	</btn_settings>
+
+</w>

@@ -1,0 +1,170 @@
+function create_overrides_fatal_error_v2()	
+	local fe_override_one = ui_item.build_desc_footer
+    ui_item.build_desc_footer = function (obj, sec, str)
+		
+		local _str = ""
+		
+		-- PDA generation
+		if sec:find("device_pda") or sec:find("itm_pda") then
+			local unit = fe_utils.to_roman(ini_sys:r_float_ex(sec,"tier"))
+			_str = _str .. utils_xml.get_color("d_purple") .. "  � " .. utils_xml.get_color("ui_gray_2") .. " " .. game.translate_string("st_pda_gen") .. " " .. utils_xml.get_color("ui_gray_1") .. unit .. " \\n"
+		end
+
+		-- Shown Squads
+		if IsItem("device",sec) then
+			local show_map_squads = ini_sys:r_string_ex(sec,"show_map_squads")
+			if show_map_squads then
+				local unit = game.translate_string("st_show_map_squads_error")
+				if (show_map_squads == "all") then
+					unit = game.translate_string("st_show_map_squads_all")
+				elseif (show_map_squads == "neutral") then
+					unit = game.translate_string("st_show_map_squads_neutral")
+				elseif (show_map_squads == "faction") then
+					unit = game.translate_string("st_show_map_squads_faction")
+				elseif (show_map_squads == "enemies") then
+					unit = game.translate_string("st_show_map_squads_enemies")
+				end
+				
+				_str = _str .. utils_xml.get_color("d_purple") .. "  � " .. utils_xml.get_color("ui_gray_2") .. " " .. unit .. " \\n"
+			end
+		end
+		
+		-- Beep Sound
+		if IsItem("device",sec) then
+			local can_beep = ini_sys:r_bool_ex(sec,"can_beep")
+			if can_beep == true then
+				local unit = game.translate_string("st_can_beep")				
+				_str = _str .. utils_xml.get_color("d_purple") .. "  � " .. utils_xml.get_color("ui_gray_2") .. " " .. unit .. " \\n"
+			end
+		end
+
+		-- Cannot Break
+		if IsItem("device",sec) then
+			local can_break = ini_sys:r_bool_ex(sec,"can_break")
+			if can_break == false then
+				local unit = game.translate_string("st_can_break")				
+				_str = _str .. utils_xml.get_color("d_purple") .. "  � " .. utils_xml.get_color("ui_gray_2") .. " " .. unit .. " \\n"
+			end
+		end
+		
+		-- Battery Type
+		if IsItem("device",sec) then
+			local battery = ini_sys:r_string_ex(sec,"battery") -- right battery
+			if battery then
+				local unit = game.translate_string("st_batt_error")
+				if (battery == "batteries_dead") then
+					unit = game.translate_string("st_batt_aaa")
+				elseif (battery == "batteries_aa") then
+					unit = game.translate_string("st_batt_aa")
+				elseif (battery == "batteries_c") then
+					unit = game.translate_string("st_batt_c")
+				elseif (battery == "batteries_d") then
+					unit = game.translate_string("st_batt_d")
+				elseif (battery == "batteries_f") then
+					unit = game.translate_string("st_batt_f")
+				elseif (battery == "none") then
+					unit = game.translate_string("st_batt_none")
+				end
+				
+				_str = _str .. utils_xml.get_color("d_purple") .. "  � " .. utils_xml.get_color("ui_gray_2") .. " " .. game.translate_string("st_batt") .. " " .. utils_xml.get_color("ui_gray_1") .. unit .. " \\n"
+			end
+		end
+		
+		-- Amper Amount
+		if IsItem("battery",sec) or ini_sys:r_string_ex(sec,"battery") == "none" then
+			local amper_amount = ini_sys:r_float_ex(sec,"amper_amount")
+			if amper_amount then
+				local unit = game.translate_string("st_mah")			
+				_str = _str .. utils_xml.get_color("d_purple") .. "  � " .. utils_xml.get_color("ui_gray_2") .. " " .. game.translate_string("st_amper") .. " " .. utils_xml.get_color("ui_gray_1") .. amper_amount .." ".. unit .. " \\n"
+			end
+		end
+
+		-- Interactive
+		if IsItem("device",sec) then
+			local tab_interactive = ini_sys:r_bool_ex(sec,"tab_interactive")
+			if tab_interactive == false and pda_inter_gui then
+				local unit = game.translate_string("st_interactive_unavaible")
+				_str = _str .. utils_xml.get_color("d_red") .. "  � " .. utils_xml.get_color("ui_gray_2") .. " " .. unit .. " \\n"
+			end
+		end
+
+		-- Taskboard
+		if IsItem("device",sec) then
+			local tab_taskboard = ini_sys:r_bool_ex(sec,"tab_taskboard")
+			if tab_taskboard == false and ui_pda_taskboard_tab then
+				local unit = game.translate_string("st_taskboard_unavaible")
+				_str = _str .. utils_xml.get_color("d_red") .. "  � " .. utils_xml.get_color("ui_gray_2") .. " " .. unit .. " \\n"
+			end
+		end
+		if IsItem("device",sec) then
+			local tab_pysaic = ini_sys:r_bool_ex(sec,"tab_pysaic")
+			if tab_pysaic == false and crc_pda then
+				local unit = game.translate_string("st_pysaic_unavaible")
+				_str = _str .. utils_xml.get_color("d_red") .. "  � " .. utils_xml.get_color("ui_gray_2") .. " " .. unit .. " \\n"
+			end
+		end
+
+		-- Autocomplete
+		if IsItem("device",sec) then
+			local autocomplete = ini_sys:r_bool_ex(sec,"autocomplete")
+			if autocomplete == false and autocomplete_tasks_utils then
+				local unit = game.translate_string("st_autocomplete_unavaible")
+				_str = _str .. utils_xml.get_color("d_red") .. "  � " .. utils_xml.get_color("ui_gray_2") .. " " .. unit .. " \\n"
+			end
+		end
+
+		-- PAW
+		if IsItem("device",sec) then
+			local cartography = ini_sys:r_bool_ex(sec,"cartography")
+			if cartography == false and tasks_placeable_waypoints then
+				local unit = game.translate_string("st_cartography_unavaible")
+				_str = _str .. utils_xml.get_color("d_red") .. "  � " .. utils_xml.get_color("ui_gray_2") .. " " .. unit .. " \\n"
+			end
+		end
+
+		-- Device Broken
+		if IsItem("device",sec) and fe_utils.is_broken(obj) then
+			local unit = game.translate_string("st_broken")			
+			_str = _str .. utils_xml.get_color("d_red") .. "  � " .. utils_xml.get_color("ui_gray_2") .. " " .. unit .. " \\n"
+		end
+		
+		-- Device Damaged
+		if IsItem("device",sec) and fe_utils.get_damage(obj) > 0 then
+			local unit = game.translate_string("st_damaged")			
+			_str = _str .. utils_xml.get_color("d_red") .. "  � " .. utils_xml.get_color("ui_gray_2") .. " " .. unit .. " \\n"
+		end
+		
+		str = str .. _str
+		
+		return fe_override_one(obj, sec, str)
+	end
+	
+	local fe_override_two = ui_item.build_name_first
+    ui_item.build_name_first = function (obj, sec, str)
+	
+		local _str = ""
+		
+		if IsItem("device",sec) and fe_utils.is_broken(obj) then
+			local unit = game.translate_string("st_broken_header")			
+			_str = _str .. " " .. unit 
+		end
+		
+		if IsItem("device",sec) and fe_utils.get_damage(obj) > 0 then
+			local unit = game.translate_string("st_damaged_header")			
+			_str = _str .. " " .. unit 
+		end
+
+		if IsItem("device",sec) and ini_sys:r_bool_ex(sec,"encrypted") == true then
+			local unit = game.translate_string("st_encrypted_header")			
+			_str = _str .. " " .. unit 
+		end
+	
+		str = str .. _str
+	
+		return fe_override_two(obj, sec, str)
+	end
+end
+
+function on_game_start()
+	RegisterScriptCallback("on_game_load", create_overrides_fatal_error_v2)
+end

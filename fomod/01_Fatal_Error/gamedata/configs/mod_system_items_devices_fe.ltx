@@ -1,0 +1,399 @@
+;;--==========================< NPC PDA >=============================--
+![itm_pda_common]:device_pda_1
+upgrades								               =
+description                                            = st_pda_mlr_descr
+inv_name                                               = st_pda_name
+inv_name_short                                         = st_pda_name
+cost                                                   = 0                                           
+!inv_weight                                           
+!use1_allow_db         					          	  
+!use1_functor                					       
+!use1_action_functor         					      
+!slot
+
+![itm_pda_uncommon]:device_pda_2
+upgrades								               =
+description                                            = st_pda_mlr_descr
+inv_name                                               = st_pda_name
+inv_name_short                                         = st_pda_name
+cost                                                   = 0
+
+![itm_pda_rare]:device_pda_3
+upgrades								               =
+description                                            = st_pda_mlr_descr
+inv_name                                               = st_pda_name
+inv_name_short                                         = st_pda_name
+cost                                                   = 0
+
+[itm_pda_getac]:device_pda_getac
+encrypted                                              = true
+
+;;--==========================< PDA 0 >=============================--
+[device_pda_0]:device_pda_1
+cost                                                   = 12500
+description											   = st_pda_0_descr
+inv_name											   = st_pda_0_name
+inv_name_short										   = st_pda_0_name
+tier												   = 1
+tab_taskboard 										   = false
+tab_pysaic   										   = true
+tab_interactive 									   = false
+tab_relations 										   = false
+tab_contacts 										   = false
+tab_ranking 										   = false
+autocomplete 										   = false
+show_player											   = 0
+battery 											   = batteries_dead
+snd_draw                             	               = device\pda\pda_draw2
+snd_holster                          	 		       = device\pda\pda_holster2
+interface                                              = pda_zero
+inv_weight   	                                       = 0.150
+
+;;--==========================< PDA Getac >=============================--
+
+[device_pda_getac]:device_pda_0
+cost                                                   = 30000
+description											   = st_pda_getac_desc
+inv_name											   = st_pda_getac_name
+inv_name_short										   = st_pda_getac_name
+tier												   = 1
+show_map_squads										   = all
+can_beep											   = true
+tab_taskboard 										   = false
+tab_pysaic   										   = true
+tab_interactive 									   = false
+tab_relations 										   = true
+tab_contacts 										   = true
+tab_ranking 										   = true
+autocomplete 										   = false
+cartography                                            = true
+show_player											   = 3
+battery 											   = none
+amper_amount					                       = 5000
+snd_draw                             	               = device\pda\pda_draw4
+snd_holster                          	 		       = device\pda\pda_holster4
+upgrades								               =
+interface                                              = pda_one
+inv_weight   	                                       = 0.299
+
+;;--==========================< PDA 1 >=============================--
+![device_pda_1]
+tier                                                   = 2
+cost                                                   = 25000
+tab_taskboard 										   = true
+tab_pysaic   										   = true
+tab_interactive 									   = false
+tab_relations 										   = true
+tab_contacts 										   = true
+tab_ranking 										   = true
+autocomplete 										   = false
+cartography                                            = false
+show_player											   = 1
+battery 											   = batteries_aa
+snd_draw                             	               = device\pda\pda_draw5
+snd_holster                          	 		       = device\pda\pda_holster5
+inv_grid_scale                                         = 1
+upgrades								               = up_gr_firstab_pda, up_gr_seconab_pda, up_gr_thirdab_pda
+installed_upgrades           			               =			
+upgrade_scheme							               = upgrade_scheme_pda
+repair_type                                            = device
+interface                                              = pda_one
+inv_weight   	                                       = 0.124
+
+;;--==========================< PDA 2 >=============================--
+![device_pda_2]:device_pda_1
+tier												   = 3
+cost                                                   = 50000
+tab_interactive 									   = true
+autocomplete 										   = true
+cartography                                            = true
+show_map_squads										   = faction
+show_player											   = 2
+battery 											   = batteries_c
+snd_draw                             	               = device\pda\pda_draw
+snd_holster                          	 		       = device\pda\pda_holster
+interface                                              = pda
+inv_weight   	                                       = 0.350
+
+
+;;--==========================< PDA 3 >=============================--
+![device_pda_3]:device_pda_2
+tier												   = 4
+cost                                                   = 100000
+show_map_squads										   = neutral
+can_beep											   = true
+show_player											   = 3
+battery 											   = batteries_d
+snd_draw                             	               = device\pda\pda_draw3
+snd_holster                          	 		       = device\pda\pda_holster3
+
+
+;;--==========================< PDA 4 >=============================--
+
+[device_pda_4]:device_pda_3
+tier												   = 6
+cost                                                   = 200000
+description											   = st_pda_4_descr
+inv_name											   = st_pda_4_name
+inv_name_short										   = st_pda_4_name
+show_map_squads										   = neutral
+hud                                      			   = device_pda_4_hud
+snd_draw                             	               = device\pda\pda_draw1
+snd_holster                          	 		       = device\pda\pda_holster1
+upgrades								               = up_gr_seconab_pda, up_gr_thirdab_pda
+can_break                                              = false
+inv_weight   	                                       = 0.680
+
+[device_pda_4_hud]:pda_hud
+item_visual                                            = dynamics\devices\dev_pda\dev_pda_black_hud.ogf
+
+;;--==========================< PDA Military >=============================--
+[device_pda_milspec]:device_pda_3
+tier												   = 5
+radius												   = 300
+cost												   = 200000
+description											   = st_pda_mil_descr
+inv_name											   = st_pda_mil_name
+inv_name_short										   = st_pda_mil_name
+show_map_squads										   = all
+tab_taskboard 										   = false
+tab_pysaic   										   = true
+tab_interactive 									   = false
+autocomplete 										   = false
+battery 											   = batteries_f
+snd_draw                             	               = device\pda\pda_draw4
+snd_holster                          	 		       = device\pda\pda_holster4
+upgrades								               = up_gr_seconab_pda, up_gr_thirdab_pda
+inv_weight   	                                       = 0.650
+
+;;--==========================< PDA Kulon >=============================--
+[device_pda_new]:device_pda_milspec
+tier												   = 6
+inv_name                                               = st_device_pda_new_name
+inv_name_short                                         = st_device_pda_new_name
+description                                            = st_device_pda_new_desc
+show_map_squads										   = enemies
+cost                                                   = 100000
+snd_draw                             	               = device\pda\pda_draw6
+snd_holster                          	 		       = device\pda\pda_holster6
+upgrades								               = up_gr_seconab_pda, up_gr_thirdab_pda
+can_break                                              = false
+battery 											   = batteries_c
+inv_weight   	                                       = 0.410
+
+;;--==========================< Head Devices - Batteries >=============================--
+
+![device_torch_dummy]
+battery 											   = batteries_aa
+
+![device_torch_nv_1]
+battery 											   = batteries_c
+
+![device_torch_nv_2]
+battery 											   = batteries_d
+
+![device_torch_nv_3]
+battery 											   = batteries_f
+
+;;--==========================< Hand Devices >=============================--
+
+![detector_simple]
+battery 											   = batteries_aa
+upgrades								               = up_gr_firstab_pda
+installed_upgrades           			               =			
+upgrade_scheme							               = upgrade_scheme_pda
+repair_type                                            = device
+
+![detector_advanced]
+battery 											   = batteries_c
+
+![detector_elite]
+battery 											   = batteries_d
+
+![detector_scientific]
+battery 											   = batteries_f
+
+![detector_anomaly]
+battery 											   = batteries_aa
+
+![detector_radio]
+battery 											   = batteries_aa							 
+
+![detector_geiger]
+description											   = st_geiger_descr
+inv_name											   = st_geiger
+inv_name_short										   = st_geiger
+battery 											   = batteries_dead
+cost                                                   = 3250
+inv_weight                                             = 0.25
+
+![device_flashlight]
+battery 											   = batteries_dead
+
+[detector_geiger2]:detector_geiger
+visual                                                 = dynamics\devices\dev_dosimeter_new\dosimeter.ogf
+hud                                                    = detector_geiger_hud2
+description											   = st_geiger_new_descr
+inv_name											   = st_geiger_new
+inv_name_short										   = st_geiger_new
+cost			               					       = 7500
+icons_texture                                          = ui\actor_items\fe_icons
+inv_grid_width     									   = 1
+inv_grid_height    									   = 1
+inv_grid_x         									   = 4
+inv_grid_y         									   = 0
+upgr_icon_path			                               = ui\actor_items\fe_icons_big
+upgr_icon_x				                               = 0
+upgr_icon_y				                               = 0
+upgr_icon_width			                               = 150
+upgr_icon_height		                               = 100
+custom_ui_pos                                          = -0.0281,-0.0101,0.0375
+custom_ui_rot                                          = 0,63,0
+custom_ui_func										   = ui_dosimeter.get_UI
+custom_ui_bone										   = cover
+battery 											   = batteries_c
+inv_weight                                             = 0.30
+inv_grid_scale                                         = 1
+upgrades								               =
+can_break                                              = false
+
+[detector_geiger_hud2]:detector_geiger_hud
+item_visual                                            = dynamics\devices\dev_dosimeter_new\dosimeter_hud.ogf
+
+;;--==========================< Toolkit >=============================--
+
+[tool_fix_pda]:tch_junk
+kind							= i_repair
+visual                          = dynamics\equipments\trade\parts.ogf
+inv_name			            = st_tool_fix_pda
+inv_name_short			        = st_tool_fix_pda
+description			            = st_tool_fix_pda_desc
+
+inv_grid_width     				= 2
+inv_grid_height    				= 1
+inv_grid_x         				= 6
+inv_grid_y         				= 53
+cost			                = 10000
+inv_weight   	                = 1.5
+inv_grid_scale                  = 1
+
+workshop_tool					= true
+workshop_support                = device
+
+quest_item						= false
+can_trade						= true
+remove_after_use				= false
+tier							= 2
+
+;;--==========================< Batteries >=============================--
+
+![batteries_dead]
+inv_name			            = st_batteries_aaa
+inv_name_short		            = st_batteries_aaa
+description			        	= st_batteries_aaa_descr
+cost				            = 1080
+inv_weight   	                = 0.125
+amper_amount					= 540
+inv_grid_scale                  = 1
+
+[batteries_aa]:batteries_dead
+inv_name			            = st_batteries_aa
+inv_name_short		            = st_batteries_aa
+description			        	= st_batteries_aa_descr
+icons_texture	                = ui\actor_items\fe_batteries_icons
+inv_grid_width                  = 1
+inv_grid_height                 = 1
+inv_grid_x                      = 0
+inv_grid_y                      = 0
+cost    		                = 2200
+inv_weight   	                = 0.250
+amper_amount					= 1100
+
+[batteries_c]:batteries_dead
+inv_name			            = st_batteries_c
+inv_name_short		            = st_batteries_c
+description			            = st_batteries_c_descr
+icons_texture	                = ui\actor_items\fe_batteries_icons
+inv_grid_width                  = 1
+inv_grid_height                 = 1
+inv_grid_x                      = 4
+inv_grid_y                      = 0
+cost				            = 3800
+inv_weight   	                = 0.300
+amper_amount					= 3800
+
+[batteries_d]:batteries_dead
+inv_name			            = st_batteries_d
+inv_name_short		            = st_batteries_d
+description			        	= st_batteries_d_descr
+icons_texture	                = ui\actor_items\fe_batteries_icons
+inv_grid_width                  = 1
+inv_grid_height                 = 1
+inv_grid_x                      = 1
+inv_grid_y                      = 0
+cost    		                = 8000
+inv_weight   	                = 0.375
+amper_amount					= 8000
+
+[batteries_f]:batteries_dead
+inv_name			            = st_batteries_f
+inv_name_short		            = st_batteries_f
+description			            = st_batteries_f_descr
+icons_texture	                = ui\actor_items\fe_batteries_icons
+inv_grid_width                  = 1
+inv_grid_height                 = 1
+inv_grid_x                      = 2
+inv_grid_y                      = 0
+cost				            = 10500
+inv_weight   	                = 0.800
+amper_amount					= 10500
+
+[batteries_universal_charger]:batteries_dead
+visual                          = dynamics\devices\dev_upd\dev_universalpowerdevice.ogf
+inv_name			            = st_batteries_universal_charger
+inv_name_short		            = st_batteries_universal_charger
+description			            = st_batteries_universal_charger_descr
+icons_texture	                = ui\actor_items\fe_batteries_icons
+inv_grid_width                  = 1
+inv_grid_height                 = 1
+inv_grid_x                      = 3
+inv_grid_y                      = 0
+cost				            = 20000
+inv_weight   	                = 0.500
+amper_amount					= 5000
+is_upd							= true
+
+[batteries_car_battery]:batteries_dead
+visual                          = dynamics\equipments\quest\safe_container.ogf
+inv_name			            = st_batteries_car_battery
+inv_name_short		            = st_batteries_car_battery
+description			            = st_batteries_car_battery_descr
+icons_texture					= ui\actor_items\fe_icons
+inv_grid_width     				= 2
+inv_grid_height    				= 2
+inv_grid_x         				= 0
+inv_grid_y         				= 0
+cost				            = 25000
+inv_weight   	                = 15.300
+amper_amount					= 60000
+
+;;--==========================< Other >=============================--
+
+![tch_detector]
+upgrades						= up_gr_firstab_pda
+installed_upgrades           	=			
+upgrade_scheme					= upgrade_scheme_pda
+repair_type                     = device
+
+![device_torch]
+upgrades						= up_gr_firstab_pda
+installed_upgrades           	=			
+upgrade_scheme					= upgrade_scheme_pda
+repair_type                     = device
+battery 						= batteries_f
+
+![tch_device]
+can_break                       = true
+
+![device_glowstick]
+upgrades					    =

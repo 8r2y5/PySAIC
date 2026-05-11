@@ -1,0 +1,334 @@
+SECURITY_KEY = nil
+CPU = nil
+
+----------------------------------------------------------------------------------------------------
+-- Setters
+----------------------------------------------------------------------------------------------------
+
+function set_broken(obj, val) 
+	if not failsafe(obj) then return end -- failsafe
+    if not val then val = 2 end -- failsafe
+
+    if val == 1 then
+	    item_device.dev_items[obj:id()].is_broken = true
+        obj:set_device_enabled(false)
+        play_shutdown_sound()
+        if db.actor:item_in_slot(8) and db.actor:item_in_slot(8):id() == obj:id() then
+            ui_pda_radio_tab.action_radio_stop()
+            ui_pda_radio_tab.action_plyr_stop()
+        end
+    elseif val == 2 then
+        item_device.dev_items[obj:id()].is_broken = false
+        news_manager.send_tip(db.actor, game.translate_string("st_device_fix"), nil, default, 10000)
+        obj:set_device_enabled(true)
+    end
+    
+end
+
+function set_bsod(obj, val)
+    if not failsafe(obj) then return end -- failsafe
+    if not val then val = false end -- failsafe
+
+    item_device.dev_items[obj:id()].is_bsod = val
+end
+
+function set_screen_damage(obj, val)
+    if not failsafe(obj) then return end -- failsafe
+
+    local damage
+    if val == 1 then
+       damage = get_damage(obj) + 1
+       if damage > 5 then
+            set_broken(obj, 1)
+        end
+       damage = clamp(damage, 0, 5)
+       utils_obj.play_sound("material\\glass\\glass_fall03hl")
+    elseif val == 2 then
+        damage = get_damage(obj)
+    else
+        damage = 0
+        news_manager.send_tip(db.actor, game.translate_string("st_pda_screen_fix"), nil, default, 10000)
+    end
+
+    if damage == 0 then
+        obj:set_shader(1, "pda_screen", "item\\item_pda2\\item_pda_glass", true)
+        item_device.dev_items[obj:id()].damage = 0
+    else
+        obj:set_shader(1, "pda_screen", "item\\item_pda2\\item_pda_glass_damage" .. damage, true)
+        item_device.dev_items[obj:id()].damage = damage
+    end
+
+end
+
+function set_damage(obj, val)
+    if not failsafe(obj) then return end -- failsafe
+    
+    local damage
+    if val == 1 then
+       damage = get_damage(obj) + 1
+       damage = clamp(damage, 0, 5)
+       play_shutdown_sound()
+    elseif val == 2 then
+        damage = 0
+    else
+        damage = 0
+        news_manager.send_tip(db.actor, game.translate_string("st_device_fix"), nil, default, 10000)
+    end
+    item_device.dev_items[obj:id()].damage = damage
+
+end
+
+function set_pda_xml(obj)
+    if not failsafe(obj) then return end -- failsafe
+    if item_device.dev_items[obj:id()].interface == nil then item_device.dev_items[obj:id()].interface = "pda" end -- fallback to default UI if UI is nil
+
+    local curr_interface = ActorMenu.get_pda_menu():GetPdaXml():gsub("%.xml", "")
+    local base_interface = item_device.dev_items[obj:id()].interface
+
+    if curr_interface ~= base_interface then
+        ActorMenu.get_pda_menu():SetPdaXml(base_interface .. ".xml")
+    end
+
+    if fatal_error_mcm.REBOOT > 0 then
+        ActorMenu.get_pda_menu():SetActiveSubdialog("eptReboot")
+    end
+
+end
+
+local cache_obj
+function set_apps(obj)
+    if not failsafe(obj) then return end -- failsafe
+    if cache_obj == obj:section() then return end
+    cache_obj = obj:section()
+
+    if mac_mcm.PDA_APPS.app_taskboard then mac_mcm.remove_app("app_taskboard") end 
+    if mac_mcm.PDA_APPS.app_interactive then mac_mcm.remove_app("app_interactive") end 
+    local taskboard = ui_pda_taskboard_tab and ini_sys:r_bool_ex(obj:section(),"tab_taskboard")
+    local interactive = pda_inter_gui and ini_sys:r_bool_ex(obj:section(),"tab_interactive")
+    local pysaic = crc_pda and ini_sys:r_bool_ex(obj:section(),"crc_pda")
+
+    if taskboard == true then
+        mac_mcm.add_app("app_taskboard", 
+            {name = "pda_btn_taskboard", texture = "app_taskboard", tab = "eptTaskboard", func = ui_pda_taskboard_tab.get_ui}
+        )
+    end
+    if interactive == true then
+        mac_mcm.add_app("app_interactive", 
+            {name = "pda_btn_interactive", texture = "app_interactive", tab = "eptInteractive", func = pda_inter_gui.start_PDAX}
+        ) 
+    end
+    if pysaic then
+        mac_mcm.add_app("app_pysaic",
+            {name = "pda_btn_pysaic", texture = "app_pysaic", tab = "eptChat", func = pysaic.get_ui}
+        )
+    end
+
+end
+
+----------------------------------------------------------------------------------------------------
+-- Issers\Getters
+----------------------------------------------------------------------------------------------------
+
+function is_broken(obj)
+	if not failsafe(obj) then return false end -- failsafe
+	return item_device.dev_items[obj:id()].is_broken
+end
+
+function is_bsod(obj)
+	if not failsafe(obj) then return false end -- failsafe
+	return item_device.dev_items[obj:id()].is_bsod
+end
+
+function is_overclocked(obj)
+	if not failsafe(obj) then return false end -- failsafe
+	return item_device.dev_items[obj:id()].is_overclocked
+end
+
+function get_damage(obj)
+    if not failsafe(obj) then return 0 end -- failsafe
+    return item_device.dev_items[obj:id()].damage
+end
+
+function get_pda_tier(obj)
+    if not failsafe(obj) then return 5 end -- failsafe
+    if ini_sys:r_float_ex(obj:section(),"tier") <= 5 then
+        return ini_sys:r_float_ex(obj:section(),"tier")
+    else
+        return 5
+    end
+end
+
+function get_surge_psi(obj)
+    if not failsafe(obj) then return 0 end -- failsafe
+    if obj:has_upgrade("up_firste_pda") then return 0 end
+    
+    local surge_psi = 0
+	if GetEvent("surge", "state") then
+		local surge_time = GetEvent("surge", "time") or 0
+		surge_psi = (surge_time > 168) and normalize(surge_time, 220, 168) or normalize(surge_time, 20, 168)
+		surge_psi = clamp(surge_psi,0,1)
+
+	elseif GetEvent("psi_storm", "state") then
+		if GetEvent("psi_storm", "vortex") then
+			surge_psi = 0.3 + (1 - 0.3) * math.random()
+		else
+			surge_psi = 0.1 + (0.3 - 0.1) * math.random()
+		end
+	end
+	return surge_psi
+end
+
+----------------------------------------------------------------------------------------------------
+-- Utilities
+----------------------------------------------------------------------------------------------------
+
+function get_cpu()
+    local fs = getFS()
+    local flist = fs:file_list_open_ex("$logs$", bit_or(FS.FS_ListFiles, FS.FS_RootOnly), "*.log")
+    
+    for i = 0, flist:Size() - 1 do
+        local filename = flist:GetAt(i):NameFull()
+        if filename:sub(-4) == ".log" then
+            local path = fs:update_path("$logs$", "") .. filename
+            local file = io.open(path, "r")
+            if file then
+                CPU = file:read("*l")
+                file:close()
+                
+                local cpu_model = CPU:match(": (.-) [@[]")
+                local cpu_ghz = CPU:match("@ (%d+%.%d+GHz)")
+                local cpu_mhz = CPU:match(", (%d+%.%d+ mhz)")
+                
+                if cpu_model and cpu_ghz then
+                    CPU = cpu_model .. " @ " .. cpu_ghz
+                elseif cpu_model and cpu_mhz then
+                    local mhz_value = tonumber(cpu_mhz:match("%d+%.%d+"))
+                    local ghz_value = math.floor(mhz_value / 100 + 0.5) / 10
+                    CPU = cpu_model .. " @ " .. ghz_value .. "GHz"
+                else
+                    CPU = "ERROR: UNABLE TO DETECT CPU"
+                    ffi_message("Fatal Error Addon", game.translate_string("st_fe_error") .. " " .. game.translate_string("st_fe_error_cpu") .. " " .. game.translate_string("st_fe_error_end"), 0x00000030, "cpu_error")
+                end
+                return
+            end
+        end
+    end
+    
+    CPU = "ERROR: UNABLE TO DETECT CPU"
+    ffi_message("Fatal Error Addon", game.translate_string("st_fe_error") .. " " .. game.translate_string("st_fe_error_cpu") .. " " .. game.translate_string("st_fe_error_end"), 0x00000030, "cpu_error")
+end
+
+function generate_random_string(length)
+    local chars = "0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ"
+    local random_string = ""
+    for i = 1, length do
+        local random_index = math.random(1, #chars)
+        random_string = random_string .. chars:sub(random_index, random_index)
+    end
+    return random_string
+end
+
+function to_roman(val)
+    if type(val) ~= "number" or val < 1 or val > 3999 then
+        return "Error: number must be from 1 to 3999"
+    end
+    
+    local roman_numerals = {
+        {1000, "M"},
+        {900, "CM"},
+        {500, "D"},
+        {400, "CD"},
+        {100, "C"},
+        {90, "XC"},
+        {50, "L"},
+        {40, "XL"},
+        {10, "X"},
+        {9, "IX"},
+        {5, "V"},
+        {4, "IV"},
+        {1, "I"}
+    }
+    
+    local result = ""
+    for _, pair in ipairs(roman_numerals) do
+        local value, symbol = pair[1], pair[2]
+        while val >= value do
+            result = result .. symbol
+            val = val - value
+        end
+    end
+    
+    return result
+end
+
+function ffi_message(title, message, type, info)
+    printf("!FE: Calling FFI! Title: s%, Message: s%, Type: s%, Info: s%", title, message, type, info)
+    if db.actor:has_info(info) then return end -- show message only once.
+
+    give_info(info)
+    local ffi = require("ffi")
+	local lib = ffi.load("user32")  -- Windows DLL  
+	ffi.cdef[[  
+	    int MessageBoxA(void* hWnd, const char* text, const char* caption, int type);  
+	]]  
+	lib.MessageBoxA(nil, message, title, type)
+end
+
+----------------------------------------------------------------------------------------------------
+-- Helper functions
+----------------------------------------------------------------------------------------------------
+
+function failsafe(obj)
+    if not obj or not item_device.dev_items[obj:id()] then return false end
+    return true
+end
+
+function reboot_call(seconds)
+	fatal_error_mcm.REBOOT = seconds
+	fatal_error_mcm.process_pda_call()	
+end
+
+function invoke(name, time, action)
+	CreateTimeEvent("fe_time_event", name, time, function() action() return true end)
+end
+
+function play_shutdown_sound()
+	sound_object("device\\shutdown\\shutdown_" .. math.random(1, 13)):play_no_feedback(db.actor, sound_object.s3d, 0, db.actor:position(), 0.15, 1.0)
+end
+
+----------------------------------------------------------------------------------------------------
+-- Other
+----------------------------------------------------------------------------------------------------
+
+function save_state(m_data)
+    m_data.security_key = SECURITY_KEY
+end
+
+function load_state(m_data)
+    SECURITY_KEY = m_data.security_key
+end
+
+function on_game_start()
+    RegisterScriptCallback("save_state", save_state)
+    RegisterScriptCallback("load_state", load_state)
+    RegisterScriptCallback("actor_on_first_update", get_cpu)
+
+	if not SECURITY_KEY then
+		SECURITY_KEY = generate_random_string(20)
+	end
+
+    mac_mcm.add_blocked_tabs({"eptReboot","eptBSOD","eptBroken","eptMonolith","eptMonolithHackers","eptBlocked","eptBios","eptBiosBoot","eptBiosDebug", "eptNPC"})
+    mac_mcm.add_app("app_bios", {name = "BIOS", texture = "settings", tab = "eptBios"})
+    exec_console_cmd("g_3d_pda 1")
+
+    if not item_device.dev_items then
+        assert(false, game.translate_string("st_fe_item_device"))
+    end
+    
+    if get_aoe_version then return end
+
+    if get_modded_exes_version() < 20250823 then
+        assert(false, game.translate_string("st_fe_modded_exes"))
+    end
+
+end

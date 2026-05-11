@@ -162,6 +162,9 @@ historyHandlers = {
 
 function parseHistoryMessage(body)
 	local faction, name, icon_id, reputation, rank, highlight, user_type, message_metadata, message = body:match("([^/]+)/([^/]+)/([^/]+)/([^/]+)/([^/]+)/([^/]+)/([^/]+)/([^/]+)/(.+)")
+	if message_metadata == nil then
+		printf(body)
+	end
 	local message_type, message_params = message_metadata:match("([^,]*),(.*)")
 	local handler = historyHandlers[message_type]
 	if handler then

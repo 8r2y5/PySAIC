@@ -1,0 +1,145 @@
+local message = 0
+
+NO_MAP_ZONES = {
+	["l10_red_forest"] = true,
+	["k01_darkscape"] = true,
+	["l11_hospital"] = true,
+	["grimwood"] = true,
+}
+
+NO_MAP_ZONES_UNDERGROUND = {
+	["jupiter_underground"] = true,
+	["labx8"] = true,
+	["l03u_agr_underground"] = true,
+	["l04u_labx18"] = true,
+	["l08u_brainlab"] = true,
+	["l10u_bunker"] = true,
+	["l12u_control_monolith"] = true,
+	["l13u_warlab"] = true,
+}
+
+function create_overrides_fatal_error_v1()
+	
+	local fe_main = pda.set_active_subdialog
+    pda.set_active_subdialog = function (section)
+	
+		local pda = db.actor:item_in_slot(8)
+		if not pda then return fe_main(section) end
+
+		local msg_header_comm = game.translate_string("st_dyn_news_sender_com_centre")
+		local msg_comm_off = game.translate_string("st_fe_map_off")
+		local msg_comm_on = game.translate_string("st_fe_map_on")
+		local actor_elevation = db.actor:position()
+		local base_elevation = 20
+		local overclock = fe_utils.is_overclocked(pda) and 10 or 0
+
+		if level.name() == "l11_hospital" then 
+			base_elevation = 30		
+		elseif level.name() == "l10_red_forest" then 
+			base_elevation = 19
+		end
+		
+		base_elevation = base_elevation - overclock
+		
+		if not pda:has_upgrade("up_secona_pda") and (NO_MAP_ZONES[level.name()]) then
+			if base_elevation < actor_elevation.y and message == 0 then
+				message = 1
+				dynamic_news_helper.send_tip(msg_comm_on,msg_header_comm,1,3,"communication","welcome","gr")
+			elseif base_elevation > actor_elevation.y and message == 1 then
+				dynamic_news_helper.send_tip(msg_comm_off,msg_header_comm,1,3,"communication","communication_lost","gr")
+				message = 0
+			end
+		end
+		
+		if section == "eptBlocked" then
+			return ui_pda_blocked_tab.get_ui()
+			
+		elseif section == "eptBios" then
+			return ui_pda_bios_tab.get_ui()
+			
+		elseif section == "eptBiosBoot" then
+			return ui_pda_bios_boot_tab.get_ui()
+
+		elseif section == "eptBiosDebug" then
+			return ui_pda_bios_debug_tab.get_ui()
+		
+		elseif section == "eptReboot" then
+			return ui_pda_reboot_tab.get_ui()
+			
+		elseif section == "eptBSOD" then
+			return ui_pda_bsod_tab.get_ui()
+			
+		elseif section == "eptBroken" then
+			return ui_pda_broken_tab.get_ui()
+		
+		elseif section == "eptMonolith" then
+			return ui_pda_monolitch_tab.get_ui()
+		
+		elseif section == "eptMonolithHackers" then
+			return ui_pda_monolitch_hackers_tab.get_ui()
+			
+		elseif section == "eptTaskboard" then
+			if ini_sys:r_bool_ex(pda:section(),"tab_taskboard") == false then
+				return ui_pda_no_tab.get_ui()
+			else
+				return ui_pda_taskboard_tab.get_ui()
+			end
+		elseif section == "eptChat" then
+			if ini_sys:r_bool_ex(pda:section(),"tab_pysaic") == false then
+				return ui_pda_no_tab.get_ui()
+			else
+				return crc_pda.get_ui()
+			end
+		elseif section == "eptInteractive" then
+			if ini_sys:r_bool_ex(pda:section(),"tab_interactive") == false then
+				return ui_pda_no_tab.get_ui()
+			else
+				return pda_inter_gui.start_PDAX()
+			end
+			
+		elseif section == "eptRelations" then
+			if ini_sys:r_bool_ex(pda:section(),"tab_relations") == false then
+				return ui_pda_no_tab.get_ui()
+			else
+				return ui_pda_relations_tab.get_ui()
+			end
+		
+		elseif section == "eptContacts" then
+			if ini_sys:r_bool_ex(pda:section(),"tab_contacts") == false then
+				return ui_pda_no_tab.get_ui()
+			else
+				if _G.WARFARE then
+					return ui_pda_warfare_tab.get_ui()
+				else
+					return ui_pda_contacts_tab.get_ui()
+				end
+			end
+			
+		elseif section == "eptRanking" then
+			if ini_sys:r_bool_ex(pda:section(),"tab_ranking") == false then
+				return ui_pda_no_tab.get_ui()
+			end
+			
+		elseif section == "eptTasks" then
+			if not pda:has_upgrade("up_secona_pda") and (NO_MAP_ZONES[level.name()]) and not (base_elevation < actor_elevation.y) then
+				return ui_pda_no_map_tab.get_ui()
+				
+			elseif 
+				not (pda:has_upgrade("up_secona_pda") or overclock)
+				and (NO_MAP_ZONES_UNDERGROUND[level.name()]) 
+			then
+				return ui_pda_no_map_underground_tab.get_ui()
+				
+			elseif db.actor:object("artifact_signature_locator") then
+				return z_artifact_signature_locator.locator_script(section)
+			end
+
+		else
+			return fe_main(section)
+		end
+    end
+end
+
+function on_game_start()
+	RegisterScriptCallback("on_game_load", create_overrides_fatal_error_v1)
+end
