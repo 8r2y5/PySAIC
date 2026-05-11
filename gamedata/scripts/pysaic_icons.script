@@ -36,7 +36,13 @@ local pysaic_factions = {
     actor_zombied = 0,
 }
 
-function getIcon(name, faction, user_type)
+local function getIcon(name, faction, user_type)
+    if not name then
+        return 'pysaic_icon_actor_stalker_1'
+    end
+    if not faction then
+        return 'pysaic_icon_actor_stalker_1'
+    end
     -- should be handled by PySAIC, it is fallback
     if user_type == pysaic_constants.IRCUserModeEnum.Operator then
         return 'crc_icon_operator'
@@ -83,10 +89,7 @@ local function _checkIconByMatch(icon_id, beginning_of_id, look_table)
     end
 end
 
-function isValidIcon(icon_id)
-    if icon_id == nil or icon_id == '' then
-        return false
-    end
+local function isValidIcon(icon_id)
     if icon_id == 'pysaic_icon_player' then
         return true
     end
@@ -101,6 +104,15 @@ end
 
 function getIconSafe(name, faction, icon_id, user_type)
     local user_icon
+    if not name then
+        name = 'nil'
+    end
+    if not faction then
+        faction = 'actor_stalker'
+    end
+    if not icon_id then
+        return 'pysaic_icon_actor_stalker_1'
+    end
     if isValidIcon(icon_id) then
         user_icon = icon_id
     else
