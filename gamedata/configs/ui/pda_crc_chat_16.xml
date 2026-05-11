@@ -89,18 +89,18 @@
 		</status>
 	</pysaic_compact>
 
-	<pysaic_card x="0" y="0" width="180" height="66">
-		<icon x="80" y="5" width="52" height="37" stretch="1"/>
+	<pysaic_card x="0" y="0" width="180" height="88">
+		<icon x="30" y="0" width="96" height="42" stretch="1"/>
 
-		<name x="-40" y="0" width="114" height="56">
+		<name x="4" y="30" width="114" height="56">
 			<text font="letterica16" align="r" vert_align="c"/>
 		</name>
 
-		<rank x="83" y="12" width="9" height="30" stretch="1"/>
+		<rank x="34" y="4" width="9" height="30" stretch="1"/>
 
-		<reputation x="87" y="9" width="9" height="16" stretch="1"/>
+		<reputation x="40" y="1" width="9" height="16" stretch="1"/>
 
-		<status x="-40" y="15" width="114" height="56">
+		<status x="4" y="45" width="114" height="56">
 			<text font="letterica16" align="r" vert_align="c"/>
 		</status>
 	</pysaic_card>
