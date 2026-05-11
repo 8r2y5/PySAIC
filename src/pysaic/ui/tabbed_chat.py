@@ -144,16 +144,11 @@ class TabbedChat(Frame):
         tab_widget = tab_info["widget"]
         original_title = tab_info["original_title"]
         has_unread_messages = tab_info["has_unread_messages"]
-        is_app_tab = tab_info["is_app_tab"]
         current_selected_tab_widget = self.notebook.nametowidget(
             self.notebook.select()
         )
 
-        if (
-            is_app_tab
-            and has_unread_messages
-            and tab_widget != current_selected_tab_widget
-        ):
+        if has_unread_messages and tab_widget != current_selected_tab_widget:
             self.notebook.tab(tab_widget, text=f"🔴 {original_title}")
         else:
             self.notebook.tab(tab_widget, text=original_title)
