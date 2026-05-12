@@ -281,7 +281,14 @@ function on_game_start()
         add_app("app_interactive", {name = "pda_btn_interactive", texture = "app_interactive", tab = "eptInteractive", func = pda_inter_gui.start_PDAX})
     end
     if crc_pda then
-        add_app("app_pysaic", {name = "pda_btn_pysaic", texture = "app_pysaic", tab = "eptChat", func = crc_pda.get_ui})
+        local function pysaic_ui_start()
+            local pysaic_ui = crc_pda.get_ui()
+            if pysaic_ui then
+                pysaic_ui:update_ui()
+            end
+            return pysaic_ui
+        end
+        add_app("app_pysaic", {name = "pda_btn_pysaic", texture = "app_pysaic", tab = "eptChat", func = pysaic_ui_start})
     end
 
     if get_aoe_version then return end

@@ -132,15 +132,6 @@
 		<taskboard_task x="400" y="420" width="150" height="768" stretch="1">
 			<text complex_mode="1" font="letterica18"/>
 		</taskboard_task>
-		<pysaic_button x="36" y="415" width="518" height="45" stretch="1">
-			<texture>bios_button_colors</texture>
-		</pysaic_button>
-		<pysaic x="50" y="420" width="819" height="768" stretch="1">
-			<text complex_mode="1" font="letterica18" a="255" r="100" g="200" b="255">PySAIC:</text>
-		</pysaic>
-		<pysaic_task x="400" y="420" width="150" height="768" stretch="1">
-			<text complex_mode="1" font="letterica18"/>
-		</pysaic_task>
 		
 		<interact_button x="36" y="460" width="518" height="45" stretch="1">
 			<texture>bios_button_colors</texture>
@@ -171,6 +162,15 @@
 		<interface_interface x="400" y="540" width="150" height="768" stretch="1">
 			<text complex_mode="1" font="letterica18"/>
 		</interface_interface>
+		<pysaic x="50" y="580" width="819" height="768" stretch="1">
+			<text complex_mode="1" font="letterica18" a="255" r="100" g="200" b="255">PySAIC:</text>
+		</pysaic>
+		<pysaic_task x="400" y="580" width="150" height="768" stretch="1">
+			<text complex_mode="1" font="letterica18"/>
+		</pysaic_task>
+		<pysaic_button x="36" y="575" width="518" height="45" stretch="1">
+			<texture>bios_button_colors</texture>
+		</pysaic_button>
 
 		<debug_text x="40" y="105" width="745" height="300" stretch="1">
 			<text complex_mode="1" font="letterica16"/>

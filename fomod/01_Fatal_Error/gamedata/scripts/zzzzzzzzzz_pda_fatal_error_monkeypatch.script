@@ -88,7 +88,11 @@ function create_overrides_fatal_error_v1()
 			if ini_sys:r_bool_ex(pda:section(),"tab_pysaic") == false then
 				return ui_pda_no_tab.get_ui()
 			else
-				return crc_pda.get_ui()
+				local pysaic_ui = crc_pda.get_ui()
+				if pysaic_ui then
+					pysaic_ui:update_ui()
+				end
+				return pysaic_ui
 			end
 		elseif section == "eptInteractive" then
 			if ini_sys:r_bool_ex(pda:section(),"tab_interactive") == false then

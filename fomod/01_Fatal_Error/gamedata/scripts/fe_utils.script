@@ -118,8 +118,15 @@ function set_apps(obj)
         ) 
     end
     if pysaic then
+        local function pysaic_ui_start()
+            local pysaic_ui = crc_pda.get_ui()
+            if pysaic_ui then
+                pysaic_ui:update_ui()
+            end
+            return pysaic_ui
+        end
         mac_mcm.add_app("app_pysaic",
-            {name = "pda_btn_pysaic", texture = "app_pysaic", tab = "eptChat", func = pysaic.get_ui}
+            {name = "pda_btn_pysaic", texture = "app_pysaic", tab = "eptChat", func = pysaic_ui_start}
         )
     end
 
@@ -207,7 +214,7 @@ function get_cpu()
                     CPU = cpu_model .. " @ " .. ghz_value .. "GHz"
                 else
                     CPU = "ERROR: UNABLE TO DETECT CPU"
-                    ffi_message("Fatal Error Addon", game.translate_string("st_fe_error") .. " " .. game.translate_string("st_fe_error_cpu") .. " " .. game.translate_string("st_fe_error_end"), 0x00000030, "cpu_error")
+                    --ffi_message("Fatal Error Addon", game.translate_string("st_fe_error") .. " " .. game.translate_string("st_fe_error_cpu") .. " " .. game.translate_string("st_fe_error_end"), 0x00000030, "cpu_error")
                 end
                 return
             end
@@ -215,7 +222,7 @@ function get_cpu()
     end
     
     CPU = "ERROR: UNABLE TO DETECT CPU"
-    ffi_message("Fatal Error Addon", game.translate_string("st_fe_error") .. " " .. game.translate_string("st_fe_error_cpu") .. " " .. game.translate_string("st_fe_error_end"), 0x00000030, "cpu_error")
+    --ffi_message("Fatal Error Addon", game.translate_string("st_fe_error") .. " " .. game.translate_string("st_fe_error_cpu") .. " " .. game.translate_string("st_fe_error_end"), 0x00000030, "cpu_error")
 end
 
 function generate_random_string(length)
