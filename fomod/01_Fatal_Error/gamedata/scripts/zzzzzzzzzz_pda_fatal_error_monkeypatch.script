@@ -19,6 +19,7 @@ NO_MAP_ZONES_UNDERGROUND = {
 }
 
 function create_overrides_fatal_error_v1()
+	local level_name = level.name()
 	
 	local fe_main = pda.set_active_subdialog
     pda.set_active_subdialog = function (section)
@@ -33,15 +34,15 @@ function create_overrides_fatal_error_v1()
 		local base_elevation = 20
 		local overclock = fe_utils.is_overclocked(pda) and 10 or 0
 
-		if level.name() == "l11_hospital" then 
+		if level_name == "l11_hospital" then 
 			base_elevation = 30		
-		elseif level.name() == "l10_red_forest" then 
+		elseif level_name == "l10_red_forest" then 
 			base_elevation = 19
 		end
 		
 		base_elevation = base_elevation - overclock
 		
-		if not pda:has_upgrade("up_secona_pda") and (NO_MAP_ZONES[level.name()]) then
+		if not pda:has_upgrade("up_secona_pda") and (NO_MAP_ZONES[level_name]) then
 			if base_elevation < actor_elevation.y and message == 0 then
 				message = 1
 				dynamic_news_helper.send_tip(msg_comm_on,msg_header_comm,1,3,"communication","welcome","gr")
@@ -125,12 +126,12 @@ function create_overrides_fatal_error_v1()
 			end
 			
 		elseif section == "eptTasks" then
-			if not pda:has_upgrade("up_secona_pda") and (NO_MAP_ZONES[level.name()]) and not (base_elevation < actor_elevation.y) then
+			if not pda:has_upgrade("up_secona_pda") and (NO_MAP_ZONES[level_name]) and not (base_elevation < actor_elevation.y) then
 				return ui_pda_no_map_tab.get_ui()
 				
 			elseif 
 				not (pda:has_upgrade("up_secona_pda") or overclock)
-				and (NO_MAP_ZONES_UNDERGROUND[level.name()]) 
+				and (NO_MAP_ZONES_UNDERGROUND[level_name]) 
 			then
 				return ui_pda_no_map_underground_tab.get_ui()
 				
