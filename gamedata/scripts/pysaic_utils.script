@@ -1,51 +1,38 @@
-function gt(id)
-	local result = game.translate_string(id)
-	if result == id then
-		return nil
-	else
-		return result
-	end
-end
-
 function sort_by_nick(nick, other_nick)
 	return nick:lower() < other_nick:lower()
 end
 
+function sort_by_online_status(nick, other_nick)
+    local user = pysaic_state.users[nick]
+    local other_user = pysaic_state.users[other_nick]
+    if user.location == "False" and other_user.location ~= "False" then
+        return false
+    elseif user.location ~= "False" and other_user.location == "False" then
+        return true
+    else
+        return sort_by_nick(nick, other_nick)
+    end
+end
+
 function sort_by_faction(nick, other_nick)
     local user = pysaic_state.users[nick]
-    if not user then return false end
     local other_user = pysaic_state.users[other_nick]
-    if not other_user then return true end
-
-    -- 1. Faction size (descending)
+    local anonymous_faction = "actor_anonymous"
     local size_user = pysaic_state.FACTION_SIZE[user.faction] or 0
     local size_other = pysaic_state.FACTION_SIZE[other_user.faction] or 0
     if size_user ~= size_other then
         return size_user > size_other
     end
-
-    -- 2. Anonymous faction (anonymous last)
-    local anonymous_faction = "actor_anonymous"
-    local user_is_anonymous = (user.faction == anonymous_faction)
-    local other_is_anonymous = (other_user.faction == anonymous_faction)
-    if user_is_anonymous ~= other_is_anonymous then
-        return not user_is_anonymous
-    end
-
-    -- 3. Online status (online first)
-    local user_is_online = (user.location ~= "False")
-    local other_is_online = (other_user.location ~= "False")
-    if user_is_online ~= other_is_online then
-        return user_is_online
-    end
-
-    -- 4. Faction name (alphabetical)
     if user.faction ~= other_user.faction then
+        if user.faction == anonymous_faction then
+            return false
+        end
+        if other_user.faction == anonymous_faction then
+            return true
+        end
         return gt('crc_' .. user.faction) < gt('crc_' .. other_user.faction)
     end
-
-    -- 5. Nickname (ascending)
-    return sort_by_nick(nick, other_nick)
+    return sort_by_online_status(nick, other_nick)
 end
 
 function sort_by_faction_and_counter(nick, other_nick)
