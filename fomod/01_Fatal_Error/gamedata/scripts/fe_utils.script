@@ -80,10 +80,11 @@ end
 
 function set_pda_xml(obj)
     if not failsafe(obj) then return end -- failsafe
-    if item_device.dev_items[obj:id()].interface == nil then item_device.dev_items[obj:id()].interface = "pda" end -- fallback to default UI if UI is nil
+    local obj_id = obj:id()
+    if item_device.dev_items[obj_id].interface == nil then item_device.dev_items[obj_id].interface = "pda" end -- fallback to default UI if UI is nil
 
     local curr_interface = ActorMenu.get_pda_menu():GetPdaXml():gsub("%.xml", "")
-    local base_interface = item_device.dev_items[obj:id()].interface
+    local base_interface = item_device.dev_items[obj_id].interface
 
     if curr_interface ~= base_interface then
         ActorMenu.get_pda_menu():SetPdaXml(base_interface .. ".xml")
@@ -98,14 +99,15 @@ end
 local cache_obj
 function set_apps(obj)
     if not failsafe(obj) then return end -- failsafe
-    if cache_obj == obj:section() then return end
-    cache_obj = obj:section()
+    local obj_sec = obj:section()
+    if cache_obj == obj_sec then return end
+    cache_obj = obj_sec
 
     if mac_mcm.PDA_APPS.app_taskboard then mac_mcm.remove_app("app_taskboard") end 
     if mac_mcm.PDA_APPS.app_interactive then mac_mcm.remove_app("app_interactive") end 
-    local taskboard = ui_pda_taskboard_tab and ini_sys:r_bool_ex(obj:section(),"tab_taskboard")
-    local interactive = pda_inter_gui and ini_sys:r_bool_ex(obj:section(),"tab_interactive")
-    local pysaic = crc_pda and ini_sys:r_bool_ex(obj:section(),"crc_pda")
+    local taskboard = ui_pda_taskboard_tab and ini_sys:r_bool_ex(obj_sec,"tab_taskboard")
+    local interactive = pda_inter_gui and ini_sys:r_bool_ex(obj_sec,"tab_interactive")
+    local pysaic = crc_pda and ini_sys:r_bool_ex(obj_sec,"crc_pda")
 
     if taskboard == true then
         mac_mcm.add_app("app_taskboard", 
@@ -191,38 +193,39 @@ end
 
 function get_cpu()
     local fs = getFS()
-    local flist = fs:file_list_open_ex("$logs$", bit_or(FS.FS_ListFiles, FS.FS_RootOnly), "*.log")
+    local flist = fs:file_list_open_ex("$logs$", bit_or(FS.FS_ListFiles, FS.FS_RootOnly), "xray_*.log")
     
     for i = 0, flist:Size() - 1 do
         local filename = flist:GetAt(i):NameFull()
+        printf('!FE DEBUG: %s', filename)
         if filename:sub(-4) == ".log" then
             local path = fs:update_path("$logs$", "") .. filename
+             printf('!FE DEBUG: %s', path)
             local file = io.open(path, "r")
             if file then
                 CPU = file:read("*l")
+                printf('FE DEBUG: %s', CPU)
                 file:close()
-                
-                local cpu_model = CPU:match(": (.-) [@[]")
-                local cpu_ghz = CPU:match("@ (%d+%.%d+GHz)")
-                local cpu_mhz = CPU:match(", (%d+%.%d+ mhz)")
-                
+
+                local cpu_model = CPU:match(": (.-)%s*[@%[]")
+                local cpu_ghz = CPU:match("@ (%d+%.%d+%s?[Gg]Hz)")
+                local cpu_mhz = CPU:match(", (%d+%.%d+%s?[Mm]hz)")
+
                 if cpu_model and cpu_ghz then
-                    CPU = cpu_model .. " @ " .. cpu_ghz
+                    CPU = cpu_model .. " @ " .. cpu_ghz:gsub("%s+", "")
                 elseif cpu_model and cpu_mhz then
                     local mhz_value = tonumber(cpu_mhz:match("%d+%.%d+"))
                     local ghz_value = math.floor(mhz_value / 100 + 0.5) / 10
                     CPU = cpu_model .. " @ " .. ghz_value .. "GHz"
                 else
                     CPU = "ERROR: UNABLE TO DETECT CPU"
-                    --ffi_message("Fatal Error Addon", game.translate_string("st_fe_error") .. " " .. game.translate_string("st_fe_error_cpu") .. " " .. game.translate_string("st_fe_error_end"), 0x00000030, "cpu_error")
                 end
                 return
             end
         end
     end
-    
+
     CPU = "ERROR: UNABLE TO DETECT CPU"
-    --ffi_message("Fatal Error Addon", game.translate_string("st_fe_error") .. " " .. game.translate_string("st_fe_error_cpu") .. " " .. game.translate_string("st_fe_error_end"), 0x00000030, "cpu_error")
 end
 
 function generate_random_string(length)
