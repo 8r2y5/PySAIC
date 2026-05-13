@@ -98,6 +98,7 @@ class AddMessageUseCase(UiUseCase):
             author, self.state.player.create_chat_user()
         )
         user.name = author
+        user.avatar = "random"
         self.state.add_message(HistoryMessageEnum.channel, user, content)
 
         add_channel_message_to_game(
