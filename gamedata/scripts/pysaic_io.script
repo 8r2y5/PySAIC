@@ -31,7 +31,7 @@ function update()
     if data then
         local messages = {}
         for s in data:gmatch("[^\n]+") do
-            table.insert(messages, s)
+            messages[#messages+1] = s
         end
         return messages
     end

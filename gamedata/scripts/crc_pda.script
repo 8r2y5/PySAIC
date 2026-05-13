@@ -286,7 +286,7 @@ function CRCPda:update_messages()
 
 		if self:__should_message_be_displayed(messageData) then
 			local message_node_name = "message"
-			local text_len = string.len(messageData.text)
+			local text_len = #messageData.text
 
 			if text_len > 250 then
 				message_node_name = "message_big"
