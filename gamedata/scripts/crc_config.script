@@ -1,7 +1,5 @@
 --| CRC configuration
---| By Amon, modified for PySAIC integration
-
-local MAX_VALUE = 2^1023
+--| By Amon. modified by for PySAIC integration
 
 -- Default keyboard layout indices
 local keyboard_layout = 1
