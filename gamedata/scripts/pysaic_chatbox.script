@@ -94,7 +94,10 @@ function ChatBox:UpdateMessages()
 		self:DetachChild(message)
 	end
 	self.messages = {}
-	for index, messageData in ipairs(pysaic_state.messageLog) do
+    local logCount = #pysaic_state.messageLog
+    local startIndex = math.max(1, logCount - 15 + 1)
+    for index = startIndex, logCount do
+        local messageData = pysaic_state.messageLog[index]
 		local message = self.xml:InitStatic("message", self)
 		local newPos = vector2():set(0, 768 - 100 - (#pysaic_state.messageLog - index) * message:GetHeight())
 		message:SetWndPos(newPos)
