@@ -118,11 +118,22 @@ function CRCPda:UpdateChannels()
         return
     end
     self.list_channel:clear()
+    local selected_id = nil
     for i=1,#pysaic_state.table_channel do
-        self.list_channel:add_item(pysaic_state.irc_name_to_description[pysaic_state.table_channel[i]], i)
+        local channel_name = pysaic_state.table_channel[i]
+        local display_name = pysaic_state.irc_name_to_description[channel_name]
+        self.list_channel:add_item(display_name, i)
+        if channel_name == pysaic_state.prevChannel then
+            selected_id = i
+        end
     end
 
-    self.list_channel:select_item(pysaic_state.irc_name_to_description[pysaic_state.prevChannel])
+    if selected_id then
+        self.list_channel:select_item(selected_id)
+    elseif #pysaic_state.table_channel > 0 then
+        self.list_channel:select_item(1)
+        pysaic_state.prevChannel = pysaic_state.table_channel[1]
+    end
 end
 
 --- add channels to the channel list and select the last selected one
@@ -132,11 +143,12 @@ end
 
 --- called by the list_channel component, when changing the channel it informs EXE applications of about the change
 --- @param channel number
-function CRCPda:on_select_channel(channel)
-	if pysaic_state.prevChannel == self.list_channel:GetText() then
+function CRCPda:on_select_channel(channel_id)
+	local new_channel_name = pysaic_state.irc_name_to_description[pysaic_state.table_channel[channel_id]]
+	if pysaic_state.prevChannel == new_channel_name then
 		return
 	end
-	pysaic_state.prevChannel = self.list_channel:GetText()
+	pysaic_state.prevChannel = new_channel_name
 	pysaic_io.send("ChannelChange/%s", pysaic_state.prevChannel)
 end
 
