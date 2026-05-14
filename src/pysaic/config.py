@@ -339,12 +339,12 @@ class Config:
     close_chat: bool = BoolField(default=True)
     disconnect_when_emission: DisconnectOnNetworkDestructionSetting = (
         EnumField(
-            default=DisconnectOnNetworkDestructionSetting.MalformSignalOnly,
+            default=DisconnectOnNetworkDestructionSetting.Random,
         )
     )
     disconnect_when_underground: DisconnectOnNetworkDestructionSetting = (
         EnumField(
-            default=DisconnectOnNetworkDestructionSetting.MalformSignalOnly,
+            default=DisconnectOnNetworkDestructionSetting.Random,
         )
     )
     block_money_transfer: bool = BoolField(default=True)
