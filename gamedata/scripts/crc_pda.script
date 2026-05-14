@@ -297,7 +297,7 @@ function CRCPda:update_messages()
 			local message = xml:InitStatic(message_node_name, nil)
 
 			xml:InitStatic(message_node_name .. ":image", message):InitTexture(messageData.icon)
-			xml:InitStatic(message_node_name .. ":date_static", message):TextControl():SetText(game.get_game_time():dateToString())
+			xml:InitStatic(message_node_name .. ":time", message):TextControl():SetText(messageData.time)
 			xml:InitStatic(message_node_name .. ":caption_static", message):TextControl():SetText(messageData.title)
 			xml:InitStatic(message_node_name .. ":text_static", message):TextControl():SetText(messageData.text)
 

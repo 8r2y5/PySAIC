@@ -42,8 +42,10 @@
 	
 	<message x="0" y="0" width="1024" height="39">
 		<icon x="20" y="-14" width="41" height="29" stretch="1"/>
-		
-		<title x="66" y="-14" width="958" height="29">
+		<time x="66" y="-28" width="958" height="29" complex_mode="1">
+			<text font="letterica16" color="ui_1" vert_align="b"/>
+		</time>
+		<title x="93" y="-14" width="958" height="29">
 			<text font="letterica16" color="ui_5" vert_align="t"/>
 		</title>
 

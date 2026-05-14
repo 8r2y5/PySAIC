@@ -27,7 +27,7 @@ local function getNewsSound(messageType)
     return newsSoundMap[messageType] or newsSoundMap["default"]
 end
 
-local function add_message_to_history(icon, title, text, reputation, rank, author)
+local function add_message_to_history(icon, title, text, reputation, rank, author, time)
 	local messageLogLength = size_table(pysaic_state.messageLog)
 	if messageLogLength > pysaic_config.MAX_MESSAGE_LOG_LENGTH then
 		local toRemove = messageLogLength - pysaic_config.MAX_MESSAGE_LOG_LENGTH
@@ -41,12 +41,13 @@ local function add_message_to_history(icon, title, text, reputation, rank, autho
 		icon = icon,
 		reputation = reputation,
 		rank = rank,
-        author = author
+        author = author,
+		time = time
 	}
 end
 
-local function addMessage(icon, title, text, reputation, rank, author)
-	add_message_to_history(icon, title, text, reputation, rank, author)
+local function addMessage(icon, title, text, reputation, rank, author, time)
+	add_message_to_history(icon, title, text, reputation, rank, author, time)
 	if pysaic_config.option.newsSound then
 		xr_sound.set_sound_play(db.actor:id(), getNewsSound(icon))
 	end
@@ -85,63 +86,91 @@ local function _get_title_value(faction, user_type)
 end
 
 
-function historyChannelHandler(message, highlight, name, faction, icon_id, message_params, reputation, rank, user_type)
+function historyChannelHandler(time, message, highlight, name, faction, icon_id, message_params, reputation, rank, user_type)
 	highlight = isTrue(highlight)
 	local icon = handle_icon(name, faction, icon_id, user_type)
 	local title = name..', '.._get_title_value(faction, user_type)
 	local text = ((highlight and pysaic_config.HIGHLIGHT_COLOR) or pysaic_config.MESSAGE_COLOR) .. message
-	add_message_to_history(icon, title, text, reputation, rank, name)
+	add_message_to_history(icon, title, text, reputation, rank, name, time)
 end
 
 
-function historyFromPrivateHandler(message, highlight, name, faction, icon_id, message_params, reputation, rank, user_type)
+function historyFromPrivateHandler(time, message, highlight, name, faction, icon_id, message_params, reputation, rank, user_type)
 	local icon = handle_icon(name, faction, icon_id, user_type)
 	local title = name .. " -> " .. message_params
 	local text = pysaic_config.QUERY_COLOR .. message
-	add_message_to_history(icon, title, text, reputation, rank, name)
+	add_message_to_history(icon, title, text, reputation, rank, name, time)
 end
 
-function historyToPrivateHandler(message, highlight, name, faction, icon_id, message_params, reputation, rank, user_type)
+function historyToPrivateHandler(time, message, highlight, name, faction, icon_id, message_params, reputation, rank, user_type)
 	local icon = handle_icon(name, faction, icon_id, user_type)
 	local title = message_params .. " -> " .. name
 	local text = pysaic_config.QUERY_COLOR .. message
-	add_message_to_history(icon, title, text, reputation, rank, name)
+	add_message_to_history(icon, title, text, reputation, rank, name, time)
 end
 
 function addInformationMessage(body)
+	local time, message = body:match("([^/]+)/(.+)")
 	addMessage(
 		pysaic_icons.info,
 		pysaic_utils.gt("crc_info"),
-		body,
+		message,
 		nil,
 		nil,
-        "system"
+        "system",
+		time
 	)
 end
 
 function addErrorMessage(body)
+	local time, message = body:match("([^/]+)/(.+)")
 	addMessage(
 		pysaic_icons.error,
 		pysaic_utils.gt("crc_error"),
-		pysaic_config.ERROR_COLOR .. body,
+		pysaic_config.ERROR_COLOR .. message,
 		nil,
 		nil,
-        "system"
+        "system",
+		time
 	)
 end
 
-function historyMoneyFromHandler(message, highlight, name, faction, icon_id, message_params, reputation, rank, user_type)
+function historyMoneyFromHandler(time, message, highlight, name, faction, icon_id, message_params, reputation, rank, user_type)
 	local icon = handle_icon(name, faction, icon_id, user_type)
 	local title = name .. " " .. (pysaic_utils.gt("crc_money_recv"))
 	local text = pysaic_config.MONEY_COLOR .. message .. " RUB"
-	add_message_to_history(icon, title, text, reputation, rank, name)
+	add_message_to_history(icon, title, text, reputation, rank, name, time)
 end
 
-function historyMoneyToHandler(message, highlight, name, faction, icon_id, message_params, reputation, rank, user_type)
+function historyMoneyToHandler(time, message, highlight, name, faction, icon_id, message_params, reputation, rank, user_type)
 	local icon = handle_icon(name, faction, icon_id, user_type)
 	local title = message_params .. " " .. (pysaic_utils.gt("crc_money")) .. " " .. name
 	local text = pysaic_config.MONEY_COLOR .. message .. " RUB"
-	add_message_to_history(icon, title, text, reputation, rank, name)
+	add_message_to_history(icon, title, text, reputation, rank, name, time)
+end
+
+function historyInformationMessage(time, message, highlight, name, faction, icon_id, message_params, reputation, rank, user_type)
+	addMessage(
+		pysaic_icons.info,
+		pysaic_utils.gt("crc_info"),
+		message,
+		nil,
+		nil,
+        "system",
+		time
+	)
+end
+
+function historyErrorMessage(time, message, highlight, name, faction, icon_id, message_params, reputation, rank, user_type)
+	addMessage(
+		pysaic_icons.error,
+		pysaic_utils.gt("crc_error"),
+		pysaic_config.ERROR_COLOR .. message,
+		nil,
+		nil,
+        "system",
+		time
+	)
 end
 
 function parseHistoryClear(body)
@@ -153,27 +182,27 @@ historyHandlers = {
 	dm_from = historyFromPrivateHandler,
 	dm_to = historyToPrivateHandler,
 	channel = historyChannelHandler,
-	info = addInformationMessage,
-	error = addErrorMessage,
+	info = historyInformationMessage,
+	error = historyErrorMessage,
 	money_recv = historyMoneyFromHandler,
 	money_sent = historyMoneyToHandler,
 }
 
 
 function parseHistoryMessage(body)
-	local faction, name, icon_id, reputation, rank, highlight, user_type, message_metadata, message = body:match("([^/]+)/([^/]+)/([^/]+)/([^/]+)/([^/]+)/([^/]+)/([^/]+)/([^/]+)/(.+)")
+	local time, faction, name, icon_id, reputation, rank, highlight, user_type, message_metadata, message = body:match("([^/]+)/([^/]+)/([^/]+)/([^/]+)/([^/]+)/([^/]+)/([^/]+)/([^/]+)/([^/]+)/(.+)")
 	if message_metadata == nil then
-		printf(body)
+		addErrorMessage("Cannot handle history message '" .. body .. "'")
+		printf('!PYSAIC HISTORY NIL: "%s"', body)
 	end
 	local message_type, message_params = message_metadata:match("([^,]*),(.*)")
 	local handler = historyHandlers[message_type]
 	if handler then
-		handler(message, highlight, name, faction, icon_id, message_params, reputation, rank, user_type)
+		handler(time, message, highlight, name, faction, icon_id, message_params, reputation, rank, user_type)
 	else
 		addErrorMessage("Cannot handle history type '" .. message_type .. "'")
 	end
 end
-
 
 
 function handle_icon(name, faction, icon_id, user_type)
@@ -187,7 +216,7 @@ function handle_icon(name, faction, icon_id, user_type)
 end
 
 function parseChannelMessage (body)
-	local faction, name, icon_id, reputation, rank, highlight, user_type, message = body:match("([^/]+)/([^/]+)/([^/]+)/([^/]+)/([^/]+)/([^/]+)/([^/]+)/(.+)")
+	local time, faction, name, icon_id, reputation, rank, highlight, user_type, message = body:match("([^/]+)/([^/]+)/([^/]+)/([^/]+)/([^/]+)/([^/]+)/([^/]+)/([^/]+)/(.+)")
 	highlight = isTrue(highlight)
 	local icon = handle_icon(name, faction, icon_id, user_type)
 	if chatBox then
@@ -200,27 +229,28 @@ function parseChannelMessage (body)
         text,
         reputation,
         rank,
-        name
+        name,
+		time
     )
 end
 
 function parsePrivateMessage(body)
-	local faction, user_type, from, from_icon, reputation, rank, to, message = body:match("([^/]+)/([^/]+)/([^/]+)/([^/]+)/([^/]+)/([^/]+)/([^/]+)/(.+)")
+	local time, faction, user_type, from, from_icon, reputation, rank, to, message = body:match("([^/]+)/([^/]+)/([^/]+)/([^/]+)/([^/]+)/([^/]+)/([^/]+)/([^/]+)/(.+)")
 	local icon = handle_icon(from, faction, from_icon, user_type)
 	if chatBox then
 		chatBox:UpdateUsers()
 	end
-	addMessage(icon, from .. " -> " .. to, pysaic_config.QUERY_COLOR .. message, reputation, rank, from)
+	addMessage(icon, from .. " -> " .. to, pysaic_config.QUERY_COLOR .. message, reputation, rank, from, time)
 end
 
 function parseSendingMoney(body)
-	local from, reputation, rank, to, amount = body:match("([^/]+)/([^/]+)/([^/]+)/([^/]+)/(.+)")
+	local time, from, reputation, rank, to, amount = body:match("([^/]+)/([^/]+)/([^/]+)/([^/]+)/([^/]+)/(.+)")
 	if chatBox then
 		chatBox:UpdateUsers()
 	end
 	local title = from .. " " .. (pysaic_utils.gt("crc_money")) .. " " .. to
 	local text = pysaic_config.MONEY_COLOR .. amount .. " RUB"
-	addMessage(pysaic_icons.info, title, text, reputation, rank)
+	addMessage(pysaic_icons.info, title, text, reputation, rank, time)
 	if pysaic_state.users[from] then
 		db.actor:give_money(-amount)
 	end
@@ -228,13 +258,13 @@ end
 
 function parseGettingMoney(body)
 	-- parsing information fully but reputation and rank should not be displayed
-	local from, reputation, rank, amount = body:match("([^/]+)/([^/]+)/([^/]+)/(.+)")
+	local time, from, reputation, rank, amount = body:match("([^/]+)/([^/]+)/([^/]+)/([^/]+)/(.+)")
 	if chatBox then
 		chatBox:UpdateUsers()
 	end
 	local title = from .. " " .. (pysaic_utils.gt("crc_money_recv"))
 	local text = pysaic_config.MONEY_COLOR .. amount .. " RUB"
-	addMessage(pysaic_icons.info, title, text, reputation, rank)
+	addMessage(pysaic_icons.info, title, text, reputation, rank, time)
 	db.actor:give_money(amount)
 end
 

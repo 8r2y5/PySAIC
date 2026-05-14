@@ -215,7 +215,7 @@ class State:
         self.player: Player = Player.create_from_config(config)
         self.last_death: Optional[datetime] = None
         self.last_messages: deque[
-            tuple[HistoryMessageEnum, ChatUser, ChatUser, str]
+            tuple[str, HistoryMessageEnum, ChatUser, ChatUser, str]
         ] = deque(maxlen=100)
         self.player_update_task: Optional[asyncio.Future] = None
         self.player_changed_values_queue: asyncio.Queue = asyncio.Queue()
@@ -237,6 +237,7 @@ class State:
     ):
         self.last_messages.append(
             (
+                datetime.now().strftime("%H:%M"),
                 message_type,
                 user.copy(),
                 self.player.create_chat_user(),

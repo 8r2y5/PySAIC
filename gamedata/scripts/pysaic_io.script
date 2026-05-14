@@ -30,8 +30,22 @@ function update()
 
     if data then
         local messages = {}
-        for s in data:gmatch("[^\n]+") do
-            messages[#messages+1] = s
+        local last_pos = 1
+        while true do
+            local next_newline = data:find("\n", last_pos)
+            if next_newline then
+                local message = data:sub(last_pos, next_newline - 1)
+                if #message > 0 then
+                    messages[#messages + 1] = message
+                end
+                last_pos = next_newline + 1
+            else
+                local message = data:sub(last_pos)
+                if #message > 0 then
+                    messages[#messages + 1] = message
+                end
+                break
+            end
         end
         return messages
     end

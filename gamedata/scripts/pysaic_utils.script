@@ -1,3 +1,12 @@
+function gt(id)
+	local result = game.translate_string(id)
+	if result == id then
+		return nil
+	else
+		return result
+	end
+end
+
 function sort_by_nick(nick, other_nick)
 	return nick:lower() < other_nick:lower()
 end

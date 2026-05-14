@@ -104,6 +104,7 @@ function ChatBox:UpdateMessages()
 		self.xml:InitStatic("message:icon", message):InitTexture(messageData.icon)
 		self.xml:InitStatic("message:title", message):TextControl():SetText(messageData.title)
 		self.xml:InitStatic("message:message_text", message):TextControl():SetText(messageData.text)
+		self.xml:InitStatic("message:time", message):TextControl():SetText(messageData.time)
 		if pysaic_config.option.userDisplayStyle == pysaic_constants.UserDisplayStyleEnum.PySAIC_Card then
 			self:setPySAICCardMessage(messageData, message)
 		end

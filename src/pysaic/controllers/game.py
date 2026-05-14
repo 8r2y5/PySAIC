@@ -1,4 +1,5 @@
 import logging
+from datetime import datetime
 from typing import Iterable, Optional
 
 import inject
@@ -9,6 +10,10 @@ from pysaic.state import State
 from pysaic.use_cases.irc_mode_to_user_type import parsed_mode_to_name
 
 logger = logging.getLogger(__name__)
+
+
+def time_now():
+    return datetime.now().strftime("%H:%M")
 
 
 def ensure_game_is_running(func):
@@ -38,6 +43,7 @@ def add_channel_message_to_game(
         "/".join(
             (
                 "Message",
+                time_now(),
                 faction_actor,
                 author,
                 icon_id,
@@ -66,6 +72,7 @@ def add_dm_message_to_game(
         "/".join(
             (
                 "Query",
+                time_now(),
                 author_faction_actor,
                 user_type,
                 author,
@@ -97,12 +104,12 @@ def set_ingame_display_setting_order_setting(value: str):
 
 @ensure_game_is_running
 def add_information_message_to_game(content: str):
-    add_to_crc_input_file(f"Information/{content}")
+    add_to_crc_input_file(f"Information/{time_now()}/{content}")
 
 
 @ensure_game_is_running
 def add_error_message_to_game(content: str):
-    add_to_crc_input_file(f"Error/{content}")
+    add_to_crc_input_file(f"Error/{time_now()}/{content}")
 
 
 @ensure_game_is_running
@@ -134,14 +141,15 @@ def _get_message_metadata(
 
 @ensure_game_is_running
 def add_message_history(
-    history: Iterable[tuple[HistoryMessageEnum, ChatUser, ChatUser, str]]
+    history: Iterable[tuple[str, HistoryMessageEnum, ChatUser, ChatUser, str]]
 ):
     add_to_crc_input_file("HistoryClear")
-    for message_type, source, me, message_content in history:
+    for message_time, message_type, source, me, message_content in history:
         add_to_crc_input_file(
             "/".join(
                 (
                     "History",
+                    message_time,
                     str(_get_chat_user_faction(source.faction)),
                     _get_clear_nick(source),
                     str(source.avatar),
@@ -195,13 +203,15 @@ def add_users_list_to_game(users: Iterable[ChatUser]):
 
 @ensure_game_is_running
 def add_money_to_user(author: str, reputation: str, rank: str, amount: str):
-    add_to_crc_input_file(f"MoneyRecv/{author}/{reputation}/{rank}/{amount}")
+    add_to_crc_input_file(
+        f"MoneyRecv/{time_now()}/{author}/{reputation}/{rank}/{amount}"
+    )
 
 
 @ensure_game_is_running
 def remove_money_from_player(player: ChatUser, receiver: str, amount: str):
     add_to_crc_input_file(
-        f"Money/{player.name}/{player.reputation}/{player.rank}/{receiver}/{amount}"
+        f"Money/{time_now()}/{player.name}/{player.reputation}/{player.rank}/{receiver}/{amount}"
     )
 
 
