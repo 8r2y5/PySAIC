@@ -15,9 +15,6 @@
 		<text>Type in cyrillic</text>
 	</string>
 
-	<string id="crc_ignore_outsiders">
-		<text>Show only messages from the Zone</text>
-	</string>
 	<string id="crc_pda_messages">
 		<text>Chat Messages</text>
 	</string>
