@@ -17,6 +17,7 @@ from pysaic.enums import (
     InformationType,
 )
 from pysaic.events.enum import GameEvents
+from pysaic.use_cases.avatar import is_icon_valid, calculate_icon_based_on_faction_and_name
 
 logger = logging.getLogger(__name__)
 
@@ -232,15 +233,41 @@ class ChatUser:
     afk: bool = False
     last_ask_update: Optional[datetime] = None
     irc_mode: str = ""
-    avatar: str = "random"
+
+    # this is to still have avatar in __init__, yet still have validator
+    avatar: Optional[str] = None
+    _avatar: Optional[str] = field(default=None, init=False, repr=False)
+
     irc_user: Optional[IrcUser] = None
     state: SAICStateEnum = SAICStateEnum.ok
+
+    def __post_init__(self):
+        if self._avatar is None:
+            self.avatar = None
+
+    @property
+    def avatar(self) -> str:
+        if not is_icon_valid(self._avatar):
+            self._avatar = calculate_icon_based_on_faction_and_name(
+                self.faction.name, self.name
+            )
+        return self._avatar
+
+    @avatar.setter
+    def avatar(self, value: Optional[str]):
+        if value is None or not is_icon_valid(value):
+            self._avatar = calculate_icon_based_on_faction_and_name(
+                self.faction.name, self.name
+            )
+        else:
+            self._avatar = value
 
     def copy(self):
         return self.__class__(
             **{
                 field_name: getattr(self, field_name)
                 for field_name in self.__dataclass_fields__.keys()
+                if field_name != "_avatar"
             }
         )
 

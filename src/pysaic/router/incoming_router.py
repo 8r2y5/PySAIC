@@ -35,7 +35,7 @@ from pysaic.settings import (
 )
 from pysaic.state import State
 from pysaic.ui.app import App
-from pysaic.use_cases.avatar import is_icon_valid
+from pysaic.use_cases.avatar import is_icon_valid, calculate_icon_based_on_faction_and_name
 from pysaic.use_cases.command import CommandUseCase
 from pysaic.use_cases.irc_mode_to_user_type import parsed_mode_to_name
 from pysaic.use_cases.money_transfer import IncomingMoneyTransferUseCase
@@ -392,31 +392,9 @@ class IncomingRouter(Router):
             )
             return
 
-        if not is_icon_valid(saic_sync.avatar):
-            logger.warning(
-                "Invalid avatar icon: %r, for user %s",
-                saic_sync.avatar,
-                author,
-            )
-            avatar = "random"
-        else:
-            avatar = saic_sync.avatar
-
-        user = self.chat_users.get(author)
-        if user is None:
-            user = ChatUser(
-                name=author,
-                location=location,
-                rank=rank,
-                reputation=reputation,
-                afk=afk,
-                avatar=avatar,
-                state=state,
-            )
-            self.chat_users.set_user(author, user)
-            self._update_crc_users_data()
-            self._update_ui_user_list()
-            return
+        user = self.chat_users.get(author, ChatUser(name=author))
+        # Rely on ChatUser.avatar property for validation and calculation
+        avatar = saic_sync.avatar
 
         if user.location != location:
             should_update = True
@@ -587,13 +565,6 @@ class IncomingRouter(Router):
             logger.error(
                 "Unsupported SAICAVATAR version: %r, sent by %r", version, nick
             )
-            return
-
-        if avatar == "random":
-            logger.debug("Using random avatar for %r", nick)
-            avatar = "random"
-        elif not is_icon_valid(avatar):
-            logger.error('Invalid avatar icon: "%s" for %r', avatar, nick)
             return
 
         user = self.chat_users.get(nick)

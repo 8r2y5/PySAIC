@@ -93,7 +93,11 @@ def parse_icon_id(
     return icon_type, static_faction_value, avatar_number, True
 
 
-def is_icon_valid(avatar_id: str) -> bool:
+@lru_cache()
+def is_icon_valid(avatar_id: Optional[str]) -> bool:
+    if not isinstance(avatar_id, str):
+        return False
+
     icon_type, static_faction_value, avatar_number, valid = parse_icon_id(
         avatar_id
     )

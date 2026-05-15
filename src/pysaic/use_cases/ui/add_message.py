@@ -4,6 +4,7 @@ from tkinter import END
 from pysaic.controllers.game import add_channel_message_to_game
 from pysaic.enums import FactionsEnum, HistoryMessageEnum
 from pysaic.settings import END_OF_ACTOR_CHARACTER, START_OF_ACTOR_CHARACTER
+from pysaic.use_cases.avatar import calculate_icon_based_on_faction_and_name
 from pysaic.use_cases.irc_mode_to_user_type import parsed_mode_to_name
 from pysaic.use_cases.text import make_content_malformed
 from pysaic.use_cases.ui.use_case import UiUseCase
@@ -98,7 +99,9 @@ class AddMessageUseCase(UiUseCase):
             author, self.state.player.create_chat_user()
         )
         user.name = author
-        user.avatar = "random"
+        user.avatar = calculate_icon_based_on_faction_and_name(
+            faction_actor, author
+        )
         self.state.add_message(HistoryMessageEnum.channel, user, content)
 
         add_channel_message_to_game(
