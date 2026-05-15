@@ -266,15 +266,32 @@ class AppEventRouter(Router):
 
     def _handle_game_channel_change(self, payload):
         part = OutgoingPart(channel=self.config.server.previous_channel)
-        self.config.server.previous_channel = {
+
+        # Determine the new channel name
+        new_channel_name = {
             channel.description: channel.name
             for channel in self.config.server.channels
         }[payload]
+
+        # Update previous_channel in config
+        self.config.server.previous_channel = new_channel_name
         self.config.save_config()
+
         self.outgoing_queue.put_nowait(part)
         logger.debug('Game asks to join channel "%s"', payload)
+
+        # Find the Channel object for the new channel to get its password
+        channel_password = ""
+        for channel_obj in self.config.server.channels:
+            if channel_obj.name == new_channel_name:
+                channel_password = channel_obj.password
+                break
+
         self.outgoing_queue.put_nowait(
-            OutgoingJoin(channel=self.config.server.previous_channel)
+            OutgoingJoin(
+                channel=new_channel_name,
+                password=channel_password,
+            )
         )
         self._add_information_text(f"Channel changed to {payload}")
 

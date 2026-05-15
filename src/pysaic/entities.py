@@ -53,6 +53,7 @@ class OutgoingQuery:
 @dataclass
 class OutgoingJoin:
     channel: str
+    password: str = ""
     created_at: datetime = field(default_factory=datetime.now)
 
 

@@ -54,7 +54,10 @@ async def handle_join(event, state, irc):
         )
         return
 
-    await irc.async_send(f"JOIN {event.channel}")
+    command_str = f"JOIN {event.channel}"
+    if event.password:
+        command_str += f" {event.password}"
+    await irc.async_send(command_str)
 
 
 async def handle_outgoing_command(event, irc):

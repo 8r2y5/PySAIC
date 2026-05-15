@@ -50,6 +50,7 @@ class InGameUserDisplayOrderEnum(StrEnum):
 class Channel:
     name: str = "#crcr_english"
     description: str = "CRCR English Moderated"
+    password: str = ""
 
 
 @dataclass
@@ -96,7 +97,9 @@ class Server:
             port=config["port"],
             channels=[
                 Channel(
-                    name=channel["name"], description=channel["description"]
+                    name=channel["name"],
+                    description=channel["description"],
+                    password=channel.get("password") or "",
                 )
                 for channel in config["channels"]
             ],
