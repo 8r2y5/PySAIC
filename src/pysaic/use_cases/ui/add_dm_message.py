@@ -69,12 +69,15 @@ class AddDmMessage(UiUseCase):
             content = self.event.content.split(END_OF_ACTOR_CHARACTER, 1)[1]
         except IndexError:
             content = self.event.content
-        try:
-            user = self.chat_users.get(
-                self.event.author.nick, self.chat_users[self.state.nick]
-            )
-        except KeyError:
+        if self.event.author.nick == self.state.nick:
             user = self.state.player.create_chat_user()
+        else:
+            try:
+                user = self.chat_users.get(
+                    self.event.author.nick, self.chat_users[self.state.nick]
+                )
+            except KeyError:
+                user = self.state.player.create_chat_user()
 
         history_user = user.copy()
         history_user.name = self.event.author.nick

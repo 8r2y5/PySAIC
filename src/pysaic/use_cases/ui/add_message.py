@@ -89,13 +89,14 @@ class AddMessageUseCase(UiUseCase):
             except KeyError:
                 faction_actor = FactionsEnum.Anonymous.value
 
-        user = self.chat_users.get(
-            author, self.state.player.create_chat_user()
-        )
-        user.name = author
-        user.avatar = calculate_icon_based_on_faction_and_name(
-            faction_actor, author
-        )
+        user = self.state.player.create_chat_user()
+        if author != self.state.nick:
+            user = self.chat_users.get(author, user)
+            user.name = author
+            user.avatar = calculate_icon_based_on_faction_and_name(
+                faction_actor, author
+            )
+
         self.state.add_message(HistoryMessageEnum.channel, user, content)
 
         add_channel_message_to_game(
