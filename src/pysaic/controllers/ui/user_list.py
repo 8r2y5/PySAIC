@@ -7,7 +7,7 @@ from pysaic.enums import FactionsEnum, UserListDisplayModeEnum, SAICStateEnum
 
 ONLINE_ICON = "●"
 OFFLINE_ICON = "○"
-AFK_ICON = "◖"
+AFK_ICON = "●"
 SURGE_ICON = "⚡"
 UNDERGROUND_ICON = "⊝"
 

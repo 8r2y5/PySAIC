@@ -1,5 +1,5 @@
 <config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="http://qconsulting.ca/fo3/ModConfig5.0.xsd">
-    <moduleName>Interactive PDA Installer</moduleName>
+    <moduleName>PySAIC</moduleName>
 
     <requiredInstallFiles>
         <folder source="00_Core/res" destination="res" priority="0"/>
@@ -7,23 +7,91 @@
         <folder source="00_Core/pysaic" destination="pysaic" priority="0"/>
         <folder source="00_Core/gamedata" destination="gamedata" priority="0"/>
     </requiredInstallFiles>
+
     <installSteps>
-        <installStep name="Choose your Version">
+
+        <installStep name="Tutorial 1/4: Open Mod">
+            <optionalFileGroups>
+                <group name="You must complete these steps to use the chat" type="SelectExactlyOne">
+                    <plugins>
+                        <plugin name="Next">
+                            <description>In order for chat to work in-game, PySAIC needs to be up and running. It does not matter if you start it after or before your game.&#10;&#10;STEP 1: Open the mod via your mod manager (Right-click -> Open in Explorer).</description>
+                            <image path="fomod/01.png"/>
+                            <files/>
+                            <typeDescriptor>
+                                <type name="Required"/>
+                            </typeDescriptor>
+                        </plugin>
+                    </plugins>
+                </group>
+            </optionalFileGroups>
+        </installStep>
+
+        <installStep name="Tutorial 2/4: Open Folder">
+            <optionalFileGroups>
+                <group name="Locate the app" type="SelectExactlyOne">
+                    <plugins>
+                        <plugin name="Next">
+                            <description>STEP 2: Inside the mod files, open the "pysaic" folder.</description>
+                            <image path="fomod/02.png"/>
+                            <files/>
+                            <typeDescriptor>
+                                <type name="Required"/>
+                            </typeDescriptor>
+                        </plugin>
+                    </plugins>
+                </group>
+            </optionalFileGroups>
+        </installStep>
+
+        <installStep name="Tutorial 3/4: Launch PySAIC">
+            <optionalFileGroups>
+                <group name="Run the app" type="SelectExactlyOne">
+                    <plugins>
+                        <plugin name="Next">
+                            <description>STEP 3: Launch pysaic.exe.&#10;&#10;PRO TIP: You can create a shortcut to this file on your desktop for easier usage. This way you won't need to do these steps each time you play.</description>
+                            <image path="fomod/03.png"/>
+                            <files/>
+                            <typeDescriptor>
+                                <type name="Required"/>
+                            </typeDescriptor>
+                        </plugin>
+                    </plugins>
+                </group>
+            </optionalFileGroups>
+        </installStep>
+
+        <installStep name="Tutorial 4/4: Play">
+            <optionalFileGroups>
+                <group name="Start the game" type="SelectExactlyOne">
+                    <plugins>
+                        <plugin name="I understand">
+                            <description>STEP 4: Launch your game through your mod manager. The chat is now ready to use!</description>
+                            <image path="fomod/04.png"/>
+                            <files/>
+                            <typeDescriptor>
+                                <type name="Required"/>
+                            </typeDescriptor>
+                        </plugin>
+                    </plugins>
+                </group>
+            </optionalFileGroups>
+        </installStep>
+
+        <installStep name="Choose patches">
             <optionalFileGroups>
                 <group name="Patches" type="SelectExactlyOne">
                     <plugins order="Explicit">
 
-                        <!-- Choice A -->
                         <plugin name="No Taskboard">
-                            <description>Select this if you don't have any mode that modifies PDA interface</description>
-                            <files></files>
+                            <description>Select this if you don't have any mod that modifies the PDA interface.</description>
+                            <files/>
                             <image path=""/>
                             <typeDescriptor>
                                 <type name="Recommended"/>
                             </typeDescriptor>
                         </plugin>
 
-                        <!-- Choice B -->
                         <plugin name="Taskboard">
                             <description>For those who use https://github.com/lTheon/iTheon-PDA-Taskboard</description>
                             <image path=""/>
@@ -50,5 +118,6 @@
                 </group>
             </optionalFileGroups>
         </installStep>
+
     </installSteps>
 </config>

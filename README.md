@@ -3,19 +3,26 @@ or PySAIC for short.
 Based on [CRCR / Chernobyl Relay Chat Rebirth](https://github.com/8r2y5/Chernobyl-Relay-Chat-Rebirth), rewritten in Python with additional features and improvements.  
 Compatible with any Stalker Anomaly version and modpack that uses Stalker Anomaly.
 
+![preview](preview1.png)
+
 ## Stable
 <a href="https://github.com/8r2y5/PySAIC/releases/latest"><img src="https://img.shields.io/badge/Download-something?style=for-the-badge&link=https://github.com/8r2y5/PySAIC/releases/latest" alt="Download Stable"></a>
 
 ![Version](https://img.shields.io/github/v/release/8r2y5/PySAIC?style=flat-square) ![License](https://img.shields.io/github/license/8r2y5/PySAIC?style=flat-square) ![Downloads](https://img.shields.io/github/downloads/8r2y5/PySAIC/total?style=flat-square)
 ## Beta
-<a href="https://github.com/8r2y5/PySAIC/releases/0.3.0b9"><img src="https://img.shields.io/badge/Download-Beta?style=for-the-badge&link=https://github.com/8r2y5/PySAIC/releases/latest" alt="Download Beta"></a>
+<a href="https://github.com/8r2y5/PySAIC/releases/0.3.0b11"><img src="https://img.shields.io/badge/Download-Beta?style=for-the-badge&link=https://github.com/8r2y5/PySAIC/releases/latest" alt="Download Beta"></a>
 
-![GitHub Downloads (specific asset, specific tag)](https://img.shields.io/github/downloads/8r2y5/PySAIC/0.3.0b9/total?style=flat-square)
+![GitHub Downloads (specific asset, specific tag)](https://img.shields.io/github/downloads/8r2y5/PySAIC/0.3.0b11/total?style=flat-square)
 
 # Features
+- **Works both in your PDA or as separate overlay**
+  - You can choose your prefered version in the PySAIC options.
 - **Compatible with [CRCR / Chernobyl Relay Chat Rebirth](https://github.com/8r2y5/Chernobyl-Relay-Chat-Rebirth) and addons**
   - Works with any version of Stalker Anomaly and modpack that uses it.
   - Using [MAGS Redux](https://github.com/RAX-Anomaly/MagsRedux)? Download patch [here](https://www.moddb.com/mods/stalker-anomaly/addons/152-banjajis-patch-chernobyl-relay-chat-rebirth-and-mags-redux).
+- **Patches for:**
+  - [Fatal Error](https://www.moddb.com/addons/fatal-error-by-ncenka)
+  - [iTheon-PDA-Taskboard](https://github.com/lTheon/iTheon-PDA-Taskboard)
 - **Ability to connect to different IRC servers**
   - Want to use your own server? You can do that! Just edit the `server.yml` file.
   - You can connect to any IRC server that supports the protocol, not only the one that Chernobyl Relay Chat uses. Just change it in `server.yml` file.
@@ -111,11 +118,13 @@ It is stored inside `config.yml` file.
 </div> 
 
 # Installation 
-Currently, Mod Managers are supported now and it is recommended way of installing.
-
-For those who are not using it, here are steps how to install it directly into Anomaly
+Use mod manager or for those who are not using it, here are steps how to install it directly into Anomaly
 1. Extract the contents of the zip wherever you like, preferably inside Anomaly's game directory.
-2. Copy the included `bin`, `gamedata`, `res`, `pysaic` folders to your Anomaly directory.
+2. Copy the included in `00_Core` folder (`bin`, `gamedata`, `res`, `pysaic`) folders to your Anomaly directory.
+    - `bin` -> `Anomaly\bin`
+    - `gamedata` -> `gamedata\gamedata`
+    - `res` -> `Anomaly\res`
+    - `pysaic` -> `Anomaly\pysaic`
 
 # Usage
 Run `pysaic.exe`; the application must be running for in-game chat to work.  
