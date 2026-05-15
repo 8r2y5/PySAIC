@@ -3,7 +3,6 @@ from datetime import UTC, datetime, timedelta
 from logging import LogRecord
 from tkinter import END, TclError
 
-from pysaic.config import Server
 from pysaic.controllers.game import (
     add_faction_colored_nicks,
     ask_for_actor_status,

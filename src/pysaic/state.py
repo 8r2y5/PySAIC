@@ -61,7 +61,7 @@ class Player(ChatUser):
 
         return (
             calculate_icon_based_on_faction_and_name(
-                self.faction.name, self.name
+                self.faction.value, self.name
             )
             if self.config.avatar == AvatarEnum.player
             else self.config.current_avatar

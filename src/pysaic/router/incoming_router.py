@@ -35,7 +35,6 @@ from pysaic.settings import (
 )
 from pysaic.state import State
 from pysaic.ui.app import App
-from pysaic.use_cases.avatar import is_icon_valid, calculate_icon_based_on_faction_and_name
 from pysaic.use_cases.command import CommandUseCase
 from pysaic.use_cases.irc_mode_to_user_type import parsed_mode_to_name
 from pysaic.use_cases.money_transfer import IncomingMoneyTransferUseCase

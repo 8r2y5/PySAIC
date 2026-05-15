@@ -87,13 +87,7 @@ class AddMessageUseCase(UiUseCase):
             try:
                 faction_actor = get_faction_actor(self.chat_users[author])
             except KeyError:
-                # self._readd_user_to_chat_users()
-                try:
-                    faction_actor = get_faction_actor(self.chat_users[author])
-                except KeyError:
-                    # happens in edge cases when user was deleted from
-                    # the list before message was processed
-                    faction_actor = "Anonymous"
+                faction_actor = FactionsEnum.Anonymous.value
 
         user = self.chat_users.get(
             author, self.state.player.create_chat_user()

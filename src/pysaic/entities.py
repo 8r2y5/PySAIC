@@ -17,7 +17,10 @@ from pysaic.enums import (
     InformationType,
 )
 from pysaic.events.enum import GameEvents
-from pysaic.use_cases.avatar import is_icon_valid, calculate_icon_based_on_faction_and_name
+from pysaic.use_cases.avatar import (
+    is_icon_valid,
+    calculate_icon_based_on_faction_and_name,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -246,10 +249,10 @@ class ChatUser:
             self.avatar = None
 
     @property
-    def avatar(self) -> str:
+    def avatar(self) -> str:  # noqa: F811
         if not is_icon_valid(self._avatar):
             self._avatar = calculate_icon_based_on_faction_and_name(
-                self.faction.name, self.name
+                self.faction.value, self.name
             )
         return self._avatar
 
@@ -257,7 +260,7 @@ class ChatUser:
     def avatar(self, value: Optional[str]):
         if value is None or not is_icon_valid(value):
             self._avatar = calculate_icon_based_on_faction_and_name(
-                self.faction.name, self.name
+                self.faction.value, self.name
             )
         else:
             self._avatar = value
