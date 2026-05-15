@@ -3,6 +3,7 @@ from datetime import UTC, datetime, timedelta
 from logging import LogRecord
 from tkinter import END, TclError
 
+from pysaic.config import Server
 from pysaic.controllers.game import (
     add_faction_colored_nicks,
     ask_for_actor_status,
@@ -267,20 +268,20 @@ class AppEventRouter(Router):
     def _handle_game_channel_change(self, payload):
         part = OutgoingPart(channel=self.config.server.previous_channel)
 
-        # Determine the new channel name
         new_channel_name = {
             channel.description: channel.name
             for channel in self.config.server.channels
         }[payload]
 
-        # Update previous_channel in config
+        if new_channel_name == self.config.server.previous_channel:
+            return
+
         self.config.server.previous_channel = new_channel_name
         self.config.save_config()
 
         self.outgoing_queue.put_nowait(part)
         logger.debug('Game asks to join channel "%s"', payload)
 
-        # Find the Channel object for the new channel to get its password
         channel_password = ""
         for channel_obj in self.config.server.channels:
             if channel_obj.name == new_channel_name:
