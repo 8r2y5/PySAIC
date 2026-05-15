@@ -472,7 +472,7 @@ end
 function parseInput(receiveQueue)
 	for _, line in ipairs(receiveQueue) do
         if line == "" then goto continue end
-		local type, body = line:match("([^/]+)/(.+)")
+		local type, body = line:match("^([^/]+)/(.*)$")
 		if type and body then
             local action = inputActions[type]
             if action then
