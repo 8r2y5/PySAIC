@@ -2,18 +2,27 @@
 
 ## `0.3.0b11` - 2026-05-15
 ### Short summary
-- **Chat in PDA**: You can chat via PDA or like in CRCR (via overlay chat window)
-  - Add compatibility patches for:
-    - [Fatal Error](https://www.moddb.com/addons/fatal-error-by-ncenka)
-    - [iTheon-PDA-Taskboard](https://github.com/lTheon/iTheon-PDA-Taskboard)
-- **Themes**: Customize the app's look! You can now create, select, and delete themes in `Options -> Themes`.
-- **Payment Shortcuts**: Typing large amounts is easier. Example: `/pay user 1.5k` sends 1500.
-- **New Maps**: Added support for Grimwood, Promazone, and Town Yuzhniy.
+- **PDA Chat**: You can now chat directly from your PDA, with features like unread message indicators, message timestamps, and dynamic message display templates.
+  - **Compatibility**: Enhanced integration with mods like [Fatal Error](https://www.moddb.com/addons/fatal-error-by-ncenka) and [iTheon-PDA-Taskboard](https://github.com/lTheon/iTheon-PDA-Taskboard).
+- **Themes**: More ways to customize your app's look! Theme management is improved with icon support, and it's easier to create, select, and delete themes.
+- **New Features**:
+  - Support for password-protected IRC channels.
+  - Integrated tutorial into the FOMOD installer.
+- **Payment Shortcuts**: The `/pay` command now understands human-readable amounts (e.g., `/pay user 1.5k` for 1500).
+- **New Maps**: Added support for Grimwood, Promzone, and Town Yuzhniy.
+- **User Experience**:
+  - Improved nickname auto-completion with cycling through matches.
+  - Better user list sorting and status indicators.
+  - Clearer messages for unsupported versions and connection events.
+  - Word deletion in chat with `Ctrl+Backspace`.
 - **Mod Organizer 2**: Fully supported. You don't need to install manually into the game folder anymore.
 - **Performance**: Faster and smoother synchronization between chat and game.
-- **Fixes**:
-  - Fixed compatibility with mod that fixes "Mags Redux" compatibility.
-  - Improved nickname auto-completion.
+
+### Fixes:
+- Fixed display issues with messages on screen and avatar handling.
+- Resolved issues with user state display when offline and nickname auto-completion in-game.
+- Fixed scrolling down issues and incorrect faction tags in death messages.
+- Improved handling of IRC connection waiting times.
 
 ### Do I need to do anything?
 - You need to copy all the files and restart your game.
