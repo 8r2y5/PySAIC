@@ -1,5 +1,15 @@
 # Changelog
 
+## `0.3.0b12` - 2026-05-17
+### Short summary
+- **Improved Chat Reliability**: Messages should now be handled more smoothly, especially if your connection isn't perfect.
+- **Internal Improvements**: Some under-the-hood changes to how the app finds its files, leading to better stability.
+
+### Do I need to do anything?
+- Reinstall PySAIC via MO2
+
+---
+
 ## `0.3.0b11` - 2026-05-15
 ### Short summary
 - **PDA Chat**: You can now chat directly from your PDA, with features like unread message indicators, message timestamps, and dynamic message display templates.
