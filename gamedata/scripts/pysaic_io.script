@@ -3,6 +3,7 @@
 
 local conn = require("pysaic_cm")
 local handshake_sent = false
+local buffer = ""
 
 function init()
     conn.init()
@@ -26,24 +27,24 @@ function update()
         handshake_sent = true
     elseif status == "closed" or status == "error" then
         handshake_sent = false
+        buffer = ""
     end
 
     if data then
+        buffer = buffer .. data
         local messages = {}
         local last_pos = 1
+
         while true do
-            local next_newline = data:find("\n", last_pos)
+            local next_newline = buffer:find("\n", last_pos)
             if next_newline then
-                local message = data:sub(last_pos, next_newline - 1)
+                local message = buffer:sub(last_pos, next_newline - 1)
                 if #message > 0 then
                     messages[#messages + 1] = message
                 end
                 last_pos = next_newline + 1
             else
-                local message = data:sub(last_pos)
-                if #message > 0 then
-                    messages[#messages + 1] = message
-                end
+                buffer = buffer:sub(last_pos)
                 break
             end
         end
