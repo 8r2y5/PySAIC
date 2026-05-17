@@ -15,7 +15,11 @@ import inject
 from pysaic.entities import DeathTimestamped
 from pysaic.enums import DeathReportTypeEnum, FactionsEnum, LocationEnum
 from pysaic.script_reader.entities import Death
-from pysaic.settings import END_OF_ACTOR_CHARACTER, START_OF_ACTOR_CHARACTER
+from pysaic.settings import (
+    END_OF_ACTOR_CHARACTER,
+    START_OF_ACTOR_CHARACTER,
+    RES_PATH,
+)
 
 tags_regexp = re.compile(r"(\w+)")
 
@@ -54,7 +58,7 @@ class XMLFileController:
             self.file_path = PATH / file_path
         else:
             if state.is_game_running:
-                self.file_path = state.game_location / "res" / file_path
+                self.file_path = RES_PATH / file_path
             else:
                 self.file_path = PATH / file_path
 
