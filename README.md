@@ -46,7 +46,7 @@ Compatible with any Stalker Anomaly version and modpack that uses Stalker Anomal
   - Simple installation process, just extract the files and run the client.
 - **Cross-Platform**
   - Works on Windows or Linux.
-- **Supports for [New Level](https://www.moddb.com/mods/stalker-anomaly/addons/promzone-level)**
+- **Supports for [New Levels](https://www.moddb.com/mods/stalker-anomaly/addons/promzone-level)**
   - Compatible with Grimwood, Promazone, and Town Yuzhniy.
 - **See others status in-game**
   - Online status 
@@ -122,7 +122,7 @@ Use mod manager or for those who are not using it, here are steps how to install
 1. Extract the contents of the zip wherever you like, preferably inside Anomaly's game directory.
 2. Copy the included in `00_Core` folder (`bin`, `gamedata`, `res`, `pysaic`) folders to your Anomaly directory.
     - `bin` -> `Anomaly\bin`
-    - `gamedata` -> `gamedata\gamedata`
+    - `gamedata` -> `Anomaly\gamedata`
     - `res` -> `Anomaly\res`
     - `pysaic` -> `Anomaly\pysaic`
 
