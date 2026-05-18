@@ -8,7 +8,104 @@
         <folder source="00_Core/gamedata" destination="gamedata" priority="0"/>
     </requiredInstallFiles>
 
-    <installSteps>
+    <installSteps order="Explicit">
+
+        <installStep name="Choose PDA or Chatbox">
+            <optionalFileGroups>
+                <group name="Choose your preferred installation type" type="SelectExactlyOne">
+                    <plugins>
+                        <plugin name="PDA Version">
+                            <description>Install the full PDA integration with chat and other features.</description>
+                            <files>
+                                <folder source="01_PDA/gamedata" destination="gamedata" priority="1"/>
+                            </files>
+                            <conditionFlags>
+                                <flag name="InstallType">PDA</flag>
+                            </conditionFlags>
+                            <typeDescriptor>
+                                <type name="Optional"/>
+                            </typeDescriptor>
+                        </plugin>
+                        <plugin name="Just Chatbox">
+                            <description>Install only the chatbox functionality without PDA integration.</description>
+                            <conditionFlags>
+                                <flag name="InstallType">Chatbox</flag>
+                            </conditionFlags>
+                            <typeDescriptor>
+                                <type name="Optional"/>
+                            </typeDescriptor>
+                        </plugin>
+                    </plugins>
+                </group>
+            </optionalFileGroups>
+        </installStep>
+
+        <installStep name="Choose PDA Patches">
+            <visible>
+                <dependencies operator="And">
+                    <flagDependency flag="InstallType" value="PDA"/>
+                </dependencies>
+            </visible>
+            <optionalFileGroups>
+                <group name="Patches" type="SelectExactlyOne">
+                    <plugins order="Explicit">
+                        <plugin name="No Taskboard">
+                            <description>Select this if you don't have any mod that modifies the PDA interface.</description>
+                            <typeDescriptor>
+                                <type name="Recommended"/>
+                            </typeDescriptor>
+                        </plugin>
+                        <plugin name="Taskboard">
+                            <description>For those who use https://github.com/lTheon/iTheon-PDA-Taskboard</description>
+                            <files>
+                                <file source="02a_Taskboard/gamedata/configs/ui/pda_16.xml" destination="gamedata/configs/ui/pda_16.xml" priority="1"/>
+                            </files>
+                            <typeDescriptor>
+                                <type name="Optional"/>
+                            </typeDescriptor>
+                        </plugin>
+                        <plugin name="Fatal Error">
+                            <description>For those who use https://www.moddb.com/mods/stalker-anomaly/addons/fatal-error-by-ncenka</description>
+                            <files>
+                                <folder source="02a_Fatal_Error/gamedata" destination="gamedata" priority="1"/>
+                            </files>
+                            <typeDescriptor>
+                                <type name="Optional"/>
+                            </typeDescriptor>
+                        </plugin>
+                    </plugins>
+                </group>
+            </optionalFileGroups>
+        </installStep>
+
+        <installStep name="Optional Chatbox Patches">
+            <visible>
+                <dependencies operator="And">
+                    <flagDependency flag="InstallType" value="Chatbox"/>
+                </dependencies>
+            </visible>
+            <optionalFileGroups>
+                <group name="Optional Chatbox Patches" type="SelectExactlyOne">
+                    <plugins>
+                        <plugin name="No Mags Redux Patch">
+                            <description>Do not install Mags Redux Patch.</description>
+                            <typeDescriptor>
+                                <type name="Recommended"/>
+                            </typeDescriptor>
+                        </plugin>
+                        <plugin name="Mags Redux Patch">
+                            <description>Patch for Mags Redux mod.</description>
+                            <files>
+                                <folder source="02b_Mags_Redux_Patch/gamedata" destination="gamedata" priority="1"/>
+                            </files>
+                            <typeDescriptor>
+                                <type name="Optional"/>
+                            </typeDescriptor>
+                        </plugin>
+                    </plugins>
+                </group>
+            </optionalFileGroups>
+        </installStep>
 
         <installStep name="Tutorial 1/4: Open Mod">
             <optionalFileGroups>
@@ -17,7 +114,6 @@
                         <plugin name="Next">
                             <description>In order for chat to work in-game, PySAIC needs to be up and running. It does not matter if you start it after or before your game.&#10;&#10;STEP 1: Open the mod via your mod manager (Right-click -> Open in Explorer).</description>
                             <image path="fomod/01.png"/>
-                            <files/>
                             <typeDescriptor>
                                 <type name="Required"/>
                             </typeDescriptor>
@@ -34,7 +130,6 @@
                         <plugin name="Next">
                             <description>STEP 2: Inside the mod files, open the "pysaic" folder.</description>
                             <image path="fomod/02.png"/>
-                            <files/>
                             <typeDescriptor>
                                 <type name="Required"/>
                             </typeDescriptor>
@@ -51,7 +146,6 @@
                         <plugin name="Next">
                             <description>STEP 3: Launch pysaic.exe.&#10;&#10;PRO TIP: You can create a shortcut to this file on your desktop for easier usage. This way you won't need to do these steps each time you play.</description>
                             <image path="fomod/03.png"/>
-                            <files/>
                             <typeDescriptor>
                                 <type name="Required"/>
                             </typeDescriptor>
@@ -68,52 +162,10 @@
                         <plugin name="I understand">
                             <description>STEP 4: Launch your game through your mod manager. The chat is now ready to use!</description>
                             <image path="fomod/04.png"/>
-                            <files/>
                             <typeDescriptor>
                                 <type name="Required"/>
                             </typeDescriptor>
                         </plugin>
-                    </plugins>
-                </group>
-            </optionalFileGroups>
-        </installStep>
-
-        <installStep name="Choose patches">
-            <optionalFileGroups>
-                <group name="Patches" type="SelectExactlyOne">
-                    <plugins order="Explicit">
-
-                        <plugin name="No Taskboard">
-                            <description>Select this if you don't have any mod that modifies the PDA interface.</description>
-                            <files/>
-                            <image path=""/>
-                            <typeDescriptor>
-                                <type name="Recommended"/>
-                            </typeDescriptor>
-                        </plugin>
-
-                        <plugin name="Taskboard">
-                            <description>For those who use https://github.com/lTheon/iTheon-PDA-Taskboard</description>
-                            <image path=""/>
-                            <files>
-                                <file source="01_Taskboard/gamedata/configs/ui/pda_16.xml" destination="gamedata/configs/ui/pda_16.xml" priority="1"/>
-                            </files>
-                            <typeDescriptor>
-                                <type name="Optional"/>
-                            </typeDescriptor>
-                        </plugin>
-
-                        <plugin name="Fatal Error">
-                            <description>For those who use https://www.moddb.com/mods/stalker-anomaly/addons/fatal-error-by-ncenka</description>
-                            <image path=""/>
-                            <files>
-                                <folder source="01_Fatal_Error/gamedata" destination="gamedata" priority="1"/>
-                            </files>
-                            <typeDescriptor>
-                                <type name="Optional"/>
-                            </typeDescriptor>
-                        </plugin>
-
                     </plugins>
                 </group>
             </optionalFileGroups>

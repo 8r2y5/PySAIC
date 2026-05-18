@@ -1,0 +1,57 @@
+--[[
+	PySAIC patch for Mags Redux based on:
+	Banjaji's patch - Chernobyl Relay Chat Rebirth and Mags Redux
+	2023.10.21
+	Issue in question:
+	When CRCR and Mags Redux are installed then Mags redux causes reload button to freeze in CRCR menu and starts weapon reload. 
+	
+	Features:
+	* On GUI creation unequips weapon and detector (wait until unequipped before writing)
+	* On GUI destruction reequips weapon and detector
+--]]
+
+-- Unequip item when messaging
+local previous_slot
+local previous_detector
+function unequip_item()
+	local detector = db.actor:active_detector()
+	if detector and (not previous_detector) then -- hide the detector slot item, do it only once
+		--db.actor:force_hide_detector()
+		db.actor:hide_detector()
+		previous_detector = true
+	end
+	
+	local slot = db.actor:active_slot()
+	if (slot ~= 0) then -- if something is equiped
+		db.actor:activate_slot(0) -- unequip
+		previous_slot = slot
+	end
+end
+
+
+-- Monkeypatch ChatBox:__init()
+pysaic_chatbox.ChatBox.__init_original = pysaic_chatbox.ChatBox.__init -- save the original method
+pysaic_chatbox.ChatBox.__init = function(self)
+	unequip_item() -- prevent e.g. reload while writing message
+	
+	self:__init_original() -- continue normally
+end
+
+
+-- Monkeypatch ChatBox:Cancel()
+pysaic_chatbox.ChatBox.Cancel_original = pysaic_chatbox.ChatBox.Cancel -- save the original method
+pysaic_chatbox.ChatBox.Cancel = function(self)
+	-- Reequip item that was put away
+	if previous_slot then -- something was put away and can be equipped again
+		db.actor:activate_slot(previous_slot)
+		previous_slot = nil
+	end
+	
+	local detector = db.actor:active_detector()
+	if previous_detector and (not detector) then -- wait until unequipping has finished
+		db.actor:show_detector()
+		previous_detector = nil
+	end
+	
+	self:Cancel_original() -- continue normally
+end

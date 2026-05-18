@@ -1,4 +1,1 @@
 -- override to prevent conflicts with PySAIC
-
--- not to break compatibility with mags redux
-ChatBox = pysaic.ChatBox
