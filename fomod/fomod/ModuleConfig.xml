@@ -17,7 +17,7 @@
                         <plugin name="PDA Version">
                             <description>Install the full PDA integration with chat and other features.</description>
                             <files>
-                                <folder source="01_PDA/gamedata" destination="gamedata" priority="1"/>
+                                <folder source="01a_PDA/gamedata" destination="gamedata" priority="1"/>
                             </files>
                             <conditionFlags>
                                 <flag name="InstallType">PDA</flag>
@@ -28,6 +28,9 @@
                         </plugin>
                         <plugin name="Just Chatbox">
                             <description>Install only the chatbox functionality without PDA integration.</description>
+                            <files>
+                                <file source="01a_ChatBox/z_pysaic_state.script" destination="gamedata/scripts/z_pysaic_state.script" priority="1"/>
+                            </files>
                             <conditionFlags>
                                 <flag name="InstallType">Chatbox</flag>
                             </conditionFlags>
@@ -58,7 +61,7 @@
                         <plugin name="Taskboard">
                             <description>For those who use https://github.com/lTheon/iTheon-PDA-Taskboard</description>
                             <files>
-                                <file source="02a_Taskboard/gamedata/configs/ui/pda_16.xml" destination="gamedata/configs/ui/pda_16.xml" priority="1"/>
+                                <file source="02a_Taskboard/pda_16.xml" destination="gamedata/configs/ui/pda_16.xml" priority="1"/>
                             </files>
                             <typeDescriptor>
                                 <type name="Optional"/>
