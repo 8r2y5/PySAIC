@@ -53,7 +53,7 @@ local function addMessage(icon, title, text, reputation, rank, author, time)
 	end
 	local pda_ui = crc_pda.get_ui()
 	if pda_ui and pda_ui:is_open() then
-		pda_ui:add_message(icon, title, text, author or "system")
+		pda_ui:add_message(icon, title, text, author or "pysaic")
 	else
 		db.actor:give_game_news(title, text, icon, 0, pysaic_config.option.newsDuration)
 	end
@@ -117,7 +117,7 @@ function addInformationMessage(body)
 		message,
 		nil,
 		nil,
-        "system",
+        "pysaic",
 		time
 	)
 end
@@ -130,7 +130,7 @@ function addErrorMessage(body)
 		pysaic_config.ERROR_COLOR .. message,
 		nil,
 		nil,
-        "system",
+        "pysaic",
 		time
 	)
 end
