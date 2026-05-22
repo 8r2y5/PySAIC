@@ -156,7 +156,7 @@ function historyInformationMessage(time, message, highlight, name, faction, icon
 		message,
 		nil,
 		nil,
-        "system",
+        "pysaic",
 		time
 	)
 end
@@ -168,7 +168,7 @@ function historyErrorMessage(time, message, highlight, name, faction, icon_id, m
 		pysaic_config.ERROR_COLOR .. message,
 		nil,
 		nil,
-        "system",
+        "pysaic",
 		time
 	)
 end
@@ -358,31 +358,6 @@ function parseFactionColors(value)
     end
 end
 
-function parseUsePda(value)
-	pysaic_state.USE_PDA = isTrue(value)
-	if pysaic_state.USE_PDA then
-		pysaic_io.send('Info/Unregister PySAIC UI')
-        -- Switching TO 3D PDA: close and unregister ChatBox
-		Unregister_UI("ChatBox")
-		if chatBox then
-			chatBox:HideDialog()
-			chatBox = nil
-            showChatBox = false
-		end
-	else
-		pysaic_io.send('Info/Unregister 3DPA UI')
-        -- Switching TO ChatBox: unregister fake UI and close PDA chat if open
-		crc_textbox.unregister_our_ui()
-        local pda_menu = ActorMenu.get_pda_menu()
-        if pda_menu and pda_menu:IsShown() then
-            local sub = pda_menu:GetActiveSubdialog()
-            if sub and sub.st_name == crc_overrides.NODE_ID then
-                pda_menu:HideDialog()
-            end
-        end
-	end
-end
-
 
 local settingsParserMap = {
 	NewsDuration = parseNewsDuration,
@@ -399,7 +374,6 @@ local settingsParserMap = {
 	Handshake = parseHandshake,
     InGameUserDisplayOrder = parseInGameDisplayOrder,
     FactionColoredNicks = parseFactionColors,
-	UsePDA = parseUsePda
 }
 
 

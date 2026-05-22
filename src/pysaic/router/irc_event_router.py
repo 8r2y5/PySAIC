@@ -175,7 +175,19 @@ class IrcEventRouter(Router):
 
     def _handle_end_of_names(self):
         if not self.config.show_less_information:
-            self._add_information_text("Connected to the channel.")
+            prev_channel = self.config.server.previous_channel
+            channel = next(
+                (
+                    channel
+                    for channel in self.config.server.channels
+                    if channel.name == prev_channel
+                )
+            )
+            self._add_information_text(
+                f"Welcome to the {channel.description} channel! "
+                f"Based on available data, there are currently "
+                f"{len(self.state.chat_users.keys())} individuals online."
+            )
 
         self.ui.enable_input()
         self.state.set_in_channel()

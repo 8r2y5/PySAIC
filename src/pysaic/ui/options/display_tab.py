@@ -305,35 +305,6 @@ class DisplayTab(Frame):
                 **self.options.default_style_kwargs,
             ).grid(row=row, column=2, sticky="e", pady=2)
 
-        with row_counter as row:
-            Label(
-                frame,
-                text="PySAIC in PDA",
-                background=self.options.background_color,
-                foreground=self.options.text_color,
-                font=self.options.font_normal_size,
-            ).grid(row=row, column=0, sticky="w", pady=2)
-            self.in_game_pda_instead_of_window_var = BooleanVar(
-                value=self.config.in_game_pda_instead_of_window
-            )
-
-            @self.options.add_save_callback
-            def save_pda_settings():
-                logger.debug(
-                    "in_game_pda_instead_of_window_var: %r",
-                    self.in_game_pda_instead_of_window_var.get(),
-                )
-                self.config.in_game_pda_instead_of_window = (
-                    self.in_game_pda_instead_of_window_var.get()
-                )
-
-            Checkbutton(
-                frame,
-                text="Yes",
-                variable=self.in_game_pda_instead_of_window_var,
-                **self.options.default_style_kwargs,
-            ).grid(row=row, column=1, sticky="w", pady=2)
-
     def _toggle_death_report_type(self):
         self.death_report_type_option.config(
             state=(NORMAL if self.report_death_var.get() else DISABLED)

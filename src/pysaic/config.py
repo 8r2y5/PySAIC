@@ -55,6 +55,7 @@ class Channel:
 
 @dataclass
 class Server:
+    version: int = 1
     host: str = "irc.slashnet.org"
     port: int = 6667
     channels: list[Channel] = field(default_factory=lambda: [Channel()])
@@ -323,6 +324,7 @@ class ColorsConfig(Colors):
 
 @dataclass
 class Config:
+    version: int = ConfigField(default=1)
     nick: str = ConfigField(
         default_factory=lambda: random_name().replace(" ", "_"),
         loading=load_and_sanitize_nick,
@@ -375,7 +377,6 @@ class Config:
     font: FontConfig = NestedObjectFiled(FontConfig)
     theme_name: str = ConfigField(default="pysaic")
     colors: ColorsConfig = NestedObjectFiled(ColorsConfig)
-    in_game_pda_instead_of_window: bool = BoolField(default=True)
     enable_irc_user_display: bool = BoolField(default=True)
     show_less_information: bool = BoolField(default=False)
     use_static_nick_color: bool = BoolField(default=False)

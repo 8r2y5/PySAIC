@@ -26,10 +26,19 @@
                                 <type name="Optional"/>
                             </typeDescriptor>
                         </plugin>
+                        <plugin name="PDA but No UI changes">
+                            <description>Select this if you would like to have PySAIC in PDA but don't want to modify UI in PDA. Chat will be available when hitting Enter, but you won't be able to click on it. Ideal for those who cannot find their patch.</description>
+                            <files>
+                                <folder source="01c_PDA_no_modifications/gamedata" destination="gamedata" priority="1"/>
+                            </files>
+                            <typeDescriptor>
+                                <type name="Optional"/>
+                            </typeDescriptor>
+                        </plugin>
                         <plugin name="Just Chatbox">
                             <description>Install only the chatbox functionality without PDA integration.</description>
                             <files>
-                                <file source="01a_ChatBox/z_pysaic_state.script" destination="gamedata/scripts/z_pysaic_state.script" priority="1"/>
+                                <file source="01b_ChatBox/z_pysaic_state.script" destination="gamedata/scripts/z_pysaic_state.script" priority="1"/>
                             </files>
                             <conditionFlags>
                                 <flag name="InstallType">Chatbox</flag>

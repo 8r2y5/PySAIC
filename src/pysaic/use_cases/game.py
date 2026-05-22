@@ -199,9 +199,6 @@ class GameHandshakeUseCase:
         add_signal_state(str(self.state.fake_disconnect))
         add_faction_colored_nicks(self.config.faction_colored_nicks)
         add_message_history(tuple(self.state.last_messages))
-        add_setting_to_game(
-            "UsePDA", str(self.config.in_game_pda_instead_of_window).title()
-        )
 
 
 class GameChannelMessageUseCase:
