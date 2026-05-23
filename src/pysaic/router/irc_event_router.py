@@ -183,10 +183,14 @@ class IrcEventRouter(Router):
                     if channel.name == prev_channel
                 )
             )
+            count = len(self.state.chat_users.keys())
+            are, individuals = (
+                ("are", "individuals") if count != 1 else ("is", "individual")
+            )
             self._add_information_text(
                 f"Welcome to the {channel.description} channel! "
-                f"Based on available data, there are currently "
-                f"{len(self.state.chat_users.keys())} individuals online."
+                f"Based on available data, there {are} currently "
+                f"{count} {individuals} online."
             )
 
         self.ui.enable_input()
