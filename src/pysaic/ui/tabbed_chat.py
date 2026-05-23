@@ -2,6 +2,7 @@ import logging
 from tkinter import Frame, Menu
 from tkinter.ttk import Notebook, Scrollbar
 
+from pysaic.config import Config
 from pysaic.ui.hyper_links import HyperlinkManager
 from pysaic.ui.utils import apply_color_tags_to_text, MessagesListText
 
@@ -9,7 +10,7 @@ logger = logging.getLogger(__name__)
 
 
 class ChatTab(Frame):
-    def __init__(self, master, config, *args, **kwargs):
+    def __init__(self, master, config: Config, *args, **kwargs):
         super().__init__(master, *args, **kwargs)
         self.config = config
         self.columnconfigure(0, weight=1)
@@ -45,7 +46,7 @@ class ChatTab(Frame):
 
 
 class TabbedChat(Frame):
-    def __init__(self, master, config, *args, **kwargs):
+    def __init__(self, master, config: Config, *args, **kwargs):
         super().__init__(master, *args, **kwargs)
         self.config = config
         self.notebook = Notebook(self)
@@ -66,9 +67,11 @@ class TabbedChat(Frame):
             label="Close Tab", command=self.close_current_tab
         )
 
-    def add_tab(self, tab_id, title, is_app_tab=False):
+    def add_tab(
+        self, tab_id: str, title: str, is_app_tab: bool = False
+    ) -> tuple[ChatTab, bool]:
         if tab_id in self.tabs:
-            return self.tabs[tab_id]["widget"]
+            return (self.tabs[tab_id]["widget"], False)
 
         tab = ChatTab(self.notebook, self.config)
         self.notebook.add(tab, text=title)
@@ -79,20 +82,20 @@ class TabbedChat(Frame):
             "has_unread_messages": False,
         }
         self._update_tab_style(tab_id)
-        return tab
+        return (tab, True)
 
-    def get_tab(self, tab_id):
+    def get_tab(self, tab_id: str) -> ChatTab | None:
         tab_info = self.tabs.get(tab_id)
         return tab_info["widget"] if tab_info else None
 
-    def get_current_tab_id(self):
+    def get_current_tab_id(self) -> str:
         current_tab_widget = self.notebook.nametowidget(self.notebook.select())
         for tab_id, tab_info in self.tabs.items():
             if tab_info["widget"] == current_tab_widget:
                 return tab_id
         return "main"
 
-    def close_tab(self, tab_id):
+    def close_tab(self, tab_id: str):
         if tab_id == "main":
             return  # Cannot close main tab
 
@@ -115,7 +118,7 @@ class TabbedChat(Frame):
         tab_id = self.get_current_tab_id()
         self.close_tab(tab_id)
 
-    def notify_new_message(self, tab_id):
+    def notify_new_message(self, tab_id: str):
         if tab_id not in self.tabs:
             return
 
@@ -128,7 +131,7 @@ class TabbedChat(Frame):
             tab_info["has_unread_messages"] = True
             self._update_tab_style(tab_id)
 
-    def _on_tab_changed(self, event=None):
+    def _on_tab_changed(self, _event=None):
         selected_tab_id = self.get_current_tab_id()
         if selected_tab_id in self.tabs:
             self.tabs[selected_tab_id]["has_unread_messages"] = False
@@ -136,7 +139,7 @@ class TabbedChat(Frame):
         for tab_id in self.tabs:
             self._update_tab_style(tab_id)
 
-    def _update_tab_style(self, tab_id):
+    def _update_tab_style(self, tab_id: str):
         tab_info = self.tabs.get(tab_id)
         if not tab_info:
             return
