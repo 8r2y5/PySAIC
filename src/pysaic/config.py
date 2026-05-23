@@ -48,9 +48,20 @@ class InGameUserDisplayOrderEnum(StrEnum):
 
 @dataclass
 class Channel:
+    version: int = 1
     name: str = "#crcr_english"
-    description: str = "CRCR English Moderated"
+    description: str = "English Moderated"
     password: str = ""
+
+
+def _create_default_channels() -> list[Channel]:
+    return [
+        Channel(name="#crcr_english", description="English Moderated"),
+        Channel(name="#crcr_english_rp", description="English Roleplay"),
+        Channel(
+            name="#crcr_english_shitposting", description="English Unmoderated"
+        ),
+    ]
 
 
 @dataclass
@@ -58,7 +69,7 @@ class Server:
     version: int = 1
     host: str = "irc.slashnet.org"
     port: int = 6667
-    channels: list[Channel] = field(default_factory=lambda: [Channel()])
+    channels: list[Channel] = field(default_factory=_create_default_channels)
     previous_channel: str = Channel.name
     password: str = ""
     commands: list[str] = field(default_factory=lambda: ["MODE +x {nick}"])
@@ -225,6 +236,7 @@ class NestedObjectFiled(ConfigField):
 
 @dataclass
 class FontConfig:
+    version: int = 1
     name: str = "JetBrains Mono"
     size: int = 10
     turn_off_bold_font_username_in_list: bool = False
@@ -234,11 +246,16 @@ class FontConfig:
     def load_from_config(cls, config: None | dict[str, int | str] = None):
         try:
             return cls(
-                config.get("name") or cls.name,
-                config.get("size") or cls.size,
-                config.get("turn_off_bold_font_username_in_list")
+                version=config.get("version") or cls.version,
+                name=config.get("name") or cls.name,
+                size=config.get("size") or cls.size,
+                turn_off_bold_font_username_in_list=config.get(
+                    "turn_off_bold_font_username_in_list"
+                )
                 or cls.turn_off_bold_font_username_in_list,
-                config.get("turn_off_bold_font_username_in_chat")
+                turn_off_bold_font_username_in_chat=config.get(
+                    "turn_off_bold_font_username_in_chat"
+                )
                 or cls.turn_off_bold_font_username_in_chat,
             )
         except Exception:
@@ -270,6 +287,7 @@ class Colors:
 
 @dataclass
 class BackgroundColors(Colors):
+    version: int = 1
     app: str = "#212121"
     in_between: str = "#282a2c"
     content: str = "#131313"
@@ -279,6 +297,7 @@ class BackgroundColors(Colors):
 
 @dataclass()
 class ContentColors(Colors):
+    version: int = 1
     time: str = "#fffaf0"
     text: str = "#f8f8ff"
     highlight: str = "#7f7f7f"
@@ -296,6 +315,7 @@ class ContentColors(Colors):
 
 @dataclass
 class FactionColors(Colors):
+    version: int = 1
     clear_sky: str = "#00bfff"
     loner: str = "#eedd82"
     ecologist: str = "#ff8c00"
@@ -314,6 +334,7 @@ class FactionColors(Colors):
 
 @dataclass
 class ColorsConfig(Colors):
+    version: int = 1
     content: ContentColors = NestedObjectFiled(ContentColors)
     factions: FactionColors = NestedObjectFiled(FactionColors)
     background: BackgroundColors = NestedObjectFiled(BackgroundColors)
