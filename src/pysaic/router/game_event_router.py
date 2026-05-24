@@ -22,6 +22,7 @@ from pysaic.enums import (
     ReputationEnum,
     SAICCTCPEnum,
 )
+from pysaic.controllers.game import add_user_update_to_game
 from pysaic.events.enum import GameEvents
 from pysaic.router.router import Router, send_only_when_connected
 from pysaic.router.utils import generic_send_saic_message
@@ -150,7 +151,7 @@ class GameEventRouter(Router):
                 )
                 return
             setattr(user, field_name, value)
-            self._update_crc_users_data()
+            add_user_update_to_game(user)
             setattr(self.state.player, field_name, value)
             self.state.player_changed_values_queue.put_nowait(
                 (field_name, value)

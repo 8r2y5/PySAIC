@@ -4,7 +4,10 @@ from itertools import chain
 from typing import Callable, Union
 
 from pysaic.config import Config
-from pysaic.controllers.game import add_channel_message_to_game
+from pysaic.controllers.game import (
+    add_channel_message_to_game,
+    add_user_update_to_game,
+)
 from pysaic.entities import (
     AppEvent,
     ChatUser,
@@ -301,7 +304,7 @@ class IncomingRouter(Router):
             return
 
         self.chat_users.set_user(author, user)
-        self._update_crc_users_data()
+        add_user_update_to_game(user)
         self._update_ui_user_list()
 
     def _add_channel_message_to_game(self, event: IncomingMessage):
@@ -423,7 +426,7 @@ class IncomingRouter(Router):
             return
 
         self.chat_users.set_user(author, user)
-        self._update_crc_users_data()
+        add_user_update_to_game(user)
         self._update_ui_user_list()
 
     def _parse_saicrep(self, author, message):
@@ -469,7 +472,7 @@ class IncomingRouter(Router):
             return
 
         self.chat_users.set_user(author, user)
-        self._update_crc_users_data()
+        add_user_update_to_game(user)
         self._update_ui_user_list()
 
     def _parse_saicrank(self, author, message):
@@ -580,7 +583,7 @@ class IncomingRouter(Router):
             return
 
         self.chat_users.set_user(nick, user)
-        self._update_crc_users_data()
+        add_user_update_to_game(user)
         self._update_ui_user_list()
 
     def _parse_state(self, state: str) -> SAICStateEnum | _InvalidValue:

@@ -413,6 +413,68 @@ function parseUsers(body)
     end
 end
 
+function parse_single_user(body)
+	local user_nick, faction, rank, reputation, afk, avatar_id, user_type, location = body:match("([^/]+),([^/]+),([^/]+),([^/]+),([^/]+),([^/]+),([^/]+)%s=%s([^/]+)")
+	if user_nick then
+		local old_user = pysaic_state.users[user_nick]
+		if old_user then
+			local old_faction = old_user.faction
+			if old_faction and pysaic_state.FACTION_SIZE[old_faction] then
+				pysaic_state.FACTION_SIZE[old_faction] = pysaic_state.FACTION_SIZE[old_faction] - 1
+				if pysaic_state.FACTION_SIZE[old_faction] < 0 then
+					pysaic_state.FACTION_SIZE[old_faction] = 0
+				end
+			end
+		end
+
+		local user_icon = pysaic_icons.getIconSafe(user_nick, faction, avatar_id, user_type)
+		pysaic_state.users[user_nick] = {
+			faction = faction,
+			rank = rank,
+			reputation = reputation,
+			location = location,
+			afk = afk == "1",
+			icon = user_icon,
+			nick = user_nick,
+			user_type = user_type
+		}
+		pysaic_state.knownIcons[user_nick] = user_icon
+		pysaic_state.FACTION_SIZE[faction] = (pysaic_state.FACTION_SIZE[faction] or 0) + 1
+
+		if chatBox then
+			chatBox:UpdateUsers()
+		end
+		local pda_ui = crc_pda.get_ui()
+		if pda_ui and pda_ui:is_open() then
+			pda_ui:update_users()
+		end
+	end
+end
+
+function parseUserRemove(body)
+	local nick = body
+	local user = pysaic_state.users[nick]
+	if user then
+		local faction = user.faction
+		if faction and pysaic_state.FACTION_SIZE[faction] then
+			pysaic_state.FACTION_SIZE[faction] = pysaic_state.FACTION_SIZE[faction] - 1
+			if pysaic_state.FACTION_SIZE[faction] < 0 then
+				pysaic_state.FACTION_SIZE[faction] = 0
+			end
+		end
+		pysaic_state.users[nick] = nil
+		pysaic_state.knownIcons[nick] = nil
+
+		if chatBox then
+			chatBox:UpdateUsers()
+		end
+		local pda_ui = crc_pda.get_ui()
+		if pda_ui and pda_ui:is_open() then
+			pda_ui:update_users()
+		end
+	end
+end
+
 function parseSignalState(body)
     IS_SIGNAL_LOST = body == 'True'
 end
@@ -428,6 +490,8 @@ local inputActions = {
 	MoneyRecv = parseGettingMoney,
 	Setting = parseSettings,
 	Users = parseUsers,
+	UserUpdate = parse_single_user,
+	UserRemove = parseUserRemove,
     SignalState = parseSignalState
 }
 

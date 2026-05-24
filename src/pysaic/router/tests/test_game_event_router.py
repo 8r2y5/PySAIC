@@ -145,9 +145,7 @@ def test__send_saic_location(
     )
 
 
-@patch(
-    "pysaic.router.game_event_router.GameEventRouter._update_crc_users_data"
-)
+@patch("pysaic.router.game_event_router.add_user_update_to_game")
 @patch("pysaic.router.game_event_router.logger")
 @patch("pysaic.router.game_event_router.GameEventRouter._add_error_text")
 @patch("pysaic.router.game_event_router.GameEventRouter._send_saic_location")
@@ -155,7 +153,7 @@ def test__handle_player_location_unknown_or_invalid_location(
     mock__send_saic_location,
     mock__add_error_text,
     mock_logger,
-    mock__update_crc_users_data,
+    mock_add_user_update_to_game,
     game_event_router,
     mock_state,
     chat_users,
@@ -179,7 +177,7 @@ def test__handle_player_location_unknown_or_invalid_location(
         call.exception("Unknown location: %r", "test location"),
     ]
     mock__send_saic_location.assert_not_called()
-    mock__update_crc_users_data.assert_not_called()
+    mock_add_user_update_to_game.assert_not_called()
     mock__add_error_text.assert_called_once_with(
         "Unknown location: test location. "
         f"Please add it to {LOCATIONS_FOR_ENUM_PATH} and restart the app."
@@ -190,13 +188,11 @@ def test__handle_player_location_unknown_or_invalid_location(
 
 @pytest.mark.asyncio
 @patch("pysaic.router.game_event_router.logger")
-@patch(
-    "pysaic.router.game_event_router.GameEventRouter._update_crc_users_data"
-)
+@patch("pysaic.router.game_event_router.add_user_update_to_game")
 @patch("pysaic.router.game_event_router.GameEventRouter._add_error_text")
 async def test__handle_player_location_happy_path_with_callback(
     mock__add_error_text,
-    mock__update_crc_users_data,
+    mock_add_user_update_to_game,
     mock_logger,
     game_event_router,
     mock_state,
@@ -232,7 +228,7 @@ async def test__handle_player_location_happy_path_with_callback(
             {"location": LocationEnum.k02_trucks_cemetery},
         ),
     ]
-    mock__update_crc_users_data.assert_called_once()
+    mock_add_user_update_to_game.assert_called_once()
     mock__add_error_text.assert_not_called()
     assert previous_state_location != LocationEnum.k02_trucks_cemetery
     assert previous_user_location != LocationEnum.k02_trucks_cemetery
@@ -242,13 +238,11 @@ async def test__handle_player_location_happy_path_with_callback(
 
 @patch("pysaic.router.game_event_router.GameEventRouter._send_saic_location")
 @patch("pysaic.router.game_event_router.logger")
-@patch(
-    "pysaic.router.game_event_router.GameEventRouter._update_crc_users_data"
-)
+@patch("pysaic.router.game_event_router.add_user_update_to_game")
 @patch("pysaic.router.game_event_router.GameEventRouter._add_error_text")
 def test__handle_player_location_happy_path_without_callback(
     mock__add_error_text,
-    mock__update_crc_users_data,
+    mock_add_user_update_to_game,
     mock_logger,
     mock__send_saic_location,
     game_event_router,
@@ -275,7 +269,7 @@ def test__handle_player_location_happy_path_without_callback(
         ),
     ]
     mock__send_saic_location.assert_not_called()
-    mock__update_crc_users_data.assert_not_called()
+    mock_add_user_update_to_game.assert_not_called()
     mock__add_error_text.assert_not_called()
     assert previous_state_location == LocationEnum.k02_trucks_cemetery
     assert previous_user_location == LocationEnum.k02_trucks_cemetery
@@ -333,11 +327,9 @@ async def test__handle_new_achievement(
 
 
 @patch("pysaic.router.game_event_router.logger")
-@patch(
-    "pysaic.router.game_event_router.GameEventRouter._update_crc_users_data"
-)
+@patch("pysaic.router.game_event_router.add_user_update_to_game")
 def test__handle_rank_invalid_rank(
-    mock__update_crc_users_data,
+    mock_add_user_update_to_game,
     mock_logger,
     game_event_router,
     mock_state,
@@ -359,18 +351,16 @@ def test__handle_rank_invalid_rank(
         call.debug("Invalid %r value: %r", "rank", "test rank", exc_info=True),
     ]
 
-    mock__update_crc_users_data.assert_not_called()
+    mock_add_user_update_to_game.assert_not_called()
     assert mock_state.player.rank == previous_state_rank
     assert chat_users["test nick"].rank == previous_user_rank
 
 
 @pytest.mark.asyncio
 @patch("pysaic.router.game_event_router.logger")
-@patch(
-    "pysaic.router.game_event_router.GameEventRouter._update_crc_users_data"
-)
+@patch("pysaic.router.game_event_router.add_user_update_to_game")
 async def test__handle_rank_happy_path(
-    mock__update_crc_users_data,
+    mock_add_user_update_to_game,
     mock_logger,
     game_event_router,
     mock_state,
@@ -404,7 +394,7 @@ async def test__handle_rank_happy_path(
         call.debug("Syncing changes: %s", {"rank": RankEnum.professional}),
     ]
 
-    mock__update_crc_users_data.assert_called_once()
+    mock_add_user_update_to_game.assert_called_once()
     assert mock_state.player.rank == RankEnum.professional
     assert chat_users["test nick"].rank == RankEnum.professional
     assert mock_state.player.rank != previous_state_rank
@@ -413,11 +403,9 @@ async def test__handle_rank_happy_path(
 
 @patch("pysaic.router.game_event_router.GameEventRouter._send_saic_reputation")
 @patch("pysaic.router.game_event_router.logger")
-@patch(
-    "pysaic.router.game_event_router.GameEventRouter._update_crc_users_data"
-)
+@patch("pysaic.router.game_event_router.add_user_update_to_game")
 def test__handle_reputation_invalid_value(
-    mock__update_crc_users_data,
+    mock_add_user_update_to_game,
     mock_logger,
     mock__send_saic_reputation,
     game_event_router,
@@ -446,18 +434,16 @@ def test__handle_reputation_invalid_value(
     ]
 
     mock__send_saic_reputation.assert_not_called()
-    mock__update_crc_users_data.assert_not_called()
+    mock_add_user_update_to_game.assert_not_called()
     assert mock_state.player.reputation == previous_state_reputation
     assert chat_users["test nick"].reputation == previous_user_reputation
 
 
 @pytest.mark.asyncio
 @patch("pysaic.router.game_event_router.logger")
-@patch(
-    "pysaic.router.game_event_router.GameEventRouter._update_crc_users_data"
-)
+@patch("pysaic.router.game_event_router.add_user_update_to_game")
 async def test__handle_reputation_happy_path(
-    mock__update_crc_users_data,
+    mock_add_user_update_to_game,
     mock_logger,
     game_event_router,
     mock_state,
@@ -494,7 +480,7 @@ async def test__handle_reputation_happy_path(
         ),
     ]
 
-    mock__update_crc_users_data.assert_called_once()
+    mock_add_user_update_to_game.assert_called_once()
     assert mock_state.player.reputation == ReputationEnum.st_reputation_bad
     assert (
         chat_users["test nick"].reputation == ReputationEnum.st_reputation_bad

@@ -6,6 +6,10 @@ from tkinter import END
 import inject
 
 from pysaic.config import Config
+from pysaic.controllers.game import (
+    add_user_update_to_game,
+    remove_user_from_game,
+)
 from pysaic.crc_strings.use_case import random_name
 from pysaic.entities import (
     ChatUser,
@@ -69,15 +73,18 @@ class IrcEventRouter(Router):
             )
             logger.warning("Unknown IRC event: %r", self.event)
             return
-        self._update_crc_users_data()
 
     def _user_joined_use_case(self):
         self._add_names([self.event.author.nick], single=True)
-        if self.event.author.nick == self.state.nick:
+        nick = self.event.author.nick
+        if nick in self.chat_users:
+            add_user_update_to_game(self.chat_users[nick])
+        if nick == self.state.nick:
             return
-        self._add_information_text(f"{self.event.author.nick} has logged in.")
+        self._add_information_text(f"{nick} has logged in.")
 
     def _handle_part_or_quit(self):
+        remove_user_from_game(self.event.author.nick)
         with suppress(KeyError):
             self.chat_users.remove_user(self.event.author.nick)
         self._update_ui_user_list()
@@ -98,6 +105,7 @@ class IrcEventRouter(Router):
             self._add_information_text(f"{self.event.author.nick} has quit.")
 
     def _user_nick_change(self):
+        remove_user_from_game(self.event.author.nick)
         new_nick = self.event.event.payload["new_nick"]
         logger.debug(
             "User nick change: %r -> %r", self.event.author.nick, new_nick
@@ -113,18 +121,16 @@ class IrcEventRouter(Router):
                     self.event.author.nick, FactionsEnum.Anonymous.value
                 )
 
-        self.chat_users.set_user(
-            new_nick,
-            ChatUser(
-                name=new_nick,
-                faction=previous_chat_user.faction,
-                in_game=previous_chat_user.in_game,
-                location=previous_chat_user.location,
-                rank=previous_chat_user.rank,
-                reputation=previous_chat_user.reputation,
-                irc_user=self.event.author,
-            ),
+        new_user = ChatUser(
+            name=new_nick,
+            faction=previous_chat_user.faction,
+            in_game=previous_chat_user.in_game,
+            location=previous_chat_user.location,
+            rank=previous_chat_user.rank,
+            reputation=previous_chat_user.reputation,
+            irc_user=self.event.author,
         )
+        self.chat_users.set_user(new_nick, new_user)
         self._add_information_text(
             f"{self.event.author.nick!r} is know now as {new_nick!r}."
         )
@@ -138,8 +144,10 @@ class IrcEventRouter(Router):
         if self.event.author.nick == self.state.nick:
             self.state.nick = new_nick
         self._update_ui_user_list()
+        add_user_update_to_game(new_user)
 
     def _handle_nick_changed_by_server(self):
+        remove_user_from_game(self.event.author)
         new_nick = self.event.event.payload["new_nick"]
         logger.debug(
             "User nick was changed by server: %r -> %r",
@@ -147,16 +155,18 @@ class IrcEventRouter(Router):
             new_nick,
         )
         previous_chat_user = self.chat_users.pop(self.event.author)
-        self.chat_users[new_nick] = ChatUser(
+        new_user = ChatUser(
             name=new_nick,
             faction=previous_chat_user.faction,
             in_game=previous_chat_user.in_game,
             location=previous_chat_user.location,
         )
+        self.chat_users[new_nick] = new_user
         self._add_information_text(
             f"Network server renamed you to {new_nick!r}."
         )
         self._update_ui_user_list()
+        add_user_update_to_game(new_user)
 
     def _handle_notice(self):
         if self.event.author == "NickServ":
@@ -197,6 +207,7 @@ class IrcEventRouter(Router):
         self.state.set_in_channel()
         self._ask_others_for_user_data()
         self._send_user_data_as_privmsg()
+        self._update_crc_users_data()
 
     def _hande_user_is_banned(self):
         logger.debug("User banned: %r", self.event.event.payload)
@@ -234,6 +245,7 @@ class IrcEventRouter(Router):
                 )
             )
         )
+        remove_user_from_game(self.event.event.payload["kicked_nick"])
         self.state.chat_users.remove_user(
             self.event.event.payload["kicked_nick"]
         )
@@ -316,5 +328,7 @@ class IrcEventRouter(Router):
             OutgoingCommand(command=IrcEvents.NICK, args=self.nick)
         )
         if previous_user:
+            remove_user_from_game(previous_user.name)
             self.chat_users.add_user(self.nick, previous_user)
+            add_user_update_to_game(previous_user)
         irc.nick = self.nick

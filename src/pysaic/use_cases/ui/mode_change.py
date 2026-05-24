@@ -2,7 +2,7 @@ import logging
 import re
 from collections import defaultdict
 
-from pysaic.controllers.game import add_users_list_to_game
+from pysaic.controllers.game import add_user_update_to_game
 from pysaic.entities import IncomingEvent
 from pysaic.state import State
 from pysaic.use_cases.ui.update_users import UpdateUsersUseCase
@@ -92,7 +92,7 @@ class ModeChangeUseCase:
             self.chat_users[nick].irc_mode,
         )
         UpdateUsersUseCase(self.state, self.ui).execute()
-        add_users_list_to_game(self.state.chat_users.values())
+        add_user_update_to_game(self.chat_users[nick])
 
     def _get_highest_mode_and_type(
         self, current_rank, highest_rank_remove, highest_rank_add, nick

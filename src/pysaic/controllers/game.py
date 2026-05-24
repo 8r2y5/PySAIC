@@ -202,6 +202,16 @@ def add_users_list_to_game(users: Iterable[ChatUser]):
 
 
 @ensure_game_is_running
+def add_user_update_to_game(user: ChatUser):
+    add_to_crc_input_file(f"UserUpdate/{serialize_chat_user(user)}")
+
+
+@ensure_game_is_running
+def remove_user_from_game(nick: str):
+    add_to_crc_input_file(f"UserRemove/{nick}")
+
+
+@ensure_game_is_running
 def add_money_to_user(author: str, reputation: str, rank: str, amount: str):
     add_to_crc_input_file(
         f"MoneyRecv/{time_now()}/{author}/{reputation}/{rank}/{amount}"

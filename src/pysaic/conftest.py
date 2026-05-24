@@ -45,6 +45,7 @@ def mock_state(chat_users):
     mock_state.chat_users = chat_users
     mock_state.is_in_channel.is_set.return_value = True
     mock_state.pending_updates = {}
+    mock_state.sent_achievements = set()
     mock_state.game_location = None
     mock_state.player_update_task = None
     mock_state.state_lock = threading.Lock()
