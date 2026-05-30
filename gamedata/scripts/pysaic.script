@@ -150,7 +150,7 @@ function historyMoneyToHandler(time, message, highlight, name, faction, icon_id,
 end
 
 function historyInformationMessage(time, message, highlight, name, faction, icon_id, message_params, reputation, rank, user_type)
-	addMessage(
+	add_message_to_history(
 		pysaic_icons.info,
 		pysaic_utils.gt("crc_info"),
 		message,
@@ -162,7 +162,7 @@ function historyInformationMessage(time, message, highlight, name, faction, icon
 end
 
 function historyErrorMessage(time, message, highlight, name, faction, icon_id, message_params, reputation, rank, user_type)
-	addMessage(
+	add_message_to_history(
 		pysaic_icons.error,
 		pysaic_utils.gt("crc_error"),
 		pysaic_config.ERROR_COLOR .. message,
