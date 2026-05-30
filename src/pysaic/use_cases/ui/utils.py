@@ -6,7 +6,7 @@ from unicodedata import normalize
 
 from pysaic.ui.hyper_links import HyperlinkManager
 
-color_regex = re.compile(r"(%c\[[\w,]+\])")
+color_regex = re.compile(r"(%c\[[\w, ]+\])")
 URL_REGEXP = re.compile(
     "(?:https?://)[-a-zA-Z0-9@:%._\\+~#=]{1,256}\\.[a-zA-Z0-9()]{1,6}\\b(?:[-a-zA-Z0-9()@:%_\\+.~#?&\\/=]*)"
 )
