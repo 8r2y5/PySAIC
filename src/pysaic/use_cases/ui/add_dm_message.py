@@ -55,7 +55,6 @@ class AddDmMessage(UiUseCase):
         if created:
             self._tab = self.ui.tabbed_chat.get_tab("main")
             self._add_dm_message()
-            self._add_dm_message_to_game()
 
         self._tab = tab
         self._add_dm_message()

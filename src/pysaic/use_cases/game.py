@@ -18,6 +18,7 @@ from pysaic.controllers.game import (
     ask_for_actor_status,
     set_ingame_display_setting,
     set_ingame_display_setting_order_setting,
+    add_users_list_to_game,
 )
 from pysaic.crc_strings.use_case import DeathMessageUseCase
 from pysaic.entities import (
@@ -43,6 +44,7 @@ from pysaic.script_reader.entities import (
     Money,
     Rank,
     Reputation,
+    Item,
 )
 from pysaic.state import State
 from pysaic.use_cases.text import make_content_malformed
@@ -199,6 +201,7 @@ class GameHandshakeUseCase:
         add_signal_state(str(self.state.fake_disconnect))
         add_faction_colored_nicks(self.config.faction_colored_nicks)
         add_message_history(tuple(self.state.last_messages))
+        add_users_list_to_game(self.state.chat_users.values())
 
 
 class GameChannelMessageUseCase:
@@ -471,5 +474,17 @@ async def afk_use_case(
         IncomingEvent.create_game_event(
             GameEvents.AFK,
             afk,
+        )
+    )
+
+
+async def item_add(
+    item: Item,
+    incoming_queue: IncomingQueue,
+):
+    await incoming_queue.put(
+        IncomingEvent.create_game_event(
+            GameEvents.NEW_ITEM,
+            item,
         )
     )

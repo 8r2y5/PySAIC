@@ -1,15 +1,12 @@
 import logging
-from dataclasses import dataclass, field
+from dataclasses import field
 from datetime import datetime
 from functools import partial, wraps
-from typing import List, Optional
+from typing import List, Optional, NamedTuple, Self
 
-from pysaic.enums import FactionsEnum, NetworkDestroyReasonEnum
+from pysaic.enums import FactionsEnum, NetworkDestroyReasonEnum, LocationEnum
 
 main_logger = logging.getLogger(__name__)
-
-
-timezone = datetime
 
 
 def provide_logger(func=None, *, name=None):
@@ -25,20 +22,17 @@ def provide_logger(func=None, *, name=None):
     return _wrapper
 
 
-@dataclass
-class Actor:
-    type: FactionsEnum
+class Actor(NamedTuple):
+    type: type[FactionsEnum]
     name: str
     in_game: bool = None
 
 
-@dataclass
 class ActorTimestamped(Actor):
-    last_update: datetime = field(default_factory=timezone.utcnow)
+    last_update: datetime = field(default_factory=datetime.utcnow)
 
 
-@dataclass
-class DirectMessage:
+class DirectMessage(NamedTuple):
     sender: Actor
     receiver: str
     message: str
@@ -49,7 +43,7 @@ class DirectMessage:
         faction_str, author_name, receiver, message = line.split("/", 3)
         return cls(
             sender=Actor(
-                type=FactionsEnum(faction_str),
+                type=FactionsEnum(faction_str),  # noqa
                 name=author_name,
             ),
             receiver=receiver,
@@ -57,8 +51,7 @@ class DirectMessage:
         )
 
 
-@dataclass
-class ChannelMessage:
+class ChannelMessage(NamedTuple):
     sender: Actor
     message: str
     in_file_id = "Message"
@@ -73,7 +66,7 @@ class ChannelMessage:
             raise
         return cls(
             sender=Actor(
-                type=FactionsEnum(faction_str),
+                type=FactionsEnum(faction_str),  # noqa
                 name=nick,
                 in_game=True,
             ),
@@ -81,14 +74,12 @@ class ChannelMessage:
         )
 
 
-@dataclass
-class ConnectedUser:
+class ConnectedUser(NamedTuple):
     name: str
     in_game: bool
 
 
-@dataclass
-class ConnectedUsers:
+class ConnectedUsers(NamedTuple):
     users: List[ConnectedUser]
     in_file_id = "Users"
 
@@ -108,8 +99,7 @@ class ConnectedUsers:
         return cls(users=users)
 
 
-@dataclass
-class Information:
+class Information(NamedTuple):
     message: str
     in_file_id = "Information"
 
@@ -118,8 +108,7 @@ class Information:
         return cls(message=line)
 
 
-@dataclass
-class Handshake:
+class Handshake(NamedTuple):
     version: int
     handshake_id: str
     in_file_id = "Handshake"
@@ -137,8 +126,7 @@ class Handshake:
         )
 
 
-@dataclass
-class Money:
+class Money(NamedTuple):
     amount: int
     in_file_id = "Money"
 
@@ -147,8 +135,7 @@ class Money:
         return cls(amount=int(value))
 
 
-@dataclass
-class Death:
+class Death(NamedTuple):
     user_actor: str
     location: str
     death_by: str
@@ -166,8 +153,7 @@ class Death:
         )
 
 
-@dataclass
-class ConnectionLost:
+class ConnectionLost(NamedTuple):
     lost: bool
     reason: Optional[str]
     in_file_id = "ConnLost"
@@ -181,8 +167,7 @@ class ConnectionLost:
         )
 
 
-@dataclass
-class ActorStatus:
+class ActorStatus(NamedTuple):
     value: str
     in_file_id = "ActorStatus"
 
@@ -191,8 +176,7 @@ class ActorStatus:
         return cls(value=value)
 
 
-@dataclass
-class ChannelChange:
+class ChannelChange(NamedTuple):
     channel_description: str
     in_file_id = "ChannelChange"
 
@@ -201,8 +185,7 @@ class ChannelChange:
         return cls(channel_description=value)
 
 
-@dataclass()
-class Location:
+class Location(NamedTuple):
     name: str
     in_file_id = "Location"
 
@@ -211,22 +194,18 @@ class Location:
         return cls(name=line)
 
 
-@dataclass()
-class Achievement:
+class Achievement(NamedTuple):
     name: str
     game_enum: str
     in_file_id = "Achievement"
 
     @classmethod
     def from_line(cls, line):
-        # Achievement/mechanized_warfare/st_achievement_7_unlock
-        # Achievement/rag_and_bone/st_achievement_9_unlock
         name, game_enum = line.split("/", 1)
         return cls(name=name.replace("_", " ").title(), game_enum=game_enum)
 
 
-@dataclass()
-class Reputation:
+class Reputation(NamedTuple):
     value: str
     in_file_id = "Reputation"
 
@@ -235,8 +214,7 @@ class Reputation:
         return cls(value=line)
 
 
-@dataclass()
-class Rank:
+class Rank(NamedTuple):
     value: str
     in_file_id = "Rank"
 
@@ -245,11 +223,24 @@ class Rank:
         return cls(value=line)
 
 
-@dataclass
-class AFK:
+class AFK(NamedTuple):
     value: str
     in_file_id = "AFK"
 
     @classmethod
     def from_line(cls, line):
         return cls(value=line)
+
+
+class Item(NamedTuple):
+    game_id: str
+    location: LocationEnum
+    item_name: str
+    in_file_id = "Item"
+
+    @classmethod
+    def from_line(cls, line: str) -> Self:
+        game_id, map_id, item_name = line.split("/", 2)
+        return cls(
+            game_id=game_id, location=LocationEnum[map_id], item_name=item_name
+        )

@@ -26,15 +26,6 @@
                                 <type name="Optional"/>
                             </typeDescriptor>
                         </plugin>
-                        <plugin name="PDA but No UI changes">
-                            <description>Select this if you would like to have PySAIC in PDA but don't want to modify UI in PDA. Chat will be available when hitting Enter, but you won't be able to click on it. Ideal for those who cannot find their patch.</description>
-                            <files>
-                                <folder source="01c_PDA_no_modifications/gamedata" destination="gamedata" priority="1"/>
-                            </files>
-                            <typeDescriptor>
-                                <type name="Optional"/>
-                            </typeDescriptor>
-                        </plugin>
                         <plugin name="Just Chatbox">
                             <description>Install only the chatbox functionality without PDA integration.</description>
                             <files>
@@ -77,7 +68,7 @@
                             </typeDescriptor>
                         </plugin>
                         <plugin name="Fatal Error">
-                            <description>For those who use https://www.moddb.com/mods/stalker-anomaly/addons/fatal-error-by-ncenka</description>
+                            <description>For those who use version 1.7.9.3 of https://www.moddb.com/mods/stalker-anomaly/addons/fatal-error-by-ncenka</description>
                             <files>
                                 <folder source="02a_Fatal_Error/gamedata" destination="gamedata" priority="1"/>
                             </files>

@@ -2,6 +2,7 @@ from enum import Enum, auto
 
 
 class GameEvents(Enum):
+    NEW_ITEM = auto()
     AFK = auto()
     RANK = auto()
     REPUTATION = auto()
