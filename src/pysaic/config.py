@@ -17,11 +17,11 @@ from pysaic.use_cases.avatar import (
     calculate_icon_based_on_faction_and_name,
     is_icon_valid,
 )
-from pysaic.settings import THEMES_PATH, WORKDIR
+from pysaic.settings import THEMES_PATH, PROJECT_PATH
 from pysaic.use_cases.themes import create_default_themes
 
-CONFIG_FILE = WORKDIR / "config.yml"
-SERVER_FILE = WORKDIR / "server.yml"
+CONFIG_FILE = PROJECT_PATH / "config.yml"
+SERVER_FILE = PROJECT_PATH / "server.yml"
 
 logger = logging.getLogger(__name__)
 

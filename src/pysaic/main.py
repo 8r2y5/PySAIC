@@ -23,6 +23,7 @@ from pysaic.settings import (
     WORKDIR,
     THEMES_PATH,
     get_log_config,
+    PROJECT_PATH,
 )
 from pysaic.state import State
 from pysaic.tasks.app import update_app
@@ -212,7 +213,7 @@ def setup_inject(
 
 
 def initialize_logging():
-    if (WORKDIR / "logging_conf.json").exists():
+    if (PROJECT_PATH / "logging_conf.json").exists():
         try:
             print("Loading logging configuration from logging_conf.json")
             with open(WORKDIR / "logging_conf.json") as f:

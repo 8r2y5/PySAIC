@@ -1,4 +1,5 @@
 import os
+import shutil
 from pathlib import Path
 
 from packaging.version import Version
@@ -19,6 +20,8 @@ avatar_images_path = (
     Path(os.path.abspath(os.path.dirname(__file__))) / "avatar"
 )
 WORKDIR = Path(os.getcwd())
+PROJECT_PATH = Path(os.environ["APPDATA"]) / "PySAIC"
+PROJECT_PATH.mkdir(parents=True, exist_ok=True)
 
 # If running from src/pysaic directory, this only happens during development
 if WORKDIR.parts[-2:] == ("src", "pysaic"):
@@ -33,9 +36,16 @@ else:
     GAMEDATA_PATH = (WORKDIR / ".." / "gamedata").resolve()
 
 RES_PATH = (GAMEDATA_PATH / ".." / "res").resolve()
+if RES_PATH.exists():
+    app_data_res = PROJECT_PATH / "res"
+    if not app_data_res.exists():
+        app_data_res.mkdir(parents=True, exist_ok=True)
+        shutil.copytree(RES_PATH, app_data_res, dirs_exist_ok=True)
+    RES_PATH = app_data_res
+
 LOCATIONS_FOR_ENUM_PATH = RES_PATH / "locations.yml"
 FACTIONS_FOR_ENUM_PATH = RES_PATH / "factions.yml"
-THEMES_PATH = WORKDIR / "themes"
+THEMES_PATH = PROJECT_PATH / "themes"
 
 ANOMALY_DIR_PATH = (os.environ.get("ANOMALY_DIR_PATH") or "").strip()
 if ANOMALY_DIR_PATH:
@@ -44,7 +54,6 @@ DEBUG = os.environ.get("PYSAIC_DEBUG", "0") == "1"
 
 
 def get_log_config():
-    PROJECT_PATH = "."
     LOG_DIR = os.path.join(PROJECT_PATH, "logs")
     LOG_FILE_PATH = os.path.join(LOG_DIR, "pysaic.log")
     ERROR_LOG_FILE_PATH = os.path.join(LOG_DIR, "pysaic_error.log")
