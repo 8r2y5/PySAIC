@@ -5,522 +5,521 @@
 			<string>too much radiation.</string>
 		</zone_field_radioactive_strong>
 		<O_ACTOR>
+			<string>an unseen force claimed another victim</string>
 			<string>committed suicide</string>
-			<string>killed themselves</string>
-			<string>ended their own life</string>
-			<string>was undone by their own carelessness</string>
 			<string>couldn't escape their own mistake</string>
-			<string>perished by their own actions</string>
+			<string>ended their own life</string>
 			<string>fell victim to their own misjudgment</string>
-			<string>was consumed by their own recklessness</string>
-			<string>was lost to the Zone's mysteries</string>
+			<string>killed themselves</string>
+			<string>met a mysterious end</string>
+			<string>perished by their own actions</string>
 			<string>perished under unknown circumstances</string>
 			<string>vanished without a trace in the Zone</string>
-			<string>met a mysterious end</string>
-			<string>an unseen force claimed another victim</string>
+			<string>was consumed by their own recklessness</string>
+			<string>was lost to the Zone's mysteries</string>
+			<string>was undone by their own carelessness</string>
 		</O_ACTOR>
 		<S_ACTOR clone="O_ACTOR"/>
 		<AI_STL_S>
+			<string>fell to a rival Zone dweller</string>
+			<string>met their end at the hand of a human adversary</string>
+			<string>succumbed to a bullet from a fellow Zone denizen</string>
+			<string>was ambushed by an unknown assailant</string>
+			<string>was eliminated by another stalker</string>
 			<string>was gunned down by a stalker</string>
 			<string>was shot by a stalker</string>
-			<string>was eliminated by another stalker</string>
-			<string>fell to a rival Zone dweller</string>
-			<string>was ambushed by an unknown assailant</string>
-			<string>succumbed to a bullet from a fellow Zone denizen</string>
-			<string>met their end at the hand of a human adversary</string>
 		</AI_STL_S>
 		<AI_STL clone="AI_STL_S"/>
 		<SM_BLOOD>
-			<string>was sucked dry by a bloodsucker</string>
-			<string>was ambushed and drained by a bloodsucker</string>
 			<string>fell to an unseen bloodsucker</string>
-			<string>was torn apart by a bloodsucker's stealthy assault</string>
-			<string>succumbed to a bloodsucker's brutal feeding</string>
 			<string>met their grisly end by an invisible predator</string>
+			<string>succumbed to a bloodsucker's brutal feeding</string>
+			<string>was ambushed and drained by a bloodsucker</string>
+			<string>was sucked dry by a bloodsucker</string>
+			<string>was torn apart by a bloodsucker's stealthy assault</string>
 		</SM_BLOOD>
 		<SM_BOARW>
-			<string>was gored by a boar</string>
-			<string>got gored by a boar</string>
-			<string>was killed by a boar</string>
-			<string>got killed by a boar</string>
-			<string>was trampled by a charging boar</string>
 			<string>fell to a boar's savage attack</string>
-			<string>was ripped apart by a wild boar</string>
-			<string>succumbed to a boar's relentless assault</string>
+			<string>got gored by a boar</string>
+			<string>got killed by a boar</string>
 			<string>met their end impaled by a boar</string>
+			<string>succumbed to a boar's relentless assault</string>
+			<string>was gored by a boar</string>
+			<string>was killed by a boar</string>
+			<string>was ripped apart by a wild boar</string>
+			<string>was trampled by a charging boar</string>
 		</SM_BOARW>
 		<SM_BURER>
+			<string>fell to a burer's unseen force</string>
+			<string>met their chaotic end by a burer</string>
 			<string>met their fate at the hands of a burer</string>
+			<string>succumbed to a burer's psychic assault</string>
 			<string>was blasted by a burer</string>
 			<string>was crushed by a burer's telekinesis</string>
-			<string>fell to a burer's unseen force</string>
 			<string>was disarmed and destroyed by a burer</string>
-			<string>succumbed to a burer's psychic assault</string>
-			<string>met their chaotic end by a burer</string>
 		</SM_BURER>
 		<SM_CAT_S>
-			<string>was scratched to death by a cat</string>
-			<string>was bitten by a cat</string>
-			<string>was torn apart by a lightning-fast cat</string>
 			<string>fell to a swift and silent cat</string>
-			<string>was overwhelmed by a pack of mutant cats</string>
-			<string>succumbed to a cat's sudden pounce</string>
 			<string>met their end shredded by a feral cat</string>
+			<string>succumbed to a cat's sudden pounce</string>
+			<string>was bitten by a cat</string>
+			<string>was overwhelmed by a pack of mutant cats</string>
+			<string>was scratched to death by a cat</string>
+			<string>was torn apart by a lightning-fast cat</string>
 		</SM_CAT_S>
 		<SM_CHIMS>
+			<string>fell to a chimera's cunning ambush</string>
+			<string>met their brutal end by an apex predator's claw</string>
+			<string>succumbed to a chimera's relentless ferocity</string>
+			<string>was expertly hunted down by a chimera</string>
 			<string>was leapt on by a chimera</string>
 			<string>was mauled by a chimera</string>
 			<string>was outsmarted and torn apart by a chimera</string>
-			<string>fell to a chimera's cunning ambush</string>
-			<string>was expertly hunted down by a chimera</string>
-			<string>succumbed to a chimera's relentless ferocity</string>
-			<string>met their brutal end by an apex predator's claw</string>
 		</SM_CHIMS>
 		<SM_CONTR>
-			<string>was zombified by a controller</string>
-			<string>saw it happen. Their own gun... turned right on them</string>
-			<string>was mentally enslaved by a Controller</string>
 			<string>fell to a Controller's mind control</string>
-			<string>was forced to self-terminate by a Controller</string>
-			<string>succumbed to a Controller's psionic assault</string>
 			<string>met their end with their mind broken by a Controller</string>
+			<string>saw it happen. Their own gun... turned right on them</string>
+			<string>succumbed to a Controller's psionic assault</string>
+			<string>was forced to self-terminate by a Controller</string>
+			<string>was mentally enslaved by a Controller</string>
+			<string>was zombified by a controller</string>
 		</SM_CONTR>
 		<SM_DOG_S>
+			<string>fell to a relentless blind dog</string>
+			<string>met their end as a blind dog's prey</string>
+			<string>succumbed to a blind dog's savage bites</string>
 			<string>was mauled by a blind dog</string>
 			<string>was mauled by a dog</string>
-			<string>was torn apart by a pack of blind dogs</string>
-			<string>fell to a relentless blind dog</string>
 			<string>was overwhelmed by a dog pack</string>
-			<string>succumbed to a blind dog's savage bites</string>
-			<string>met their end as a blind dog's prey</string>
+			<string>was torn apart by a pack of blind dogs</string>
 		</SM_DOG_S>
 		<SM_FLESH>
-			<string>somehow died to a pig</string>
-			<string>was trampled by a Flesh</string>
 			<string>fell to a charging Flesh</string>
-			<string>was gored by a mutant pig</string>
-			<string>succumbed to a Flesh's brute force</string>
 			<string>met their end in a Flesh stampede</string>
+			<string>somehow died to a pig</string>
+			<string>succumbed to a Flesh's brute force</string>
+			<string>was gored by a mutant pig</string>
+			<string>was trampled by a Flesh</string>
 		</SM_FLESH>
 		<SM_IZLOM>
+			<string>fell to an izlom's devastating strike</string>
+			<string>met their end by an izlom's monstrous arm</string>
+			<string>succumbed to an izlom's crushing blow</string>
+			<string>was dismembered by an izlom</string>
 			<string>was smashed by an izlom</string>
 			<string>was torn apart by an izlom's brutal strength</string>
-			<string>fell to an izlom's devastating strike</string>
-			<string>was dismembered by an izlom</string>
-			<string>succumbed to an izlom's crushing blow</string>
-			<string>met their end by an izlom's monstrous arm</string>
 		</SM_IZLOM>
 		<SM_GIANT>
-			<string>was crushed by a pseudogiant</string>
-			<string>was stomped on by a pseudogiant</string>
-			<string>was flattened by a pseudogiant</string>
 			<string>fell to a pseudogiant's devastating charge</string>
-			<string>was obliterated by a pseudogiant</string>
-			<string>succumbed to a pseudogiant's monstrous strength</string>
 			<string>met their crushing end by a pseudogiant</string>
+			<string>succumbed to a pseudogiant's monstrous strength</string>
+			<string>was crushed by a pseudogiant</string>
+			<string>was flattened by a pseudogiant</string>
+			<string>was obliterated by a pseudogiant</string>
+			<string>was stomped on by a pseudogiant</string>
 		</SM_GIANT>
 		<AI_PHANT>
-			<string>succumbed to brain damage</string>
-			<string>was mentally shattered</string>
 			<string>fell victim to neural overload</string>
-			<string>was consumed by cerebral decay</string>
-			<string>succumbed to a debilitating psychic assault</string>
 			<string>met their end with a broken mind</string>
+			<string>succumbed to a debilitating psychic assault</string>
+			<string>succumbed to brain damage</string>
+			<string>was consumed by cerebral decay</string>
+			<string>was mentally shattered</string>
 		</AI_PHANT>
 		<SM_POLTR>
-			<string>was killed by some invisible thing</string>
-			<string>was killed by a poltergeist</string>
-			<string>was crushed by an unseen force</string>
 			<string>fell victim to a poltergeist's fury</string>
-			<string>was dismembered by a poltergeist</string>
-			<string>succumbed to a poltergeist's fiery blast</string>
 			<string>met their chaotic end by a poltergeist</string>
+			<string>succumbed to a poltergeist's fiery blast</string>
+			<string>was crushed by an unseen force</string>
+			<string>was dismembered by a poltergeist</string>
+			<string>was killed by a poltergeist</string>
+			<string>was killed by some invisible thing</string>
 		</SM_POLTR>
 		<SM_P_DOG>
-			<string>was hunted down by a pseudodog</string>
-			<string>was bitten to death by a pseudodog</string>
-			<string>was torn apart by a pseudodog</string>
 			<string>fell to a pseudodog pack's assault</string>
-			<string>was mauled by a relentless pseudodog</string>
-			<string>succumbed to a pseudodog's savage attack</string>
 			<string>met their end as a pseudodog's prey</string>
+			<string>succumbed to a pseudodog's savage attack</string>
+			<string>was bitten to death by a pseudodog</string>
+			<string>was hunted down by a pseudodog</string>
+			<string>was mauled by a relentless pseudodog</string>
+			<string>was torn apart by a pseudodog</string>
 		</SM_P_DOG>
 		<SM_DOG_P>
-			<string>was overwhelmed by a psy dog</string>
 			<string>couldn't find the real psy dog</string>
-			<string>was torn apart by a phantom psy dog</string>
 			<string>fell victim to a psy dog's mental assault</string>
-			<string>was disoriented and mauled by a psy dog</string>
-			<string>succumbed to a psy dog's illusory attack</string>
 			<string>met their end confused and helpless against a psy dog</string>
+			<string>succumbed to a psy dog's illusory attack</string>
+			<string>was disoriented and mauled by a psy dog</string>
+			<string>was overwhelmed by a psy dog</string>
+			<string>was torn apart by a phantom psy dog</string>
 		</SM_DOG_P>
 		<SM_DOG_F clone="SM_DOG_P"/>
 		<AI_RAT>
-			<string>was eaten alive by rats</string>
-			<string>was devoured by a swarm of rats</string>
 			<string>fell to a relentless rat infestation</string>
-			<string>was gnawed to death by rats</string>
-			<string>succumbed to a vicious rat attack</string>
 			<string>met their end as rat food</string>
+			<string>succumbed to a vicious rat attack</string>
+			<string>was devoured by a swarm of rats</string>
+			<string>was eaten alive by rats</string>
+			<string>was gnawed to death by rats</string>
 		</AI_RAT>
 		<SM_SNORK>
-			<string>was kicked to death by a snork</string>
 			<string>didn't see that snork coming</string>
-			<string>was brutally tackled by a Snork</string>
 			<string>fell to a Snork's savage assault</string>
-			<string>was ripped apart by a lunging Snork</string>
-			<string>succumbed to a Snork's relentless charge</string>
 			<string>met their swift and violent end by a Snork</string>
+			<string>succumbed to a Snork's relentless charge</string>
+			<string>was brutally tackled by a Snork</string>
+			<string>was kicked to death by a snork</string>
+			<string>was ripped apart by a lunging Snork</string>
 		</SM_SNORK>
 		<SM_TUSHK>
-			<string>was gnawed to the bone by a tushkano</string>
 			<string>couldn't handle a tushkano</string>
-			<string>was swarmed by tushkanos</string>
 			<string>fell to a tushkano pack</string>
-			<string>was quickly dispatched by tushkanos</string>
-			<string>succumbed to a tushkano's relentless bites</string>
 			<string>met their end torn apart by tushkanos</string>
+			<string>succumbed to a tushkano's relentless bites</string>
+			<string>was gnawed to the bone by a tushkano</string>
+			<string>was quickly dispatched by tushkanos</string>
+			<string>was swarmed by tushkanos</string>
 		</SM_TUSHK>
 		<SM_LURKER>
-			<string>was torn to pieces by lurker</string>
 			<string>couldn't escape a lurker</string>
-			<string>was ambushed and mauled by a lurker</string>
 			<string>fell prey to a swift lurker attack</string>
-			<string>was overwhelmed by a hidden lurker</string>
-			<string>succumbed to a lurker's sudden assault</string>
 			<string>met their gruesome end by a lurker</string>
+			<string>succumbed to a lurker's sudden assault</string>
+			<string>was ambushed and mauled by a lurker</string>
+			<string>was overwhelmed by a hidden lurker</string>
+			<string>was torn to pieces by lurker</string>
 		</SM_LURKER>
 		<SM_PSYSUCKER>
-			<string>got a kiss from a psysucker</string>
-			<string>was ambushed by a psy-bloodsucker</string>
-			<string>was mentally shattered by a psy-bloodsucker</string>
 			<string>fell victim to a psy-bloodsucker's psychic assault</string>
-			<string>was drained by a psy-bloodsucker's insidious power</string>
-			<string>succumbed to a psy-bloodsucker's unseen attack</string>
+			<string>got a kiss from a psysucker</string>
 			<string>met their end with their mind unravelling by a psy-bloodsucker</string>
+			<string>succumbed to a psy-bloodsucker's unseen attack</string>
+			<string>was ambushed by a psy-bloodsucker</string>
+			<string>was drained by a psy-bloodsucker's insidious power</string>
+			<string>was mentally shattered by a psy-bloodsucker</string>
 		</SM_PSYSUCKER>
 		<SM_ZOMBI>
-			<string>had their brains eaten by a zombie</string>
-			<string>was torn apart by a zombie</string>
 			<string>fell prey to a relentless zombie</string>
-			<string>was overwhelmed by the undead</string>
-			<string>succumbed to a zombie's gruesome attack</string>
+			<string>had their brains eaten by a zombie</string>
 			<string>met their end in a zombie horde</string>
+			<string>succumbed to a zombie's gruesome attack</string>
+			<string>was overwhelmed by the undead</string>
+			<string>was torn apart by a zombie</string>
 		</SM_ZOMBI>
 		<C_HLCP_S>
-			<string>was shot down by a helicopter</string>
-			<string>got shredded by a helicopter</string>
-			<string>was obliterated by a helicopter gunship</string>
 			<string>fell to a helicopter's relentless fire</string>
-			<string>was torn apart by an aerial assault</string>
-			<string>succumbed to heavy helicopter fire</string>
+			<string>got shredded by a helicopter</string>
 			<string>met their end under a chopper's guns</string>
+			<string>succumbed to heavy helicopter fire</string>
+			<string>was obliterated by a helicopter gunship</string>
+			<string>was shot down by a helicopter</string>
+			<string>was torn apart by an aerial assault</string>
 		</C_HLCP_S>
 		<SCRPTCAR>
 			<string>became roadkill</string>
-			<string>got hit by a car</string>
-			<string>was flattened by a vehicle</string>
 			<string>fell victim to a speeding car</string>
-			<string>succumbed to a vehicular impact</string>
+			<string>got hit by a car</string>
 			<string>met their crushing end by a car</string>
+			<string>succumbed to a vehicular impact</string>
+			<string>was flattened by a vehicle</string>
 		</SCRPTCAR>
 		<ZS_MBALD>
+			<string>fell victim to the Zone's deadly anomalies</string>
+			<string>met their end caught in an anomaly field</string>
+			<string>succumbed to a spatial distortion</string>
 			<string>walked right into an anomaly</string>
 			<string>was consumed by an anomaly</string>
-			<string>fell victim to the Zone's deadly anomalies</string>
 			<string>was ripped apart by an anomaly</string>
-			<string>succumbed to a spatial distortion</string>
-			<string>met their end caught in an anomaly field</string>
 		</ZS_MBALD>
 		<ZS_GALAN>
-			<string>was sucked into a vortex</string>
-			<string>was ripped apart by a vortex anomaly</string>
 			<string>fell into the crushing grasp of a vortex</string>
-			<string>was irrevocably consumed by a vortex</string>
-			<string>succumbed to a vortex's irresistible pull</string>
 			<string>met their end spiraling into a vortex</string>
+			<string>succumbed to a vortex's irresistible pull</string>
+			<string>was irrevocably consumed by a vortex</string>
+			<string>was ripped apart by a vortex anomaly</string>
+			<string>was sucked into a vortex</string>
 		</ZS_GALAN>
 		<ZS_MINCE clone="ZS_GALAN"/>
 		<ZS_RADIO>
-			<string>stepped into an anomalous field</string>
-			<string>was irradiated by a anomaly</string>
 			<string>fell to a pervasive anomalous field</string>
-			<string>was silently consumed by a anomaly</string>
-			<string>succumbed to a debilitating anomalous emission</string>
 			<string>met their end overwhelmed by unseen radiation</string>
+			<string>stepped into an anomalous field</string>
+			<string>succumbed to a debilitating anomalous emission</string>
+			<string>was irradiated by a anomaly</string>
+			<string>was silently consumed by a anomaly</string>
 		</ZS_RADIO>
 		<ZS_TORRD>
 			<string>couldn't outrun a comet</string>
-			<string>was incinerated by a comet anomaly</string>
-			<string>fell victim to a comet's fiery impact</string>
-			<string>was vaporized by a sudden comet burst</string>
-			<string>succumbed to a comet's searing energy</string>
-			<string>met their explosive end by a comet</string>
-			<string>was incinerated by a fiery anomaly</string>
 			<string>fell to a scorching anomalous burst</string>
-			<string>was vaporized by the torrid anomaly</string>
-			<string>succumbed to an intense thermal anomaly</string>
+			<string>fell victim to a comet's fiery impact</string>
+			<string>met their explosive end by a comet</string>
 			<string>met their fiery end in a superheated field</string>
+			<string>succumbed to a comet's searing energy</string>
+			<string>succumbed to an intense thermal anomaly</string>
+			<string>was incinerated by a comet anomaly</string>
+			<string>was incinerated by a fiery anomaly</string>
+			<string>was vaporized by a sudden comet burst</string>
+			<string>was vaporized by the torrid anomaly</string>
 		</ZS_TORRD>
 		<ZS_BFUZZ>
-			<string>got tangled up in a burnt fuzz</string>
-			<string>was burned alive in a burnt fuzz</string>
-			<string>got roasted in a burnt fuzz</string>
-			<string>was immolated by a burnt fuzz</string>
 			<string>fell consumed by a fiery anomaly</string>
-			<string>was reduced to ash in a burnt fuzz</string>
-			<string>succumbed to the searing grip of a burnt fuzz</string>
+			<string>got roasted in a burnt fuzz</string>
+			<string>got tangled up in a burnt fuzz</string>
 			<string>met their end as a charred remnant of the zone</string>
+			<string>succumbed to the searing grip of a burnt fuzz</string>
+			<string>was burned alive in a burnt fuzz</string>
+			<string>was immolated by a burnt fuzz</string>
+			<string>was reduced to ash in a burnt fuzz</string>
 		</ZS_BFUZZ>
 		<Z_MBALD>
-			<string>triggered a land mine</string>
 			<string>died in a mine field</string>
-			<string>was obliterated by a hidden land mine</string>
 			<string>fell victim to an explosive trap</string>
-			<string>was detonated by a land mine</string>
-			<string>succumbed to a sudden, concussive blast</string>
 			<string>met their explosive end in a minefield</string>
+			<string>succumbed to a sudden, concussive blast</string>
+			<string>triggered a land mine</string>
+			<string>was detonated by a land mine</string>
+			<string>was obliterated by a hidden land mine</string>
 		</Z_MBALD>
 		<Z_RADIO clone="ZS_RADIO"/>
 		<Z_CFIRE>
-			<string>tripped and fell into a campfire</string>
-			<string>got roasted in a campfire</string>
-			<string>was toasted by a campfire</string>
-			<string>found eternal warmth in a campfire</string>
-			<string>became campfire kindling</string>
-			<string>succumbed to a cozy, fiery demise</string>
-			<string>met their crispy end by the campfire</string>
-			<string>was toasted to a crisp in a campfire</string>
-			<string>found their final warmth in a campfire</string>
 			<string>became an accidental marshmallow in a campfire</string>
-			<string>succumbed to a cozy, fiery end</string>
+			<string>became campfire kindling</string>
+			<string>found eternal warmth in a campfire</string>
+			<string>found their final warmth in a campfire</string>
+			<string>got roasted in a campfire</string>
+			<string>met their crispy end by the campfire</string>
 			<string>met their well-done demise by a campfire</string>
+			<string>succumbed to a cozy, fiery demise</string>
+			<string>succumbed to a cozy, fiery end</string>
+			<string>tripped and fell into a campfire</string>
+			<string>was toasted by a campfire</string>
+			<string>was toasted to a crisp in a campfire</string>
 		</Z_CFIRE>
 		<Z_TORRID>
+			<string>fell to a comet's searing embrace</string>
 			<string>got burned up by a comet</string>
 			<string>got toasted by a comet</string>
-			<string>was incinerated by a comet anomaly</string>
-			<string>fell to a comet's searing embrace</string>
-			<string>was flash-fried by a comet</string>
-			<string>succumbed to a comet's intense heat</string>
 			<string>met their scorching end by a comet</string>
+			<string>succumbed to a comet's intense heat</string>
+			<string>was flash-fried by a comet</string>
+			<string>was incinerated by a comet anomaly</string>
 		</Z_TORRID>
 		<S_EXPLO>
-			<string>was blown apart by an explosion</string>
-			<string>got ripped apart by an explosion</string>
-			<string>was vaporized by an explosion</string>
 			<string>fell victim to a sudden blast</string>
-			<string>was engulfed by an explosion</string>
-			<string>succumbed to a devastating explosion</string>
+			<string>got ripped apart by an explosion</string>
 			<string>met their fiery end in an explosion</string>
+			<string>succumbed to a devastating explosion</string>
+			<string>was blown apart by an explosion</string>
+			<string>was engulfed by an explosion</string>
+			<string>was vaporized by an explosion</string>
 		</S_EXPLO>
 		<II_EXPLO clone="S_EXPLO"/>
-		
 		<STALKER>
-			<string>was gunned down by a loner</string>
-			<string>was shot by a loner</string>
-			<string>was outsmarted by a rival stalker</string>
-			<string>fell to an independent stalker</string>
-			<string>was taken out by another loner</string>
-			<string>succumbed to a seasoned stalker</string>
-			<string>met their end at the hands of a fellow stalker</string>
-			<string>was silenced by a lone stalker</string>
-			<string>was dispatched by a veteran stalker</string>
-			<string>was ambushed by a cunning stalker</string>
-			<string>was outmaneuvered by a loner</string>
 			<string>fell in a skirmish with a stalker</string>
-			<string>was eliminated by a Zone veteran</string>
-			<string>succumbed to another survivor</string>
-			<string>was put down by an agile stalker</string>
+			<string>fell to an independent stalker</string>
+			<string>met their end at the hands of a fellow stalker</string>
 			<string>met their fate at the hands of a skilled loner</string>
+			<string>succumbed to a seasoned stalker</string>
+			<string>succumbed to another survivor</string>
+			<string>was ambushed by a cunning stalker</string>
+			<string>was dispatched by a veteran stalker</string>
+			<string>was eliminated by a Zone veteran</string>
+			<string>was gunned down by a loner</string>
+			<string>was outmaneuvered by a loner</string>
+			<string>was outsmarted by a rival stalker</string>
+			<string>was put down by an agile stalker</string>
+			<string>was shot by a loner</string>
+			<string>was silenced by a lone stalker</string>
+			<string>was taken out by another loner</string>
 		</STALKER>
 		<BANDIT>
-			<string>was looted by a bandit</string>
-			<string>was ambushed by a bandit</string>
-			<string>was robbed and left for dead by a bandit</string>
 			<string>fell to a bandit's cunning</string>
-			<string>was eliminated by a bandit scum</string>
-			<string>was taken down by a bandit gang</string>
-			<string>was picked clean by a bandit</string>
-			<string>was left for dead by a bandit</string>
-			<string>was ambushed and cut down by a bandit</string>
 			<string>fell to a bandit's dirty tricks</string>
+			<string>was ambushed and cut down by a bandit</string>
+			<string>was ambushed by a bandit</string>
+			<string>was eliminated by a bandit scum</string>
+			<string>was left for dead by a bandit</string>
+			<string>was looted by a bandit</string>
 			<string>was mugged and murdered by a bandit</string>
+			<string>was picked clean by a bandit</string>
+			<string>was robbed and left for dead by a bandit</string>
+			<string>was taken down by a bandit gang</string>
 		</BANDIT>
 		<DOLG>
-			<string>was removed by a Dutyer</string>
-			<string>was neutralized by a Dutyer</string>
-			<string>was eliminated by Duty's forces</string>
-			<string>fell to a Duty patrol</string>
-			<string>was terminated by a Duty soldier</string>
-			<string>was justly executed by Duty</string>
-			<string>was disciplined by a Duty operative</string>
-			<string>was put down by Duty's iron fist</string>
-			<string>was made an example of by Duty</string>
 			<string>faced Duty's justice</string>
+			<string>fell to a Duty patrol</string>
+			<string>was disciplined by a Duty operative</string>
+			<string>was eliminated by Duty's forces</string>
+			<string>was justly executed by Duty</string>
+			<string>was made an example of by Duty</string>
+			<string>was neutralized by a Dutyer</string>
+			<string>was put down by Duty's iron fist</string>
+			<string>was removed by a Dutyer</string>
 			<string>was suppressed by a Duty squad</string>
+			<string>was terminated by a Duty soldier</string>
 		</DOLG>
 		<FREEDOM>
-			<string>was blazed by a Freedomer</string>
-			<string>got smoked by a Freedomer</string>
-			<string>was liberated from life by a Freedomer</string>
-			<string>fell to a Freedom fighter</string>
-			<string>succumbed to Freedom's wrath</string>
-			<string>was dispatched by a defender of the Zone's true nature</string>
-			<string>met their end at the hands of a radical Freedomer</string>
-			<string>was cut short by a defiant Freedomer</string>
-			<string>was forcefully liberated by a Freedomer</string>
 			<string>fell to a defiant member of Freedom</string>
-			<string>was put down by Freedom's vanguard</string>
-			<string>succumbed to an anarchist's bullet</string>
-			<string>was terminated by a zealous Freedom fighter</string>
+			<string>fell to a Freedom fighter</string>
+			<string>got smoked by a Freedomer</string>
+			<string>met their end at the hands of a radical Freedomer</string>
 			<string>met their end protecting the Zone's true nature</string>
+			<string>succumbed to an anarchist's bullet</string>
+			<string>succumbed to Freedom's wrath</string>
+			<string>was blazed by a Freedomer</string>
+			<string>was cut short by a defiant Freedomer</string>
+			<string>was dispatched by a defender of the Zone's true nature</string>
+			<string>was forcefully liberated by a Freedomer</string>
+			<string>was liberated from life by a Freedomer</string>
+			<string>was put down by Freedom's vanguard</string>
+			<string>was terminated by a zealous Freedom fighter</string>
 		</FREEDOM>
 		<ECOLOG>
-			<string>was blind-sided by a scientist</string>
+			<string>fell in the path of an ecologist's research</string>
+			<string>fell to a scientist's desperate defense</string>
 			<string>killed by a brainiac</string>
 			<string>killed by a egghead</string>
-			<string>was unexpectedly terminated by an ecologist</string>
-			<string>fell to a scientist's desperate defense</string>
-			<string>was neutralized by an ecologist's protective measures</string>
-			<string>succumbed to a researcher's last resort</string>
 			<string>met their end in a scientific crossfire</string>
-			<string>was experimentally eliminated by an ecologist</string>
-			<string>was surprisingly dispatched by a Zone scholar</string>
-			<string>was clinically dispatched by a scientist</string>
-			<string>fell in the path of an ecologist's research</string>
-			<string>was caught in a scientist's anomaly field</string>
-			<string>was precise-shot by an ecologist</string>
 			<string>succumbed to a researcher's defensive fire</string>
+			<string>succumbed to a researcher's last resort</string>
+			<string>was blind-sided by a scientist</string>
+			<string>was caught in a scientist's anomaly field</string>
+			<string>was clinically dispatched by a scientist</string>
+			<string>was experimentally eliminated by an ecologist</string>
+			<string>was neutralized by an ecologist's protective measures</string>
+			<string>was precise-shot by an ecologist</string>
+			<string>was surprisingly dispatched by a Zone scholar</string>
+			<string>was unexpectedly terminated by an ecologist</string>
 		</ECOLOG>
 		<KILLER>
-			<string>was taken out by a mercenary</string>
-			<string>was eliminated by a mercenary</string>
-			<string>succumbed to a mercenary's attack</string>
-			<string>was dispatched by a mercenary</string>
-			<string>met their end at the hands of a mercenary</string>
-			<string>was silenced by a mercenary</string>
 			<string>became another victim of a mercenary</string>
-			<string>was brought down by a mercenary</string>
 			<string>fell in a firefight with a mercenary</string>
+			<string>met their end at the hands of a mercenary</string>
+			<string>succumbed to a mercenary's attack</string>
+			<string>was brought down by a mercenary</string>
 			<string>was cut down by a mercenary</string>
+			<string>was dispatched by a mercenary</string>
+			<string>was eliminated by a mercenary</string>
+			<string>was silenced by a mercenary</string>
+			<string>was taken out by a mercenary</string>
 		</KILLER>
 		<MONOLITH>
-			<string>was purged by a cultist</string>
-			<string>got shot by some monolithian</string>
-			<string>was cleansed by a fanatic</string>
 			<string>fell to the will of the Monolith</string>
-			<string>was sacrificed to the Zone</string>
-			<string>succumbed to a zealot's fury</string>
-			<string>was consumed by the Monolith</string>
+			<string>got shot by some monolithian</string>
 			<string>met their end by the Hand of the Monolith</string>
+			<string>succumbed to a zealot's fury</string>
+			<string>was cleansed by a fanatic</string>
+			<string>was consumed by the Monolith</string>
 			<string>was converted to dust by a Monolithian</string>
+			<string>was purged by a cultist</string>
 			<string>was purged by a true believer</string>
+			<string>was sacrificed to the Zone</string>
 		</MONOLITH>
 		<ZOMBIED>
-			<string>was blown away by a zombified stalker</string>
-			<string>was overwhelmed by a zombified stalker</string>
 			<string>fell to a shambling zombified stalker</string>
-			<string>was gunned down by a mindless zombified stalker</string>
-			<string>succumbed to a relentless zombified stalker</string>
 			<string>met their chilling end by a zombified stalker's hand</string>
+			<string>succumbed to a relentless zombified stalker</string>
+			<string>was blown away by a zombified stalker</string>
+			<string>was gunned down by a mindless zombified stalker</string>
+			<string>was overwhelmed by a zombified stalker</string>
 		</ZOMBIED>
 		<ARENA_ENEMY>
-			<string>lost in the Arena</string>
-			<string>died in the Arena</string>
-			<string>was defeated in the Arena</string>
-			<string>fell in the Rostok fighting pits</string>
-			<string>lost their final battle in the Arena</string>
-			<string>succumbed to their opponent in the Arena</string>
-			<string>met their violent end in the Arena's dust</string>
-			<string>was vanquished in the Arena's brutal contest</string>
-			<string>faced their last opponent in the Arena and lost</string>
 			<string>couldn't stand against the Arena's champion</string>
-			<string>succumbed to the roar of the Arena crowd</string>
+			<string>died in the Arena</string>
+			<string>faced their last opponent in the Arena and lost</string>
+			<string>fell in the Rostok fighting pits</string>
+			<string>lost in the Arena</string>
+			<string>lost their final battle in the Arena</string>
 			<string>met a decisive end in the Rostok Arena</string>
+			<string>met their violent end in the Arena's dust</string>
+			<string>succumbed to the roar of the Arena crowd</string>
+			<string>succumbed to their opponent in the Arena</string>
+			<string>was defeated in the Arena</string>
+			<string>was vanquished in the Arena's brutal contest</string>
 		</ARENA_ENEMY>
 		<CSKY>
-			<string>was snuck up on by Clear Sky</string>
-			<string>was precisely eliminated by a Clear Sky operative</string>
-			<string>fell to Clear Sky's understanding of the Zone</string>
-			<string>was neutralized by a Clear Sky researcher</string>
-			<string>succumbed to Clear Sky's tactical defense</string>
-			<string>met their end by a member of Clear Sky's vanguard</string>
-			<string>was analyzed and eliminated by Clear Sky</string>
 			<string>fell to a calculated strike from Clear Sky</string>
-			<string>was precisely ended by a Clear Sky guardian</string>
-			<string>succumbed to Clear Sky's protective fire</string>
+			<string>fell to Clear Sky's understanding of the Zone</string>
+			<string>met their end by a member of Clear Sky's vanguard</string>
 			<string>met their swift end by a Clear Sky operative</string>
+			<string>succumbed to Clear Sky's protective fire</string>
+			<string>succumbed to Clear Sky's tactical defense</string>
+			<string>was analyzed and eliminated by Clear Sky</string>
+			<string>was neutralized by a Clear Sky researcher</string>
+			<string>was precisely eliminated by a Clear Sky operative</string>
+			<string>was precisely ended by a Clear Sky guardian</string>
+			<string>was snuck up on by Clear Sky</string>
 		</CSKY>
 		<ARMY>
-			<string>was shot down by the military</string>
-			<string>was neutralized by the Army</string>
 			<string>fell to a military patrol</string>
-			<string>was terminated by Spetsnaz forces</string>
-			<string>succumbed to a military operative</string>
+			<string>fell under military jurisdiction</string>
+			<string>met their demise by military order</string>
 			<string>met their end at the hands of government forces</string>
-			<string>was suppressed by the military's might</string>
+			<string>succumbed to a military operative</string>
+			<string>succumbed to a Spetsnaz assault</string>
 			<string>was brought down by a disciplined Army unit</string>
 			<string>was eliminated by official forces</string>
-			<string>fell under military jurisdiction</string>
 			<string>was forcefully removed by the Army</string>
-			<string>succumbed to a Spetsnaz assault</string>
-			<string>met their demise by military order</string>
+			<string>was neutralized by the Army</string>
+			<string>was shot down by the military</string>
+			<string>was suppressed by the military's might</string>
+			<string>was terminated by Spetsnaz forces</string>
 		</ARMY>
 		<RENEGADE>
-			<string>was gunned down by some thug</string>
-			<string>got killed by a renegade</string>
-			<string>was forcefully taken out by a renegade</string>
-			<string>fell to a well-equipped renegade</string>
-			<string>was outgunned by a renegade unit</string>
-			<string>succumbed to a renegade's ambush</string>
-			<string>met their end at the hands of a hardened renegade</string>
-			<string>was efficiently dispatched by a renegade</string>
 			<string>fell to a renegade's calculated strike</string>
-			<string>was expertly ambushed by renegades</string>
-			<string>succumbed to a renegade's professional ruthlessness</string>
-			<string>met their swift end by a hardened renegade force</string>
-			<string>was efficiently dispatched by an outlaw</string>
-			<string>fell to a wrecker's calculated strike</string>
-			<string>was expertly ambushed by marauders</string>
-			<string>was decisively put down by a renegade</string>
 			<string>fell to a renegade's superior firepower</string>
-			<string>was overwhelmed by a renegade assault</string>
-			<string>succumbed to a renegade's calculated brutality</string>
+			<string>fell to a well-equipped renegade</string>
+			<string>fell to a wrecker's calculated strike</string>
+			<string>got killed by a renegade</string>
+			<string>met their end at the hands of a hardened renegade</string>
+			<string>met their swift end by a hardened renegade force</string>
 			<string>met their swift end by an organized renegade crew</string>
+			<string>succumbed to a renegade's ambush</string>
+			<string>succumbed to a renegade's calculated brutality</string>
+			<string>succumbed to a renegade's professional ruthlessness</string>
+			<string>was decisively put down by a renegade</string>
+			<string>was efficiently dispatched by a renegade</string>
+			<string>was efficiently dispatched by an outlaw</string>
+			<string>was expertly ambushed by marauders</string>
+			<string>was expertly ambushed by renegades</string>
+			<string>was forcefully taken out by a renegade</string>
+			<string>was gunned down by some thug</string>
+			<string>was outgunned by a renegade unit</string>
+			<string>was overwhelmed by a renegade assault</string>
 		</RENEGADE>
 		<GREH>
-			<string>was shot brutally by some shady-looking guy</string>
-			<string>was unlucky to catch a bullet from a Sin fanatic</string>
-			<string>was brutally silenced by a SIN fanatic</string>
-			<string>fell to a corrupted dark stalker</string>
-			<string>was sacrificed to the will of SIN</string>
-			<string>succumbed to a malevolent SIN operative</string>
-			<string>met their chilling end by a dark stalker's hand</string>
-			<string>was utterly consumed by SIN's influence</string>
-			<string>was cruelly dispatched by a SIN zealot</string>
-			<string>fell to a shadowed SIN assailant</string>
-			<string>was tainted and extinguished by SIN</string>
-			<string>succumbed to the dark influence of SIN</string>
-			<string>met a horrifying end by a fanatic of SIN</string>
-			<string>was irrevocably corrupted by a SIN operative</string>
 			<string>fell into the abyss of SIN's influence</string>
+			<string>fell to a corrupted dark stalker</string>
+			<string>fell to a shadowed SIN assailant</string>
+			<string>met a horrifying end by a fanatic of SIN</string>
+			<string>met their chilling end by a dark stalker's hand</string>
+			<string>succumbed to a malevolent SIN operative</string>
+			<string>succumbed to the dark influence of SIN</string>
+			<string>was brutally silenced by a SIN fanatic</string>
+			<string>was cruelly dispatched by a SIN zealot</string>
 			<string>was extinguished by a harbinger of SIN</string>
+			<string>was irrevocably corrupted by a SIN operative</string>
+			<string>was sacrificed to the will of SIN</string>
+			<string>was shot brutally by some shady-looking guy</string>
+			<string>was tainted and extinguished by SIN</string>
+			<string>was unlucky to catch a bullet from a Sin fanatic</string>
+			<string>was utterly consumed by SIN's influence</string>
 		</GREH>
 		<ISG>
-			<string>was shot by some kind of a spec-ops</string>
+			<string>fell to a masterfully executed ambush</string>
+			<string>fell to an unknown professional force</string>
 			<string>got an unhealthy amount of bullets from some tacticool dudes</string>
 			<string>had died in a firefight with an unknown military squad</string>
-			<string>was surgically eliminated by a highly trained operative</string>
-			<string>fell to an unknown professional force</string>
-			<string>was neutralized with extreme prejudice</string>
-			<string>succumbed to a perfectly executed strike</string>
 			<string>met their end at the hands of an elite unit</string>
-			<string>was precisely put down by a shadowy operative</string>
-			<string>fell to a masterfully executed ambush</string>
-			<string>was professionally eliminated by an unseen force</string>
-			<string>succumbed to a perfectly coordinated assault</string>
 			<string>met their swift and quiet end by an elite professional</string>
+			<string>succumbed to a perfectly coordinated assault</string>
+			<string>succumbed to a perfectly executed strike</string>
+			<string>was neutralized with extreme prejudice</string>
+			<string>was precisely put down by a shadowy operative</string>
+			<string>was professionally eliminated by an unseen force</string>
+			<string>was shot by some kind of a spec-ops</string>
+			<string>was surgically eliminated by a highly trained operative</string>
 		</ISG>
 	</eng>
 	

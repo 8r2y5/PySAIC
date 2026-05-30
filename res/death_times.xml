@@ -1,20 +1,20 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <root>
 	<eng>
-		<string>recently</string>
-		<string>a few minutes ago</string>
-		<string>just now</string>
-		<string>a moment ago</string>
-		<string>just a moment ago</string>
 		<string>a couple minutes ago</string>
 		<string>a couple of minutes ago</string>
+		<string>a few minutes ago</string>
+		<string>a moment ago</string>
 		<string>a short time ago</string>
+		<string>just a moment ago</string>
+		<string>just mere minutes ago</string>
+		<string>just now</string>
 		<string>just recently</string>
+		<string>minutes past</string>
 		<string>moments ago</string>
 		<string>not long ago</string>
-		<string>minutes past</string>
 		<string>only moments before</string>
-		<string>just mere minutes ago</string>
+		<string>recently</string>
 	</eng>
 	
 	<rus>
