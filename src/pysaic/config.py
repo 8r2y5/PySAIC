@@ -1,6 +1,6 @@
 import logging
 from dataclasses import asdict, dataclass, field
-from enum import Enum, StrEnum
+from enum import Enum, StrEnum, auto
 from typing import Any, Callable, Optional, Self, Type
 
 import yaml
@@ -17,15 +17,30 @@ from pysaic.use_cases.avatar import (
     calculate_icon_based_on_faction_and_name,
     is_icon_valid,
 )
-from pysaic.settings import THEMES_PATH, PROJECT_PATH
+from pysaic.settings import THEMES_PATH, PROJECT_PATH, WORKDIR
 from pysaic.use_cases.themes import create_default_themes
 
 CONFIG_FILE = PROJECT_PATH / "config.yml"
+PRIO_CONFIG_FILE = WORKDIR / "config.yml"
+
 SERVER_FILE = PROJECT_PATH / "server.yml"
+PRIO_SERVER_FILE = WORKDIR / "server.yml"
 
 logger = logging.getLogger(__name__)
 
 NOT_SET = object()
+
+
+class ConfigFileNames(Enum):
+    config = auto()
+    server = auto()
+
+
+def get_config_location(name: ConfigFileNames):
+    if name == ConfigFileNames.config:
+        return PRIO_CONFIG_FILE if PRIO_CONFIG_FILE.exists() else CONFIG_FILE
+    elif name == ConfigFileNames.server:
+        return PRIO_SERVER_FILE if PRIO_SERVER_FILE.exists() else SERVER_FILE
 
 
 class InGameUserDisplayEnum(StrEnum):
@@ -82,7 +97,7 @@ class Server:
     def load_config(cls):
         should_save = False
         try:
-            with open(SERVER_FILE) as f:
+            with open(get_config_location(ConfigFileNames.server)) as f:
                 config = yaml.safe_load(f)
         except Exception:
             logger.exception("Error loading config file")
@@ -99,7 +114,7 @@ class Server:
         return instance
 
     def save_config(self):
-        with open(SERVER_FILE, "w") as f:
+        with open(get_config_location(ConfigFileNames.server), "w") as f:
             yaml.dump(asdict(self), f)
 
     @classmethod
@@ -185,7 +200,7 @@ class EnumField(ConfigField):
         self.enum_cls = default.__class__
         self.reverse = reverse
 
-    def load_value(self, config: dict) -> Enum:
+    def load_value(self, config: dict) -> Any | None:
         name = config.get(self.name)
         try:
             return (
@@ -200,7 +215,7 @@ class EnumField(ConfigField):
         except (ValueError, KeyError, TypeError):
             return self.default
 
-    def dump_value(self, instance) -> str:
+    def dump_value(self, instance) -> Enum | str:
         value = getattr(instance, self.name)
         return (
             (value.value if not self.reverse else value.name)
@@ -406,7 +421,7 @@ class Config:
     def load_config(cls):
         should_save = False
         try:
-            with open(CONFIG_FILE) as f:
+            with open(get_config_location(ConfigFileNames.config)) as f:
                 config = yaml.safe_load(f)
         except Exception:
             logger.exception("Error loading config file")
@@ -461,7 +476,7 @@ class Config:
             if value is not None:
                 data[name] = value
 
-        with open(CONFIG_FILE, "w") as f:
+        with open(get_config_location(ConfigFileNames.config), "w") as f:
             yaml.dump(data, f)
             for attr in separate_save:
                 attr.save_value(self)
