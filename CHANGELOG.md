@@ -1,5 +1,26 @@
 # Changelog
 
+## `0.3.0b13` - 2026-05-31
+### What's New and Improved:
+- **Your Settings Stay Saved**:
+  - Your personal settings, themes, and activity logs will now automatically save and stay put in a special folder (`%appdata%/PySAIC`). You won't lose them when updating the app anymore!
+- **Smoother Performance**:
+  - App run more efficiently and use less of your computer's processing power by reducing unnecessary communication between PySAIC and the game.
+- **Chatbox-Only Option**:
+  - You can now install PySAIC to only show the chatbox, without making any changes to your PDA's UI.
+    - There is also included the [Mags Redux Patch](https://www.moddb.com/mods/stalker-anomaly/addons/152-banjajis-patch-chernobyl-relay-chat-rebirth-and-mags-redux) as an easy installation option for your convenience.
+- **Easier Private Messages**:
+  - When you receive a new private message, it will also appear in your main chat window.
+    - Previously, it would open in a new tab, which sometimes caused users to miss these messages.
+- **Cleaner Map Changes**:
+  - Fixed bug that caused a long list of login/logout messages to appear every time you switched maps.
+    - Now, you'll only see new messages without that wall of text.
+
+### Do I need to do anything?
+- Please reinstall PySAIC using Mod Organizer 2 (MO2) to ensure all updates are applied correctly.
+
+---
+
 ## `0.3.0b12` - 2026-05-17
 ### Short summary
 - **Improved Chat Reliability**: Messages should now be handled more smoothly, especially if your connection isn't perfect.
