@@ -1,5 +1,15 @@
 # Changelog
 
+## `0.3.0b14` - 2026-06-01
+### What's New:
+- **New Integration patch for PDA**
+  - [Mod App Creator](https://github.com/Ncenka/Mod-App-Creator)
+
+### Do I need to do anything?
+- Please reinstall PySAIC using Mod Organizer 2 (MO2) to ensure all updates are applied correctly.
+
+---
+
 ## `0.3.0b13` - 2026-05-31
 ### What's New and Improved:
 - **Your Settings Stay Saved**:

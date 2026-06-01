@@ -54,6 +54,9 @@
                     <plugins order="Explicit">
                         <plugin name="No Taskboard">
                             <description>Select this if you don't have any mod that modifies the PDA interface.</description>
+                            <files>
+                                <folder source="02a_Just_PySAIC/gamedata" destination="gamedata" priority="1"/>
+                            </files>
                             <typeDescriptor>
                                 <type name="Recommended"/>
                             </typeDescriptor>
@@ -71,6 +74,15 @@
                             <description>For those who use version 1.7.9.3 of https://www.moddb.com/mods/stalker-anomaly/addons/fatal-error-by-ncenka</description>
                             <files>
                                 <folder source="02a_Fatal_Error/gamedata" destination="gamedata" priority="1"/>
+                            </files>
+                            <typeDescriptor>
+                                <type name="Optional"/>
+                            </typeDescriptor>
+                        </plugin>
+                        <plugin name="Mod App Creator">
+                            <description>For those who use Mod App Creator https://github.com/Ncenka/Mod-App-Creator/</description>
+                            <files>
+                                <folder source="02a_Mod_App_Creator/gamedata" destination="gamedata" priority="1"/>
                             </files>
                             <typeDescriptor>
                                 <type name="Optional"/>

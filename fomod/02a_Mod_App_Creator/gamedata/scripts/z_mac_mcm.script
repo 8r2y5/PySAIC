@@ -1,0 +1,31 @@
+function on_game_start()
+    RegisterScriptCallback("on_xml_read", on_xml_read_callback)
+
+    if pysaic then
+        local function pysaic_ui_start()
+            local pysaic_ui = crc_pda.get_ui()
+            if pysaic_ui then
+                pysaic_ui:update_ui()
+            end
+            return pysaic_ui
+        end
+        mac_mcm.add_app("app_pysaic",
+                {name = "pda_btn_pysaic", texture = "app_pysaic", tab = "eptChat", func = pysaic_ui_start}
+        )
+    end
+end
+
+function on_xml_read_callback(file_name, xml_obj)
+    if file_name == [[ui\pda_16.xml]] then
+        local new_tab = [[
+<button x="1000" y="0" width="0" height="0" id="eptChat" frame_mode="0">
+    <text align="c" vert_align="c" x="0" y="0" font="letterica16">pda_btn_pysaic</text>
+</button>
+]]
+        local res = xml_obj:query("tab")
+        if is_not_empty(res) then
+            local el = res[1]
+            xml_obj:insertFromXMLString(new_tab, el, #el.kids)
+        end
+    end
+end
