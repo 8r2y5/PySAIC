@@ -10,26 +10,26 @@ Compatible with any Stalker Anomaly version and modpack that uses Stalker Anomal
 
 ![Version](https://img.shields.io/github/v/release/8r2y5/PySAIC?style=flat-square) ![License](https://img.shields.io/github/license/8r2y5/PySAIC?style=flat-square) ![Downloads](https://img.shields.io/github/downloads/8r2y5/PySAIC/total?style=flat-square)
 ## Beta
-<a href="https://github.com/8r2y5/PySAIC/releases/0.3.0b11"><img src="https://img.shields.io/badge/Download-Beta?style=for-the-badge&link=https://github.com/8r2y5/PySAIC/releases/latest" alt="Download Beta"></a>
+<a href="https://github.com/8r2y5/PySAIC/releases/0.3.0b14"><img src="https://img.shields.io/badge/Download-Beta?style=for-the-badge&link=https://github.com/8r2y5/PySAIC/releases/latest" alt="Download Beta"></a>
 
-![GitHub Downloads (specific asset, specific tag)](https://img.shields.io/github/downloads/8r2y5/PySAIC/0.3.0b11/total?style=flat-square)
+![GitHub Downloads (specific asset, specific tag)](https://img.shields.io/github/downloads/8r2y5/PySAIC/0.3.0b14/total?style=flat-square)
 
 # Features
 - **Works both in your PDA or as separate overlay**
-  - You can choose your prefered version in the PySAIC options.
-- **Compatible with [CRCR / Chernobyl Relay Chat Rebirth](https://github.com/8r2y5/Chernobyl-Relay-Chat-Rebirth) and addons**
-  - Works with any version of Stalker Anomaly and modpack that uses it.
-  - Using [MAGS Redux](https://github.com/RAX-Anomaly/MagsRedux)? Download patch [here](https://www.moddb.com/mods/stalker-anomaly/addons/152-banjajis-patch-chernobyl-relay-chat-rebirth-and-mags-redux).
+  - You can choose your prefered version during installation.
+- **Works with any version of Stalker Anomaly and modpack that uses it**
 - **Patches for:**
   - [Fatal Error](https://www.moddb.com/addons/fatal-error-by-ncenka)
   - [iTheon-PDA-Taskboard](https://github.com/lTheon/iTheon-PDA-Taskboard)
+  - [Mod App Creator](https://github.com/Ncenka/Mod-App-Creator)
+  - [MAGS Redux](https://github.com/RAX-Anomaly/MagsRedux)
 - **Ability to connect to different IRC servers**
   - Want to use your own server? You can do that! Just edit the `server.yml` file.
   - You can connect to any IRC server that supports the protocol, not only the one that Chernobyl Relay Chat uses. Just change it in `server.yml` file.
   - Twitch IRC is supported too, you can use it to chat with your viewers while streaming Stalker Anomaly.
     - Check [Twitch Connection Guide here](#Twitch-Connection-Guide).  
-- **Custom channels**
-  - Want to create your own channel? You can do that! Just add it to the `server.yml` file.
+- **Custom channels / Networks**
+  - Want to create your own channel? Perhaps even use different network for your community? You can do that! Just add it or modify the `server.yml` file.
 - **Customizable**
   - Change your nickname, avatar, color theme, font and other settings in the options menu.
 - **Block Users**
@@ -43,12 +43,14 @@ Compatible with any Stalker Anomaly version and modpack that uses Stalker Anomal
 - **Command Support**
   - Supports various commands for managing your chat experience.
 - **Easy Installation**
-  - Simple installation process, just extract the files and run the client.
+  - Simple installation process, just use Mod Organizer 2 or extract the files and run the client.
 - **Cross-Platform**
   - Works on Windows or Linux.
 - **Supports for [New Levels](https://www.moddb.com/mods/stalker-anomaly/addons/promzone-level)**
   - Compatible with Grimwood, Promazone, and Town Yuzhniy.
-- **See others status in-game**
+- **Custom Avatars / Profile Picture**
+  - You can create your own avatar using PySAIC avatar creator, please note it will be only visible to you.
+- **See others status in-game - Compatible with [CRCR / Chernobyl Relay Chat Rebirth](https://github.com/8r2y5/Chernobyl-Relay-Chat-Rebirth)**
   - Online status 
   - Avatar / Profile Picture
   - Faction
@@ -57,7 +59,19 @@ Compatible with any Stalker Anomaly version and modpack that uses Stalker Anomal
     - AFK status
     - Rank
     - Reputation
-    - Status
+    - Status (Underground / Emission)
+- **Simulation of signal reception in-game**
+  - You can configure what PySAIC should do when you are under emission or underground (you can set it up separately in options):
+    - **Random** (_default_)
+      - each time you go under emission or underground PySAIC will choose what do
+    - **Never**
+      - PySAIC will stay always connected no matter what
+    - **Malform Signal Only**
+      - PySAIC will malform messages coming in and out, example:
+        - `forgot i haven't done scorcher in this run and got a guide to jupiter lmao`
+        - `fORgOt i haven't done scIrche' in.th*s rhn]4nD g8t - gqid/ to juPite! lmAo`
+    - **Always**
+      - PySAIC will malform messages comming in and out for 10 seconds before disconnecting and connect when network will be avaliable
 
 
 ## Ability to identify with IRC server
