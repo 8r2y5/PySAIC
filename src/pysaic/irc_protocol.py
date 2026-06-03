@@ -63,7 +63,7 @@ class PySaicIrcProtocol(IrcProtocol):
     @inject.autoparams()
     async def connect(self, incoming_queue: IncomingQueue) -> None:
         delay_in_sec = 10
-        delay_in_sec_on_failure = 60
+        delay_in_sec_on_failure = 300
         delayer = AsyncDelayer(delay_in_sec)
         for server in cycle(self.servers):
             async with delayer:
