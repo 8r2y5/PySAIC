@@ -239,7 +239,7 @@ def add_to_crc_input_file(content: str, state: State):
         .replace("\r", "")
     )
 
-    if state.game_transport:
+    if state.game_transport and not state.player.afk:
         logger.debug("Sending to game via socket: %r", content)
         try:
             state.game_transport.write((content + "\n").encode())

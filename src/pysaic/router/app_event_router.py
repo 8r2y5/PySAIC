@@ -9,6 +9,7 @@ from pysaic.controllers.game import (
     ask_for_handshake,
     set_ingame_display_setting,
     set_ingame_display_setting_order_setting,
+    add_message_history,
 )
 from pysaic.entities import (
     IncomingEvent,
@@ -343,9 +344,16 @@ class AppEventRouter(Router):
         self._change_afk_value(False)
 
     def _change_afk_value(self, value: bool):
-        if value is True and not self.state.player.afk:
+        current_value = self.state.player.afk
+        self.state.player.afk = value
+        if current_value is True and value is False:
+            add_message_history(tuple(self.state.last_messages))
+        elif current_value is False and value is True:
+            self.state.close_socket()
+
+        if value is True and not current_value:
             self._add_information_text("You are now marked as AFK.")
-        elif value is False and self.state.player.afk:
+        elif value is False and current_value:
             self._add_information_text("You are not longer marked as AFK.")
 
         prev_value = self.state.player.afk

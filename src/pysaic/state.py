@@ -279,3 +279,8 @@ class State:
                 return SAICStateEnum.underground
             case _:
                 return SAICStateEnum.ok
+
+    def close_socket(self):
+        if self.game_transport:
+            logger.info("Closing socket to save up resources")
+            self.game_transport.close()
