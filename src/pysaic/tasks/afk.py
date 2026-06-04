@@ -14,6 +14,7 @@ logger = logging.getLogger(__name__)
 
 AFK_GAME_PING_TASK = "afk_game_ping_task"
 AFK_SET_TASK = "afk_set_task"
+AFK_SLEEP_SECONDS = 120
 
 
 @inject.autoparams()
@@ -22,7 +23,7 @@ async def afk_game_ping_task(state: State):
     state.player.last_ask_update = datetime.now(UTC)
 
     while True:
-        await sleep(120)
+        await sleep(AFK_SLEEP_SECONDS)
         if state.player.afk is False:
             add_setting_to_game("AFK", "AFK")
 
@@ -30,7 +31,7 @@ async def afk_game_ping_task(state: State):
 @inject.autoparams()
 async def afk_set_task(incoming_queue: IncomingQueue):
     while True:
-        await sleep(300)
+        await sleep(AFK_SLEEP_SECONDS)
         await incoming_queue.put(
             IncomingEvent.create_app_event(
                 AppEventEnum.CHECK_AFK,
