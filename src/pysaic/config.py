@@ -4,6 +4,7 @@ from enum import Enum, StrEnum, auto
 from typing import Any, Callable, Optional, Self, Type
 
 import yaml
+from pysaic.constants import PYSAIC_ICON_PLAYER
 
 from pysaic.crc_strings.use_case import random_name
 from pysaic.enums import (
@@ -566,8 +567,8 @@ class Config:
             return False
         elif self.avatar == AvatarEnum.player:
             logger.debug("Setting static_avatar to player avatar")
-            if self.current_avatar != "pysaic_icon_player":
-                self.current_avatar = "pysaic_icon_player"
+            if self.current_avatar != PYSAIC_ICON_PLAYER:
+                self.current_avatar = PYSAIC_ICON_PLAYER
                 return True
             return False
         else:

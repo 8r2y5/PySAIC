@@ -12,6 +12,7 @@ from pysaic.avatar.layer_modes import (
     do_merge_mode,
     do_soft_light_mode,
 )
+from pysaic.constants import PYSAIC_ICON_PLAYER
 from pysaic.settings import avatar_images_path
 
 logger = logging.getLogger(__name__)
@@ -24,7 +25,7 @@ def generate_xml_config(gamedata_path: Optional[Path] = None) -> None:
     avatar = Element(
         "texture",
         {
-            "id": "pysaic_icon_player",
+            "id": PYSAIC_ICON_PLAYER,
             "x": "0",
             "y": "0",
             "width": "126",

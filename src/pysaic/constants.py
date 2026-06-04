@@ -63,3 +63,5 @@ FACTION_AVATARS = {
     + pysaic_factions[FactionsEnum.Zombie.value],
     "Anonymous": 0,
 }
+
+PYSAIC_ICON_PLAYER = "pysaic_icon_player"

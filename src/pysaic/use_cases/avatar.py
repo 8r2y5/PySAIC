@@ -5,7 +5,8 @@ import re
 from functools import lru_cache
 from typing import Optional
 
-from pysaic.constants import crcr_factions, pysaic_factions
+import inject
+from pysaic.constants import crcr_factions, pysaic_factions, PYSAIC_ICON_PLAYER
 from pysaic.enums import FactionsEnum
 
 logger = logging.getLogger(__name__)
@@ -97,6 +98,8 @@ def parse_icon_id(
 def is_icon_valid(avatar_id: Optional[str]) -> bool:
     if not isinstance(avatar_id, str):
         return False
+    if avatar_id == PYSAIC_ICON_PLAYER:
+        return True
 
     icon_type, static_faction_value, avatar_number, valid = parse_icon_id(
         avatar_id
@@ -110,7 +113,10 @@ def is_icon_valid(avatar_id: Optional[str]) -> bool:
     return valid
 
 
-def get_valid_icon_from_icon_id(avatar_id: str) -> tuple[str, str, int]:
+@inject.autoparams()
+def get_valid_icon_from_icon_id(avatar_id: str, state) -> tuple[str, str, int]:
+    if avatar_id == PYSAIC_ICON_PLAYER:
+        return "pysaic_icon", state.player.faction.value, 1
     icon_type, static_faction_value, avatar_number, valid = parse_icon_id(
         avatar_id
     )

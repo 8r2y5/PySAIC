@@ -19,7 +19,7 @@ import inject
 from PIL import Image, ImageTk
 
 from pysaic.avatar.avatar_maker import save_avatar, textures_path
-from pysaic.constants import FACTION_AVATARS, crcr_factions
+from pysaic.constants import FACTION_AVATARS, crcr_factions, PYSAIC_ICON_PLAYER
 from pysaic.entities import IncomingEvent, IncomingQueue
 from pysaic.enums import AppEventEnum, AvatarEnum, FactionsEnum
 from pysaic.settings import GAMEDATA_PATH
@@ -214,8 +214,9 @@ class AvatarOptions:
     def close_avatar_picker(self):
         self.button_select_file.config(state=NORMAL)
 
+    @inject.autoparams()
     def _create_avatar_options(
-        self, background_color, default_style_kwargs, text_color
+        self, background_color, default_style_kwargs, text_color, state: State
     ):
         def set_avatar(selection=None):
             if selection is None:
@@ -282,7 +283,7 @@ class AvatarOptions:
             self.this_window,
         )
         icon_type, static_faction_value, avatar_number = (
-            get_valid_icon_from_icon_id(self.config.current_avatar)
+            get_valid_icon_from_icon_id(self.config.current_avatar, state)
         )
         static_faction_actor = FactionsEnum(static_faction_value)
         logger.debug(
@@ -535,7 +536,7 @@ class AvatarOptions:
             self.config.current_avatar = f"{icon_type}_{icon_id}"
         elif avatar_type == AvatarEnum.player.value:
             self.config.avatar = AvatarEnum.player
-            self.config.current_avatar = "pysaic_icon_player"
+            self.config.current_avatar = PYSAIC_ICON_PLAYER
         logger.debug(
             "Saving avatar type %s with current avatar %s",
             self.config.avatar,
