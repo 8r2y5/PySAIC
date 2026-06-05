@@ -1,5 +1,6 @@
 import os
 import shutil
+from datetime import timedelta
 from pathlib import Path
 
 from packaging.version import Version
@@ -10,6 +11,10 @@ VERSION = "0.3.0b14"
 CURRENT_VERSION = Version(VERSION)
 SUPPORTED_SCRIPT_VERSION = (16,)
 APP_IDENTITY = f"PySAIC {VERSION}"
+AFK_GAME_PING_TASK = "afk_game_ping_task"
+AFK_SET_TASK = "afk_set_task"
+AFK_TASK_SLEEP_SECONDS = 60
+AFK_NO_RESPONSE_TIMEDELTA = timedelta(minutes=3)
 
 # logs
 MAX_BYTES = 2 * 1024 * 1024  # 2 mb

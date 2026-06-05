@@ -1,5 +1,5 @@
 import logging
-from datetime import UTC, datetime, timedelta
+from datetime import UTC, datetime
 from logging import LogRecord
 from tkinter import END, TclError
 
@@ -21,7 +21,13 @@ from pysaic.enums import AppEventEnum, NetworkDestroyReasonEnum
 from pysaic.log import escape_stand_and_end
 from pysaic.router.router import Router
 from pysaic.router.utils import send_saic_afk, send_saic_avatar
-from pysaic.settings import ANOMALY_DIR_PATH, DEBUG, GAMEDATA_PATH, WORKDIR
+from pysaic.settings import (
+    ANOMALY_DIR_PATH,
+    DEBUG,
+    GAMEDATA_PATH,
+    WORKDIR,
+    AFK_NO_RESPONSE_TIMEDELTA,
+)
 from pysaic.tasks.afk import ensure_afk_tasks_are_running, stop_afk_tasks
 from pysaic.ui.utils import apply_style_to_tkinter
 from pysaic.use_cases.command import CommandUseCase
@@ -308,7 +314,7 @@ class AppEventRouter(Router):
         logger.debug("Handling AFK check, state is %r", self.state.player.afk)
         if (
             not self.state.player.last_ask_update
-            or (self.state.player.last_ask_update + timedelta(minutes=10))
+            or (self.state.player.last_ask_update + AFK_NO_RESPONSE_TIMEDELTA)
             > datetime.now(UTC)
             or self.state.player.afk is True
         ):
@@ -346,15 +352,19 @@ class AppEventRouter(Router):
     def _change_afk_value(self, value: bool):
         current_value = self.state.player.afk
         self.state.player.afk = value
+        close_socket = False
         if current_value is True and value is False:
             add_message_history(tuple(self.state.last_messages))
         elif current_value is False and value is True:
-            self.state.close_socket()
+            close_socket = True
 
         if value is True and not current_value:
             self._add_information_text("You are now marked as AFK.")
         elif value is False and current_value:
             self._add_information_text("You are not longer marked as AFK.")
+
+        if close_socket:
+            self.state.close_socket()
 
         prev_value = self.state.player.afk
         self.state.player.afk = value
