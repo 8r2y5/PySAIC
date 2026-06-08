@@ -386,9 +386,9 @@ class ConnectionLostUseCase:
 
         async def _task(reason):
             if reason == "Surge":
-                content = "[PDA SYSTEM] // Regional communications grid disrupted. Seek shelter immediately."
+                content = "[PySAIC SYSTEM] // Regional communications grid disrupted. Seek shelter immediately."
             else:
-                content = "[PDA SYSTEM] // Weak signal detected. Communications may be unreliable."
+                content = "[PySAIC SYSTEM] // Signal reception detected. Communications may be unreliable."
 
             await asyncio.sleep(SLEEP_TIME_BEFORE_DISCONNECT)
             self.incoming_queue.create_error_event(content)
