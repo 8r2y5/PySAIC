@@ -244,3 +244,7 @@ class Item(NamedTuple):
         return cls(
             game_id=game_id, location=LocationEnum[map_id], item_name=item_name
         )
+
+
+class ArtifactFound(Item):
+    in_file_id = 'ArtifactFound'

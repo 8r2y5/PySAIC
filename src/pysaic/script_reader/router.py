@@ -20,6 +20,7 @@ from pysaic.script_reader.entities import (
     Rank,
     Reputation,
     Item,
+    ArtifactFound,
 )
 from pysaic.script_reader.handlers import (
     _handle_channel_message,
@@ -99,6 +100,7 @@ router.register_handler(Reputation.in_file_id, _handle_reputation)
 router.register_handler(Rank.in_file_id, _handle_rank)
 router.register_handler(AFK.in_file_id, _handle_afk)
 router.register_handler(Item.in_file_id, _handle_item)
+router.register_handler(ArtifactFound.in_file_id, _handle_item)
 
 
 async def parse_line(line, incoming_queue: IncomingQueue):

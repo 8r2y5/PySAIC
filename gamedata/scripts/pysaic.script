@@ -719,10 +719,11 @@ function actor_on_net_destroy()
 end
 
 function actorOnItemTake(item)
+	item_name = pysaic_utils.gt(item:section()) or item:section()
 	if IsArtefact(item) then
-		pysaic_io.send('ArtifactFound/%s/%s/%s', item:name(), level.name(), item:section())
+		pysaic_io.send('ArtifactFound/%s/%s/%s', item:name(), level.name(), item_name)
 	else
-		pysaic_io.send('Item/%s/%s/%s', item:name(), level.name(), item:section())
+		pysaic_io.send('Item/%s/%s/%s', item:name(), level.name(), item_name)
 	end
 end
 
