@@ -62,8 +62,13 @@ Compatible with any Stalker Anomaly version and modpack that uses Stalker Anomal
     - Status (Underground / Emission)
 - **Simulation of signal reception in-game**
   - You can configure what PySAIC should do when you are under emission or underground (you can set it up separately in options):
-    - **Random** (_default_)
+    - **Random**
       - each time you go under emission or underground PySAIC will choose what do
+    - **Realistic**  (_default_)
+      - each time you go under emission or underground PySAIC will choose what do, but more often PySAIC will disconnect or malform messages
+        - $4$ out of $7$ times PySAIC will disconnect (Common - 57.14%)
+        - $2$ out of $7$ times PySAIC will malform text (Uncommon - 28.57%)
+        - $1$ out of $7$ times PySAIC will stay connected (Rare - 14.29%)
     - **Never**
       - PySAIC will stay always connected no matter what
     - **Malform Signal Only**

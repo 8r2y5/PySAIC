@@ -6,7 +6,7 @@ from collections import deque
 from dataclasses import dataclass
 from datetime import datetime
 from pathlib import Path
-from random import choice
+from random import choice, choices
 from typing import Optional, Self
 
 from pysaic.config import Config
@@ -112,14 +112,13 @@ class MalformOnlyNetworkDestructionStrategy(NetworkDestructionStrategy):
 class RandomNetworkDestructionStrategy(NetworkDestructionStrategy):
     def __init__(self):
         super().__init__()
-        random_cls = choice(
+        self.setting_instance = choice(
             (
                 NeverNetworkDestructionStrategy,
                 AlwaysNetworkDestructionStrategy,
                 MalformOnlyNetworkDestructionStrategy,
             )
-        )
-        self.setting_instance = random_cls()
+        )()
 
     def should_disconnect(self) -> bool:
         return self.setting_instance.should_disconnect()
@@ -128,11 +127,27 @@ class RandomNetworkDestructionStrategy(NetworkDestructionStrategy):
         return self.setting_instance.should_malform()
 
 
+class RealisticNetworkDestructionStrategy(RandomNetworkDestructionStrategy):
+    STRATEGY_WEIGHTS = {
+        NeverNetworkDestructionStrategy: 1,
+        AlwaysNetworkDestructionStrategy: 4,
+        MalformOnlyNetworkDestructionStrategy: 2,
+    }
+
+    def __init__(self):
+        super().__init__()
+        self.setting_instance = choices(
+            population=list(self.STRATEGY_WEIGHTS.keys()),
+            weights=list(self.STRATEGY_WEIGHTS.values()),
+        )[0]()
+
+
 NETWORK_DESTRUCTION_MAP = {
     DisconnectOnNetworkDestructionSetting.Always: AlwaysNetworkDestructionStrategy,
     DisconnectOnNetworkDestructionSetting.Never: NetworkDestructionStrategy,
     DisconnectOnNetworkDestructionSetting.MalformSignalOnly: MalformOnlyNetworkDestructionStrategy,
     DisconnectOnNetworkDestructionSetting.Random: RandomNetworkDestructionStrategy,
+    DisconnectOnNetworkDestructionSetting.Realistic: RealisticNetworkDestructionStrategy,
 }
 
 

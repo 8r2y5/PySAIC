@@ -374,19 +374,19 @@ class Config:
     current_faction: FactionsEnum = EnumField(
         default=FactionsEnum.Loner, reverse=True
     )
-    news_duration: int = ConfigField(default=3250)
+    news_duration: int = ConfigField(default=12250)
     chat_key: str = ConfigField(default="DIK_RETURN")
     nick_auto_complete_key: str = ConfigField(default="DIK_TAB")
     news_sound: bool = BoolField(default=True)
     close_chat: bool = BoolField(default=True)
     disconnect_when_emission: DisconnectOnNetworkDestructionSetting = (
         EnumField(
-            default=DisconnectOnNetworkDestructionSetting.Random,
+            default=DisconnectOnNetworkDestructionSetting.Realistic,
         )
     )
     disconnect_when_underground: DisconnectOnNetworkDestructionSetting = (
         EnumField(
-            default=DisconnectOnNetworkDestructionSetting.Random,
+            default=DisconnectOnNetworkDestructionSetting.Realistic,
         )
     )
     block_money_transfer: bool = BoolField(default=True)

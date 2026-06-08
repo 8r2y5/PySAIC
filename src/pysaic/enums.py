@@ -202,6 +202,7 @@ class DeathReportTypeEnum(StrEnum):
 
 
 class DisconnectOnNetworkDestructionSetting(StrEnum):
+    Realistic = "Realistic"
     Never = "Never"
     Always = "Always"
     MalformSignalOnly = "Malform Signal Only"

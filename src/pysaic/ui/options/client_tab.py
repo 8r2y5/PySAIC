@@ -52,6 +52,7 @@ class ClientTab(Frame):
             DisconnectOnNetworkDestructionSetting.MalformSignalOnly,
             DisconnectOnNetworkDestructionSetting.Always,
             DisconnectOnNetworkDestructionSetting.Random,
+            DisconnectOnNetworkDestructionSetting.Realistic,
         )
         disconnect_config_values = [
             record.value for record in disconnect_tuple
