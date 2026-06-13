@@ -224,6 +224,15 @@ class IncomingQueue(Queue):
     def create_error_event(self, content):
         self.put_nowait(IncomingEvent.create_error_event(content))
 
+    def create_game_event(self, what, payload):
+        self.put_nowait(IncomingEvent.create_game_event(what, payload))
+
+    def create_app_event(self, what, payload):
+        self.put_nowait(IncomingEvent.create_app_event(what, payload))
+
+    def create_irc_event(self, what, payload):
+        self.put_nowait(IncomingEvent.create_irc_event(what, payload))
+
 
 @dataclass
 class ChatUser:
@@ -324,7 +333,7 @@ class ChatUsers(dict):
         self[user_id] = user
         self.needs_update = True
 
-    def get_user(self, user_id):
+    def get_user(self, user_id) -> ChatUser | None:
         self.logger.debug('Getting user "%s"', user_id)
         return self.get(user_id)
 
@@ -356,7 +365,7 @@ class ChatUsers(dict):
         self[author] = user
         self.needs_update = True
 
-    def __getitem__(self, item):
+    def __getitem__(self, item) -> ChatUser | None:
         self.logger.debug('Getting key "%s"', item)
         return super().__getitem__(item)
 

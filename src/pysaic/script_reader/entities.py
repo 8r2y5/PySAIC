@@ -247,4 +247,4 @@ class Item(NamedTuple):
 
 
 class ArtifactFound(Item):
-    in_file_id = 'ArtifactFound'
+    in_file_id = "ArtifactFound"

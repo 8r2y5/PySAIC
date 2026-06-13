@@ -174,6 +174,10 @@ class IncomingRouter(Router):
             )
             return
 
+        if chat_user := self.state.chat_users.get(event.author.nick):
+            if chat_user.irc_user is None:
+                chat_user.irc_user = event.author
+
         if event.content.startswith("\x01") and event.content.endswith("\x01"):
             self._handle_ctcp(event)
             return

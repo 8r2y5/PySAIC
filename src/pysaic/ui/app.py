@@ -275,6 +275,8 @@ class App(Tk):
         )
         self.users_list = UserListText(
             right_bottom_frame,
+            pysaic_state=self.pysaic_state,
+            pysaic_config=self.pysaic_config,
             yscrollcommand=self.users_list_scroll.set,
             width=22,
             background=self.pysaic_config.colors.background.content,

@@ -16,6 +16,8 @@ from pysaic.entities import (
     IncomingEvent,
     InformationEvent,
     OutgoingCTCP,
+    IncomingQueue,
+    OutgoingQueue,
 )
 from pysaic.enums import (
     AvatarEnum,
@@ -84,11 +86,11 @@ class Router:
         return self.ui.messages_list
 
     @property
-    def outgoing_queue(self):
+    def outgoing_queue(self) -> OutgoingQueue:
         return self.ui.outgoing_queue
 
     @property
-    def incoming_queue(self):
+    def incoming_queue(self) -> IncomingQueue:
         return self.ui.incoming_queue
 
     @property
@@ -96,7 +98,7 @@ class Router:
         return self.ui.hyperlinks
 
     @property
-    def nick(self):
+    def nick(self) -> str:
         return self.state.nick
 
     def _update_ui_user_list(self):
