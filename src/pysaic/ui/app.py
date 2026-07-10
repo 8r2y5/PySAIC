@@ -18,13 +18,6 @@ from tkinter import (
 )
 from tkinter.ttk import Scrollbar
 
-from pysaic.ui.constants import WM_DELETE_WINDOW
-from pysaic.ui.tabbed_chat import TabbedChat
-from pysaic.ui.utils import (
-    update_style,
-    apply_color_tags_to_text,
-    UserListText,
-)
 from winotify import Notification, audio
 
 from pysaic.config import Config
@@ -32,7 +25,14 @@ from pysaic.entities import AppEvent, IncomingEvent
 from pysaic.enums import AppEventEnum
 from pysaic.settings import APP_IDENTITY, DEBUG
 from pysaic.state import State
+from pysaic.ui.constants import WM_DELETE_WINDOW
 from pysaic.ui.options import Options
+from pysaic.ui.tabbed_chat import TabbedChat
+from pysaic.ui.utils import (
+    UserListText,
+    apply_color_tags_to_text,
+    update_style,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -190,7 +190,7 @@ class App(Tk):
         right_bottom_frame = Frame(
             right_frame, background=self.pysaic_config.colors.background.app
         )
-        right_bottom_frame.pack(fill="both", expand=True)
+        right_bottom_frame.pack(fill="both", expand=True, pady=(0, 2))
 
         channels_and_option_section = Frame(
             right_top_frame,
@@ -256,7 +256,7 @@ class App(Tk):
             activeborderwidth=1,
             selectcolor=self.pysaic_config.colors.background.app,
         )
-        self.channels_dropbox.grid(row=0, column=0, sticky="ew")
+        self.channels_dropbox.grid(row=0, column=0, sticky="ew", pady=(0, 2))
 
         self.options_button = Button(
             channels_and_option_section,
@@ -291,7 +291,12 @@ class App(Tk):
             background=self.pysaic_config.colors.background.app,
         )
         self.bottom_frame.grid(
-            row=1, column=0, columnspan=2, sticky="nsew", pady=(2, 1)
+            row=1,
+            column=0,
+            columnspan=2,
+            sticky="nsew",
+            pady=(2, 1),
+            padx=(2, 0),
         )
         self.input_message = Entry(
             self.bottom_frame,

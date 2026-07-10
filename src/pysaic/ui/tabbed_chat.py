@@ -4,24 +4,25 @@ from tkinter.ttk import Notebook, Scrollbar
 
 from pysaic.config import Config
 from pysaic.ui.hyper_links import HyperlinkManager
-from pysaic.ui.utils import apply_color_tags_to_text, MessagesListText
+from pysaic.ui.utils import MessagesListText, apply_color_tags_to_text
 
 logger = logging.getLogger(__name__)
 
 
 class ChatTab(Frame):
-    def __init__(self, master, config: Config, *args, **kwargs):
+    def __init__(self, master, pysaic_config: Config, *args, **kwargs):
         super().__init__(master, *args, **kwargs)
-        self.config = config
+        self.pysaic_config = pysaic_config
         self.columnconfigure(0, weight=1)
         self.columnconfigure(1, weight=0, minsize=16)
         self.rowconfigure(0, weight=1)
+        self.configure(background=self.pysaic_config.colors.background.app)
 
         self.chat_scroll = Scrollbar(self)
         self.messages_list = MessagesListText(
             self,
             yscrollcommand=self.chat_scroll.set,
-            background=self.config.colors.background.content,
+            background=self.pysaic_config.colors.background.content,
             wrap="word",
         )
         self.messages_list.grid(row=0, column=0, sticky="nsew")
@@ -34,23 +35,24 @@ class ChatTab(Frame):
 
     def apply_styles(self):
         self.messages_list.configure(
-            background=self.config.colors.background.content,
-            font=(self.config.font.name, self.config.font.size),
+            background=self.pysaic_config.colors.background.content,
+            font=(self.pysaic_config.font.name, self.pysaic_config.font.size),
         )
         apply_color_tags_to_text(
             self.messages_list,
-            self.config.colors,
-            bold_font=not self.config.font.turn_off_bold_font_username_in_chat,
-            own_above_faction=self.config.use_static_nick_color,
+            self.pysaic_config.colors,
+            bold_font=not self.pysaic_config.font.turn_off_bold_font_username_in_chat,
+            own_above_faction=self.pysaic_config.use_static_nick_color,
         )
 
 
 class TabbedChat(Frame):
-    def __init__(self, master, config: Config, *args, **kwargs):
+    def __init__(self, master, pysaic_config: Config, *args, **kwargs):
         super().__init__(master, *args, **kwargs)
-        self.config = config
+        self.pysaic_config = pysaic_config
         self.notebook = Notebook(self)
         self.notebook.pack(fill="both", expand=True)
+        self.configure(background=self.pysaic_config.colors.background.app)
 
         self.tabs = {}
         self.add_tab("main", "Main")
@@ -60,8 +62,8 @@ class TabbedChat(Frame):
         self.context_menu = Menu(
             self,
             tearoff=0,
-            background=self.config.colors.background.app,
-            foreground=self.config.colors.content.text,
+            background=self.pysaic_config.colors.background.app,
+            foreground=self.pysaic_config.colors.content.text,
         )
         self.context_menu.add_command(
             label="Close Tab", command=self.close_current_tab
@@ -73,7 +75,7 @@ class TabbedChat(Frame):
         if tab_id in self.tabs:
             return (self.tabs[tab_id]["widget"], False)
 
-        tab = ChatTab(self.notebook, self.config)
+        tab = ChatTab(self.notebook, self.pysaic_config)
         self.notebook.add(tab, text=title)
         self.tabs[tab_id] = {
             "widget": tab,
