@@ -1,5 +1,24 @@
 # Changelog
 
+## `0.3.0b15` - 2026
+### What's New:
+- **Adjusted UI in PySAIC**:
+  - Now padding will be the same for the elements, making UI look more consistent.
+- **New option *default* for Emission and Underground disconnection**:
+  - Each time you go under emission or underground PySAIC will choose what do, but more often PySAIC will disconnect or malform messages
+    - $4$ out of $7$ times PySAIC will disconnect (Common - $57.14$%)
+    - $2$ out of $7$ times PySAIC will malform text (Uncommon - $28.57$%)
+    - $1$ out of $7$ times PySAIC will stay connected (Rare - $14.29$%)
+- **Improved AFK logic**:
+  - Previously when you went AFK and came back after e.g. 15 minutes, PySAIC would send all messages after that time at once, causing a flood of messages. Now it won't happen anymore, you will see only recent ones.
+- **Reduced CPU usage when calculating Avatars**:
+  - Previously, calculating avatars would consume a significant amount of CPU resources. This has been optimized to reduce the load.
+
+### Do I need to do anything?
+- Please reinstall PySAIC using Mod Organizer 2 (MO2) to ensure all updates are applied correctly.
+
+---
+
 ## `0.3.0b14` - 2026-06-01
 ### What's New:
 - **New Integration patch for PDA**
@@ -105,7 +124,7 @@
 - Made Clear Sky more distinguishable from Mercenary in user list
   - their colors were too similar, Clear Sky is now a lighter shade of blue
 - Colors:
-  - changed default theme from gray to more dark ones 
+  - changed default theme from gray to more dark ones
   - now you can configure everything you want, from faction colors to the button color
   - in-game faction colors are hardcoded, they are not synchronized, yet.
 - Font:
