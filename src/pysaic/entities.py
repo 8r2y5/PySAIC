@@ -7,19 +7,18 @@ from typing import Any, Iterable, Optional, Union
 from irclib.parser import Prefix
 
 from pysaic.enums import (
-    AppEventEnum,
     FactionsEnum,
+    InformationType,
     IrcEvents,
     LocationEnum,
-    SAICStateEnum,
     RankEnum,
     ReputationEnum,
-    InformationType,
+    SAICStateEnum,
 )
-from pysaic.events.enum import GameEvents
+from pysaic.events.enum import AppEventEnum, GameEvents
 from pysaic.use_cases.avatar import (
-    is_icon_valid,
     calculate_icon_based_on_faction_and_name,
+    is_icon_valid,
 )
 
 logger = logging.getLogger(__name__)

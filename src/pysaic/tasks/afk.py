@@ -7,11 +7,11 @@ import inject
 
 from pysaic.controllers.game import add_setting_to_game
 from pysaic.entities import IncomingEvent, IncomingQueue
-from pysaic.enums import AppEventEnum
+from pysaic.events.enum import AppEventEnum
 from pysaic.settings import (
-    AFK_TASK_SLEEP_SECONDS,
     AFK_GAME_PING_TASK,
     AFK_SET_TASK,
+    AFK_TASK_SLEEP_SECONDS,
 )
 from pysaic.state import State
 

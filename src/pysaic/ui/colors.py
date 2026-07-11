@@ -7,10 +7,10 @@ from tkinter import (
     Entry,
     Frame,
     Label,
+    Misc,
     Tk,
     Toplevel,
     colorchooser,
-    Misc,
 )
 from tkinter.font import BOLD, Font
 from tkinter.ttk import Scrollbar
@@ -19,27 +19,24 @@ from typing import NamedTuple
 import inject
 
 from pysaic.config import (
-    Config,
-    ColorsConfig,
-    FactionColors,
-    ContentColors,
     BackgroundColors,
+    ColorsConfig,
+    Config,
+    ContentColors,
+    FactionColors,
 )
 from pysaic.controllers.ui.user_list import (
-    ONLINE_ICON,
-    OFFLINE_ICON,
     AFK_ICON,
-    UNDERGROUND_ICON,
+    OFFLINE_ICON,
+    ONLINE_ICON,
     SURGE_ICON,
+    UNDERGROUND_ICON,
 )
-from pysaic.entities import IncomingQueue, IncomingEvent
-from pysaic.enums import FactionsEnum, AppEventEnum
+from pysaic.entities import IncomingEvent, IncomingQueue
+from pysaic.enums import FactionsEnum
+from pysaic.events.enum import AppEventEnum
 from pysaic.ui.constants import WM_DELETE_WINDOW
-from pysaic.ui.utils import (
-    add_separator,
-    ContentFrame,
-    BoldLabel,
-)
+from pysaic.ui.utils import BoldLabel, ContentFrame, add_separator
 
 PATH = Path(os.path.abspath(os.path.dirname(__file__)))
 

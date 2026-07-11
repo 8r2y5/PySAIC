@@ -18,7 +18,8 @@ from pysaic.entities import (
     OutgoingMessage,
     OutgoingQueue,
 )
-from pysaic.enums import AppEventEnum, IrcEvents
+from pysaic.enums import IrcEvents
+from pysaic.events.enum import AppEventEnum
 from pysaic.log.utils import escape_stand_and_end
 from pysaic.router.incoming_router import IncomingRouter
 from pysaic.state import State

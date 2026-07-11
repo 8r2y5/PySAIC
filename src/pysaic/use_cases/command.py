@@ -17,7 +17,8 @@ from pysaic.entities import (
     OutgoingMessage,
     OutgoingQueue,
 )
-from pysaic.enums import AppEventEnum, HistoryMessageEnum, IrcEvents
+from pysaic.enums import HistoryMessageEnum, IrcEvents
+from pysaic.events.enum import AppEventEnum
 from pysaic.irc_protocol import PySaicIrcProtocol
 from pysaic.state import State
 from pysaic.ui.app import App

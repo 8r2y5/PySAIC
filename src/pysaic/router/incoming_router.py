@@ -19,23 +19,20 @@ from pysaic.entities import (
     OutgoingCTCP,
 )
 from pysaic.enums import (
-    AppEventEnum,
     FactionsEnum,
     HistoryMessageEnum,
     LocationEnum,
-    SAICStateEnum,
     RankEnum,
     ReputationEnum,
     SAICCTCPEnum,
+    SAICStateEnum,
 )
+from pysaic.events.enum import AppEventEnum
 from pysaic.router.app_event_router import AppEventRouter
 from pysaic.router.game_event_router import GameEventRouter
 from pysaic.router.irc_event_router import IrcEventRouter
 from pysaic.router.router import Router
-from pysaic.settings import (
-    APP_IDENTITY,
-    START_OF_ACTOR_CHARACTER,
-)
+from pysaic.settings import APP_IDENTITY, START_OF_ACTOR_CHARACTER
 from pysaic.state import State
 from pysaic.ui.app import App
 from pysaic.use_cases.command import CommandUseCase
@@ -44,10 +41,7 @@ from pysaic.use_cases.money_transfer import IncomingMoneyTransferUseCase
 from pysaic.use_cases.text import make_content_malformed
 from pysaic.use_cases.ui.add_dm_message import AddDmMessage
 from pysaic.use_cases.ui.add_message import AddMessageUseCase
-from pysaic.use_cases.ui.utils import (
-    get_faction_actor,
-    normalize_content,
-)
+from pysaic.use_cases.ui.utils import get_faction_actor, normalize_content
 
 logger = logging.getLogger(__name__)
 

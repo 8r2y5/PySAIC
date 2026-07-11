@@ -7,6 +7,7 @@ from typing import Callable
 
 import inject
 
+from pysaic.controllers.game import add_user_update_to_game
 from pysaic.crc_strings.use_case import TravelMessageUseCase
 from pysaic.entities import (
     IncomingEvent,
@@ -15,15 +16,8 @@ from pysaic.entities import (
     OutgoingCTCP,
     OutgoingMessage,
 )
-from pysaic.enums import (
-    AppEventEnum,
-    LocationEnum,
-    RankEnum,
-    ReputationEnum,
-    SAICCTCPEnum,
-)
-from pysaic.controllers.game import add_user_update_to_game
-from pysaic.events.enum import GameEvents
+from pysaic.enums import LocationEnum, RankEnum, ReputationEnum, SAICCTCPEnum
+from pysaic.events.enum import AppEventEnum, GameEvents
 from pysaic.router.router import Router, send_only_when_connected
 from pysaic.router.utils import generic_send_saic_message
 from pysaic.script_reader.entities import Achievement, Handshake

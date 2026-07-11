@@ -5,11 +5,11 @@ from tkinter import END, TclError
 
 from pysaic.controllers.game import (
     add_faction_colored_nicks,
+    add_message_history,
     ask_for_actor_status,
     ask_for_handshake,
     set_ingame_display_setting,
     set_ingame_display_setting_order_setting,
-    add_message_history,
 )
 from pysaic.entities import (
     IncomingEvent,
@@ -17,16 +17,17 @@ from pysaic.entities import (
     OutgoingJoin,
     OutgoingPart,
 )
-from pysaic.enums import AppEventEnum, NetworkDestroyReasonEnum
+from pysaic.enums import NetworkDestroyReasonEnum
+from pysaic.events.enum import AppEventEnum
 from pysaic.log import escape_stand_and_end
 from pysaic.router.router import Router
 from pysaic.router.utils import send_saic_afk, send_saic_avatar
 from pysaic.settings import (
+    AFK_NO_RESPONSE_TIMEDELTA,
     ANOMALY_DIR_PATH,
     DEBUG,
     GAMEDATA_PATH,
     WORKDIR,
-    AFK_NO_RESPONSE_TIMEDELTA,
 )
 from pysaic.tasks.afk import ensure_afk_tasks_are_running, stop_afk_tasks
 from pysaic.ui.utils import apply_style_to_tkinter
@@ -62,6 +63,8 @@ class AppEventRouter(Router):
             AppEventEnum.TOGGLE_AFK: self._handle_toggle_afk,
             AppEventEnum.FOCUS: self._handle_focus_window,
             AppEventEnum.RAW_IRC_MESSAGE: self._handle_raw_irc_message,
+            AppEventEnum.GAME_TRANSPORT_CREATED: self._handle_game_transport_created,
+            AppEventEnum.GAME_TRANSPORT_DELETED: self._handle_game_transport_deleted,
         }
 
     def route(self):
@@ -118,8 +121,6 @@ class AppEventRouter(Router):
         self.chat_users.set_user(
             self.state.nick, self.state.player.create_chat_user()
         )
-
-        self._handle_user_state_according_to_game_process()
 
         self._update_ui_user_list()
         self._update_crc_users_data()
@@ -323,7 +324,7 @@ class AppEventRouter(Router):
         self._set_user_afk()
 
     def _handle_user_state_according_to_game_process(self):
-        if self.state.is_game_running:
+        if self.state.game_transport:
             ensure_afk_tasks_are_running()
 
             if (
@@ -333,7 +334,7 @@ class AppEventRouter(Router):
             ):
                 join_previous_channel()
         else:
-            logger.debug("Game is not running, stopping AFK tasks")
+            logger.debug("Game transport doesn't exist, stopping AFK tasks")
             stop_afk_tasks()
             if not self.state.is_in_channel.is_set():
                 ask_for_actor_status()
@@ -482,3 +483,11 @@ class AppEventRouter(Router):
             self.ui.update_colors()
         except TclError:
             logger.exception("Could not update colors on the fly")
+
+    def _handle_game_transport_created(self):
+        self.state.game_transport = self.event.event.payload
+        self._handle_user_state_according_to_game_process()
+
+    def _handle_game_transport_deleted(self):
+        self.state.game_transport = None
+        self._handle_user_state_according_to_game_process()

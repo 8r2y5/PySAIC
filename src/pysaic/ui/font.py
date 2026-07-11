@@ -1,23 +1,23 @@
 import os
 from pathlib import Path
 from tkinter import (
-    Toplevel,
-    Frame,
-    Text,
-    Listbox,
     END,
-    font,
-    Tk,
     SINGLE,
     Button,
+    Frame,
+    Listbox,
+    Text,
+    Tk,
+    Toplevel,
+    font,
 )
 from tkinter.font import Font
 
 import inject
 
 from pysaic.config import Config
-from pysaic.entities import IncomingQueue, IncomingEvent
-from pysaic.enums import AppEventEnum
+from pysaic.entities import IncomingEvent, IncomingQueue
+from pysaic.events.enum import AppEventEnum
 
 PATH = Path(os.path.abspath(os.path.dirname(__file__)))
 

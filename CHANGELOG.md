@@ -11,6 +11,7 @@
     - $1$ out of $7$ times PySAIC will stay connected (Rare - $14.29$%)
 - **Improved AFK logic**:
   - Previously when you went AFK and came back after e.g. 15 minutes, PySAIC would send all messages after that time at once, causing a flood of messages. Now it won't happen anymore, you will see only recent ones.
+  - Improves logic to player won't be mared as AFK during game loading.
 - **Reduced CPU usage when calculating Avatars**:
   - Previously, calculating avatars would consume a significant amount of CPU resources. This has been optimized to reduce the load.
 

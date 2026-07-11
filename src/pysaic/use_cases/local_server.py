@@ -4,7 +4,7 @@ import logging
 import inject
 
 from pysaic.entities import IncomingEvent, IncomingQueue
-from pysaic.enums import AppEventEnum
+from pysaic.events.enum import AppEventEnum
 from pysaic.script_reader.router import parse_line
 from pysaic.state import State
 
@@ -24,9 +24,11 @@ class GameClientProtocol(asyncio.Protocol):
         self.logger = logger.getChild("game")
 
     @inject.autoparams()
-    def connection_made(self, transport, state: State):
+    def connection_made(self, transport, incoming_queue: IncomingQueue):
         self.transport = transport
-        state.game_transport = transport
+        incoming_queue.create_app_event(
+            AppEventEnum.GAME_TRANSPORT_CREATED, transport
+        )
         self.logger.debug(
             "Game connection made from %s",
             transport.get_extra_info("peername"),
@@ -43,9 +45,13 @@ class GameClientProtocol(asyncio.Protocol):
             self.message_queue.put_nowait(line)
 
     @inject.autoparams()
-    def connection_lost(self, exc, state: State):
+    def connection_lost(
+        self, exc, state: State, incoming_queue: IncomingQueue
+    ):
         self.logger.debug("Game connection lost")
-        state.game_transport = None
+        incoming_queue.create_app_event(
+            AppEventEnum.GAME_TRANSPORT_DELETED, None
+        )
         self.transport = None
 
 
@@ -86,8 +92,7 @@ class PySAICClientProtocol(asyncio.Protocol):
                 # This protocol is for app-level commands, not game messages
                 self.logger.warning("Unknown command received: %r", line)
 
-    @inject.autoparams()
-    def connection_lost(self, exc, state: State):
+    def connection_lost(self, exc):
         self.logger.debug("Connection lost")
         self.transport = None
 

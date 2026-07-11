@@ -15,10 +15,10 @@ from pysaic.controllers.game import (
     add_message_history,
     add_setting_to_game,
     add_signal_state,
+    add_users_list_to_game,
     ask_for_actor_status,
     set_ingame_display_setting,
     set_ingame_display_setting_order_setting,
-    add_users_list_to_game,
 )
 from pysaic.crc_strings.use_case import DeathMessageUseCase
 from pysaic.entities import (
@@ -32,8 +32,8 @@ from pysaic.entities import (
     OutgoingPart,
     OutgoingQueue,
 )
-from pysaic.enums import AppEventEnum, NetworkDestroyReasonEnum
-from pysaic.events.enum import GameEvents
+from pysaic.enums import NetworkDestroyReasonEnum
+from pysaic.events.enum import AppEventEnum, GameEvents
 from pysaic.handlers import join_previous_channel
 from pysaic.router.utils import send_saic_state
 from pysaic.script_reader.entities import (
@@ -41,10 +41,10 @@ from pysaic.script_reader.entities import (
     ConnectionLost,
     Death,
     Handshake,
+    Item,
     Money,
     Rank,
     Reputation,
-    Item,
 )
 from pysaic.state import State
 from pysaic.use_cases.text import make_content_malformed

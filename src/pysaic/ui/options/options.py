@@ -1,14 +1,7 @@
 import logging
 import os
 from pathlib import Path
-from tkinter import (
-    Button,
-    Frame,
-    OptionMenu,
-    Toplevel,
-    DISABLED,
-    NORMAL,
-)
+from tkinter import DISABLED, NORMAL, Button, Frame, OptionMenu, Toplevel
 from tkinter.font import Font
 from tkinter.ttk import Notebook
 
@@ -16,16 +9,16 @@ import inject
 
 from pysaic.config import Config
 from pysaic.entities import AppEvent, IncomingEvent, IncomingQueue
-from pysaic.enums import AppEventEnum
+from pysaic.events.enum import AppEventEnum
 from pysaic.ui.avatar_options import AvatarOptions
 from pysaic.ui.colors import ColorsOptions
 from pysaic.ui.constants import WM_DELETE_WINDOW
 from pysaic.ui.font import FontOptions
-from pysaic.ui.theme_options import ThemeOptions
-from pysaic.ui.utils import apply_style_to_tkinter, update_style
-from pysaic.ui.options.general_tab import GeneralTab
 from pysaic.ui.options.client_tab import ClientTab
 from pysaic.ui.options.display_tab import DisplayTab
+from pysaic.ui.options.general_tab import GeneralTab
+from pysaic.ui.theme_options import ThemeOptions
+from pysaic.ui.utils import apply_style_to_tkinter, update_style
 
 logger = logging.getLogger(__name__)
 

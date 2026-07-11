@@ -4,7 +4,7 @@ from enum import Enum, StrEnum, auto
 
 import yaml
 
-from pysaic.settings import LOCATIONS_FOR_ENUM_PATH, FACTIONS_FOR_ENUM_PATH
+from pysaic.settings import FACTIONS_FOR_ENUM_PATH, LOCATIONS_FOR_ENUM_PATH
 
 logger = logging.getLogger(__name__)
 
@@ -163,30 +163,6 @@ def _load_factions():
 FactionsEnum: Enum = Enum("FactionsEnum", _load_factions())
 # Monkey-patch __str__ to return the value, matching previous behavior
 FactionsEnum.__str__ = lambda self: self.value
-
-
-class AppEventEnum(Enum):
-    COLORS_UPDATED = auto()
-    FOCUS = auto()
-    RAW_IRC_MESSAGE = auto()
-    SET_NOT_AFK = auto()
-    SET_AFK = auto()
-    TOGGLE_AFK = auto()
-    CHECK_AFK = auto()
-    GAME_CHANNEL_CHANGE = auto()
-    CHANGE_CHANNEL = auto()
-    NEW_VERSION = auto()
-    EXIT = auto()
-    CONNECTION_TO_SERVER_ISSUE = auto()
-    NICKNAME_CHANGED = auto()
-    OUR_MESSAGE = auto()
-    COMMAND = auto()
-    OPTIONS_UPDATED = auto()
-    UPDATE_UI_USERS_LIST = auto()
-    DISCONNECTED_FROM_PDA_NETWORK = auto()
-    ACTOR_UPDATE = auto()
-    IN_GAME = auto()
-    UPDATE_USERS = auto()
 
 
 class AvatarEnum(StrEnum):

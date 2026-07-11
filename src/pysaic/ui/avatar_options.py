@@ -3,6 +3,8 @@ import os
 import xml.etree.ElementTree as ET
 from pathlib import Path
 from tkinter import (
+    DISABLED,
+    NORMAL,
     Button,
     Frame,
     Label,
@@ -10,8 +12,6 @@ from tkinter import (
     Radiobutton,
     StringVar,
     Toplevel,
-    DISABLED,
-    NORMAL,
 )
 from tkinter.ttk import Spinbox
 
@@ -19,9 +19,10 @@ import inject
 from PIL import Image, ImageTk
 
 from pysaic.avatar.avatar_maker import save_avatar, textures_path
-from pysaic.constants import FACTION_AVATARS, crcr_factions, PYSAIC_ICON_PLAYER
+from pysaic.constants import FACTION_AVATARS, PYSAIC_ICON_PLAYER, crcr_factions
 from pysaic.entities import IncomingEvent, IncomingQueue
-from pysaic.enums import AppEventEnum, AvatarEnum, FactionsEnum
+from pysaic.enums import AvatarEnum, FactionsEnum
+from pysaic.events.enum import AppEventEnum
 from pysaic.settings import GAMEDATA_PATH
 from pysaic.state import State
 from pysaic.ui.constants import WM_DELETE_WINDOW
