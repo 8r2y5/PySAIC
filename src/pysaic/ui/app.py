@@ -296,7 +296,7 @@ class App(Tk):
             columnspan=2,
             sticky="nsew",
             pady=(2, 1),
-            padx=(2, 0),
+            padx=(3, 0),
         )
         self.input_message = Entry(
             self.bottom_frame,
