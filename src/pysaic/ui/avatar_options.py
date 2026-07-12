@@ -21,8 +21,7 @@ from PIL import Image, ImageTk
 from pysaic.avatar.avatar_maker import save_avatar, textures_path
 from pysaic.constants import FACTION_AVATARS, PYSAIC_ICON_PLAYER, crcr_factions
 from pysaic.entities import IncomingEvent, IncomingQueue
-from pysaic.enums import AvatarEnum, FactionsEnum
-from pysaic.events.enum import AppEventEnum
+from pysaic.enums import AppEventEnum, AvatarEnum, FactionsEnum
 from pysaic.settings import GAMEDATA_PATH
 from pysaic.state import State
 from pysaic.ui.constants import WM_DELETE_WINDOW

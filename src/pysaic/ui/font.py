@@ -17,7 +17,7 @@ import inject
 
 from pysaic.config import Config
 from pysaic.entities import IncomingEvent, IncomingQueue
-from pysaic.events.enum import AppEventEnum
+from pysaic.enums import AppEventEnum
 
 PATH = Path(os.path.abspath(os.path.dirname(__file__)))
 

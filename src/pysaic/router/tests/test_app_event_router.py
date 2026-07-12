@@ -3,7 +3,7 @@ from unittest.mock import Mock, call, patch
 import pytest
 
 from pysaic.entities import ChatUser, IncomingEvent
-from pysaic.events.enum import AppEventEnum
+from pysaic.enums import AppEventEnum
 from pysaic.router.app_event_router import AppEventRouter
 
 

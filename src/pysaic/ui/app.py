@@ -22,7 +22,7 @@ from winotify import Notification, audio
 
 from pysaic.config import Config
 from pysaic.entities import AppEvent, IncomingEvent
-from pysaic.events.enum import AppEventEnum
+from pysaic.enums import AppEventEnum
 from pysaic.settings import APP_IDENTITY, DEBUG
 from pysaic.state import State
 from pysaic.ui.constants import WM_DELETE_WINDOW

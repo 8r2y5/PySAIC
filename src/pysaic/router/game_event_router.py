@@ -16,8 +16,14 @@ from pysaic.entities import (
     OutgoingCTCP,
     OutgoingMessage,
 )
-from pysaic.enums import LocationEnum, RankEnum, ReputationEnum, SAICCTCPEnum
-from pysaic.events.enum import AppEventEnum, GameEvents
+from pysaic.enums import (
+    AppEventEnum,
+    GameEvents,
+    LocationEnum,
+    RankEnum,
+    ReputationEnum,
+    SAICCTCPEnum,
+)
 from pysaic.router.router import Router, send_only_when_connected
 from pysaic.router.utils import generic_send_saic_message
 from pysaic.script_reader.entities import Achievement, Handshake

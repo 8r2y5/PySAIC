@@ -13,8 +13,7 @@ from asyncirc.util.backoff import AsyncDelayer
 from irclib.parser import Message
 
 from pysaic.entities import IncomingEvent, IncomingQueue
-from pysaic.enums import InformationType
-from pysaic.events.enum import AppEventEnum
+from pysaic.enums import AppEventEnum, InformationType
 
 SEND_TYPE = Union[str, bytes]
 

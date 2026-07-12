@@ -9,7 +9,7 @@ import inject
 
 from pysaic.config import Config
 from pysaic.entities import AppEvent, IncomingEvent, IncomingQueue
-from pysaic.events.enum import AppEventEnum
+from pysaic.enums import AppEventEnum
 from pysaic.ui.avatar_options import AvatarOptions
 from pysaic.ui.colors import ColorsOptions
 from pysaic.ui.constants import WM_DELETE_WINDOW

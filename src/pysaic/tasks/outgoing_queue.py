@@ -12,7 +12,7 @@ from pysaic.entities import (
     OutgoingQuery,
     OutgoingQueue,
 )
-from pysaic.events.enum import GameEvents
+from pysaic.enums import GameEvents
 from pysaic.handlers import put_disconnected
 from pysaic.state import State
 

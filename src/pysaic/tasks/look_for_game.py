@@ -6,7 +6,7 @@ from pathlib import Path
 import psutil
 
 from pysaic.entities import AppEvent, IncomingEvent
-from pysaic.events.enum import AppEventEnum
+from pysaic.enums import AppEventEnum
 
 logger = logging.getLogger(__name__)
 

@@ -7,7 +7,7 @@ from yarl import URL
 
 from pysaic import settings
 from pysaic.entities import IncomingEvent, IncomingQueue
-from pysaic.events.enum import AppEventEnum
+from pysaic.enums import AppEventEnum
 
 logger = logging.getLogger(__name__)
 

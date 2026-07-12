@@ -17,8 +17,7 @@ from pysaic.entities import (
     OutgoingJoin,
     OutgoingPart,
 )
-from pysaic.enums import NetworkDestroyReasonEnum
-from pysaic.events.enum import AppEventEnum
+from pysaic.enums import AppEventEnum, NetworkDestroyReasonEnum
 from pysaic.log import escape_stand_and_end
 from pysaic.router.router import Router
 from pysaic.router.utils import send_saic_afk, send_saic_avatar

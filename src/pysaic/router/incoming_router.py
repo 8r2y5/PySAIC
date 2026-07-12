@@ -19,6 +19,7 @@ from pysaic.entities import (
     OutgoingCTCP,
 )
 from pysaic.enums import (
+    AppEventEnum,
     FactionsEnum,
     HistoryMessageEnum,
     LocationEnum,
@@ -27,7 +28,6 @@ from pysaic.enums import (
     SAICCTCPEnum,
     SAICStateEnum,
 )
-from pysaic.events.enum import AppEventEnum
 from pysaic.router.app_event_router import AppEventRouter
 from pysaic.router.game_event_router import GameEventRouter
 from pysaic.router.irc_event_router import IrcEventRouter

@@ -19,7 +19,7 @@ import yaml
 
 from pysaic.config import ColorsConfig, Config
 from pysaic.entities import IncomingEvent, IncomingQueue
-from pysaic.events.enum import AppEventEnum
+from pysaic.enums import AppEventEnum
 from pysaic.settings import THEMES_PATH
 from pysaic.ui.constants import WM_DELETE_WINDOW
 from pysaic.ui.utils import apply_style_to_tkinter

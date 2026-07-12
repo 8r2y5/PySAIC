@@ -3,7 +3,7 @@ from unittest.mock import Mock, PropertyMock, patch
 import pytest
 from packaging.version import Version
 
-from pysaic.events.enum import AppEventEnum
+from pysaic.enums import AppEventEnum
 from pysaic.tasks.update_checker import _check_for_update
 
 

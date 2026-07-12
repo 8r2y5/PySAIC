@@ -32,8 +32,7 @@ from pysaic.entities import (
     OutgoingPart,
     OutgoingQueue,
 )
-from pysaic.enums import NetworkDestroyReasonEnum
-from pysaic.events.enum import AppEventEnum, GameEvents
+from pysaic.enums import AppEventEnum, GameEvents, NetworkDestroyReasonEnum
 from pysaic.handlers import join_previous_channel
 from pysaic.router.utils import send_saic_state
 from pysaic.script_reader.entities import (

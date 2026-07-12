@@ -4,7 +4,7 @@ import logging
 import inject
 
 from pysaic.entities import IncomingEvent, IncomingQueue
-from pysaic.events.enum import AppEventEnum
+from pysaic.enums import AppEventEnum
 from pysaic.script_reader.router import parse_line
 from pysaic.state import State
 

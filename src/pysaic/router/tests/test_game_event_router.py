@@ -6,8 +6,14 @@ from unittest.mock import Mock, call, patch
 import pytest
 
 from pysaic.entities import IncomingEvent, IrcUser
-from pysaic.enums import LocationEnum, RankEnum, ReputationEnum, SAICCTCPEnum
-from pysaic.events.enum import AppEventEnum, GameEvents
+from pysaic.enums import (
+    AppEventEnum,
+    GameEvents,
+    LocationEnum,
+    RankEnum,
+    ReputationEnum,
+    SAICCTCPEnum,
+)
 from pysaic.script_reader.entities import Achievement, Handshake
 from pysaic.settings import LOCATIONS_FOR_ENUM_PATH
 

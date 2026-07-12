@@ -33,8 +33,7 @@ from pysaic.controllers.ui.user_list import (
     UNDERGROUND_ICON,
 )
 from pysaic.entities import IncomingEvent, IncomingQueue
-from pysaic.enums import FactionsEnum
-from pysaic.events.enum import AppEventEnum
+from pysaic.enums import AppEventEnum, FactionsEnum
 from pysaic.ui.constants import WM_DELETE_WINDOW
 from pysaic.ui.utils import BoldLabel, ContentFrame, add_separator
 
