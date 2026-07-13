@@ -121,6 +121,9 @@ class AppEventRouter(Router):
             self.state.nick, self.state.player.create_chat_user()
         )
 
+        if not self.state.is_game_running:
+            self._handle_game_is_not_running()
+
         self._update_ui_user_list()
         self._update_crc_users_data()
         self._send_amogus_message()
@@ -323,7 +326,7 @@ class AppEventRouter(Router):
         self._set_user_afk()
 
     def _handle_user_state_according_to_game_process(self):
-        if self.state.game_transport:
+        if self.state.is_game_running:
             ensure_afk_tasks_are_running()
 
             if (
@@ -333,15 +336,7 @@ class AppEventRouter(Router):
             ):
                 join_previous_channel()
         else:
-            logger.debug("Game transport doesn't exist, stopping AFK tasks")
-            stop_afk_tasks()
-            if not self.state.is_in_channel.is_set():
-                ask_for_actor_status()
-                self.state.is_currently_under_network_destruction = (
-                    NetworkDestroyReasonEnum.none
-                )
-                logger.debug("Joining previous channel")
-                join_previous_channel()
+            self._handle_game_is_not_running()
 
     def _set_user_afk(self):
         self._change_afk_value(True)
@@ -484,9 +479,22 @@ class AppEventRouter(Router):
             logger.exception("Could not update colors on the fly")
 
     def _handle_game_transport_created(self):
+        logger.debug("Game transport created")
         self.state.game_transport = self.event.event.payload
         self._handle_user_state_according_to_game_process()
 
     def _handle_game_transport_deleted(self):
+        logger.debug("Game transport deleted")
         self.state.game_transport = None
         self._handle_user_state_according_to_game_process()
+
+    def _handle_game_is_not_running(self):
+        logger.debug("Game is not running, stopping AFK tasks")
+        stop_afk_tasks()
+        if not self.state.is_in_channel.is_set():
+            ask_for_actor_status()
+            self.state.is_currently_under_network_destruction = (
+                NetworkDestroyReasonEnum.none
+            )
+            logger.debug("Joining previous channel")
+            join_previous_channel()
