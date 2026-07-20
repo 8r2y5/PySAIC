@@ -284,7 +284,6 @@ class GameEventRouter(Router):
         )
 
     def _handle_not_afk(self):
-        logger.debug("Handling NOT_AFK event")
         self.state.player.last_ask_update = datetime.now(UTC)
         if self.state.player.afk is False:
             return
