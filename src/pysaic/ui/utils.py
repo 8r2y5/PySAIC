@@ -2,14 +2,18 @@ import re
 import tkinter
 from tkinter import Frame, TclError, Toplevel
 from tkinter.font import Font
-from tkinter.ttk import Separator, Style, Label
+from tkinter.ttk import Label, Separator, Style
 
-from pysaic.config import Config, ColorsConfig
+from pysaic.config import ColorsConfig, Config
 from pysaic.entities import ChatUser
 from pysaic.enums import FactionsEnum
 from pysaic.settings import DEBUG
 from pysaic.state import State
-from pysaic.use_cases.irc_mode_to_user_type import USER_TYPE_MAP
+from pysaic.use_cases.irc_mode_to_rank import parse_and_get_highest_rank
+from pysaic.use_cases.irc_mode_to_user_type import (
+    USER_TYPE_MAP,
+    parse_mode_to_user_friendly_name,
+)
 
 IRC_MODES_PATTERN = re.compile(
     "[" + re.escape("".join(USER_TYPE_MAP.keys())) + "]"
@@ -130,6 +134,13 @@ class ToolTip:
             if user_info:
                 tooltip_lines = [f"Nick: {username}"]
                 if irc_user := user_info.irc_user:
+                    if parse_and_get_highest_rank(user_info.irc_mode) >= 1:
+                        tooltip_lines.insert(
+                            0,
+                            parse_mode_to_user_friendly_name(
+                                user_info.irc_mode
+                            ),
+                        )
                     tooltip_lines.append(f"User: {irc_user.user}")
                     tooltip_lines.append(f"Host: {irc_user.host}")
                 tooltip_lines.append(f"Location: {user_info.location.value}")

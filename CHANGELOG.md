@@ -2,6 +2,8 @@
 
 ## `0.3.0b15` - 2026
 ### What's New:
+- **User tooltips**:
+  - You will be able to hover over user and see information, their reputation and in-game location name.
 - **Adjusted UI in PySAIC**:
   - Now padding will be the same for the elements, making UI look more consistent.
 - **New option *default* for Emission and Underground disconnection**:

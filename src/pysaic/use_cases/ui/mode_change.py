@@ -5,41 +5,19 @@ from collections import defaultdict
 from pysaic.controllers.game import add_user_update_to_game
 from pysaic.entities import IncomingEvent
 from pysaic.state import State
+from pysaic.use_cases.irc_mode_to_rank import (
+    MODE_TRANSLATOR,
+    RANK_TO_MODE,
+    TRANSLATOR_TO_MODE,
+    get_rank,
+)
 from pysaic.use_cases.ui.update_users import UpdateUsersUseCase
 
 mode_regex = re.compile(r"([+-]\w+)")
 logger = logging.getLogger(__name__)
 
-MODE_TRANSLATOR = {
-    "o": "@",  # Channel Operator, higher than admin
-    "h": "%",  # Half-Operator
-    "v": "+",  # Voiced
-    "a": "&",  # Admin
-    "q": "*",  # Channel Owner/Founder
-    "r": "",
-}
-TRANSLATOR_TO_MODE = {v: k for k, v in MODE_TRANSLATOR.items()}
-MODE_RANKS = {
-    "": 0,
-    "@": 4,
-    "%": 2,
-    "+": 1,
-    "&": 3,
-    "*": 5,
-}
-RANK_TO_MODE = {rank: mode for mode, rank in MODE_RANKS.items()}
-
 
 SET = object()
-
-
-def get_rank(modes):
-    try:
-        return max(
-            MODE_RANKS.get(MODE_TRANSLATOR.get(mode, ""), 0) for mode in modes
-        )
-    except ValueError:
-        return 0
 
 
 class ModeChangeUseCase:
