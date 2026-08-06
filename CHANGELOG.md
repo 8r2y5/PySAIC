@@ -17,6 +17,11 @@
 - **Reduced CPU usage when calculating Avatars**:
   - Previously, calculating avatars would consume a significant amount of CPU resources. This has been optimized to reduce the load.
 
+### Bug fixes:
+- **_Fixed issue with chat messages not displaying correctly_** in certain scenarios.
+- **_Resolved problem with UI elements not aligning properly_** in the settings panel.
+- **_Resolved problem with selected custom avatar_** which prevented game from showing custom avatars at all.
+
 ### Do I need to do anything?
 - Please reinstall PySAIC using Mod Organizer 2 (MO2) to ensure all updates are applied correctly.
 
