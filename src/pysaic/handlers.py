@@ -267,7 +267,7 @@ async def handle_notice_from_NickServ(
     ):
         await nick_is_not_held(incoming_queue, outgoing_queue, config)
 
-    elif message.parameters[1] == "You are not logged in.":
+    elif message.parameters[1] == "You are no logged in.":
         logger.warning("Could not identify: not logged in")
         await incoming_queue.put(
             IncomingEvent.create_information_event(

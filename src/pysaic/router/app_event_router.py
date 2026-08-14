@@ -356,7 +356,7 @@ class AppEventRouter(Router):
         if value is True and not current_value:
             self._add_information_text("You are now marked as AFK.")
         elif value is False and current_value:
-            self._add_information_text("You are not longer marked as AFK.")
+            self._add_information_text("You are no longer marked as AFK.")
 
         if close_socket:
             self.state.close_socket()
