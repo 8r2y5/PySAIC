@@ -10,6 +10,7 @@ local prev_actor
 local prev_level
 local prev_reputation
 local prev_rank
+local gotHandshake = false
 
 local function isTrue(value)
 	return value == "True"
@@ -332,6 +333,7 @@ end
 
 function parseHandshake(body)
 	pysaic_io.send_handshake(body)
+	gotHandshake = true
 end
 
 function parseInGameDisplayOrder(value)
@@ -719,6 +721,9 @@ function actor_on_net_destroy()
 end
 
 function actorOnItemTake(item)
+    if not gotHandshake then
+        return
+    end
 	item_name = pysaic_utils.gt(item:section()) or item:section()
 	if IsArtefact(item) then
 		pysaic_io.send('ArtifactFound/%s/%s/%s', item:name(), level.name(), item_name)
@@ -744,8 +749,10 @@ function on_game_start()
 	RegisterScriptCallback("actor_on_update", actor_on_update)
 	RegisterScriptCallback("actor_on_achievement_earned", on_achievement_earned)
 	RegisterScriptCallback("actor_on_net_destroy", actor_on_net_destroy)
+
 	-- Not using axr_keybind for old version compatibility
 	RegisterScriptCallback("on_key_press", onKeyPress)
+
 	RegisterScriptCallback("actor_on_item_take", actorOnItemTake)
     RegisterScriptCallback("actor_on_first_update", start_pysaic)
 end
