@@ -10,32 +10,34 @@ from pysaic.script_reader.entities import (
     AFK,
     Achievement,
     ActorStatus,
+    ArtifactFound,
     ChannelChange,
     ChannelMessage,
     ConnectionLost,
     Death,
+    Error,
     Handshake,
+    Item,
     Location,
     Money,
     Rank,
     Reputation,
-    Item,
-    ArtifactFound,
 )
 from pysaic.script_reader.handlers import (
-    _handle_channel_message,
-    _handle_handshake,
-    _handle_death,
-    _handle_connection_lost,
-    _handle_money,
-    _handle_actor_status,
-    _handle_channel_change,
-    _handle_location,
     _handle_achievement,
-    _handle_reputation,
-    _handle_rank,
+    _handle_actor_status,
     _handle_afk,
+    _handle_channel_change,
+    _handle_channel_message,
+    _handle_connection_lost,
+    _handle_death,
+    _handle_error,
+    _handle_handshake,
     _handle_item,
+    _handle_location,
+    _handle_money,
+    _handle_rank,
+    _handle_reputation,
 )
 from pysaic.state import State
 
@@ -101,6 +103,7 @@ router.register_handler(Rank.in_file_id, _handle_rank)
 router.register_handler(AFK.in_file_id, _handle_afk)
 router.register_handler(Item.in_file_id, _handle_item)
 router.register_handler(ArtifactFound.in_file_id, _handle_item)
+router.register_handler(Error.in_file_id, _handle_error)
 
 
 async def parse_line(line, incoming_queue: IncomingQueue):

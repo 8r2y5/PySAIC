@@ -1,35 +1,36 @@
 from pysaic.config import Config
 from pysaic.entities import IncomingQueue, OutgoingQueue
 from pysaic.script_reader.entities import (
-    ChannelMessage,
-    Handshake,
-    Death,
-    ConnectionLost,
-    Money,
-    ChannelChange,
-    ActorStatus,
-    Location,
-    Achievement,
-    Reputation,
-    Rank,
     AFK,
+    Achievement,
+    ActorStatus,
+    ChannelChange,
+    ChannelMessage,
+    ConnectionLost,
+    Death,
+    Error,
+    Handshake,
     Item,
+    Location,
+    Money,
+    Rank,
+    Reputation,
 )
 from pysaic.state import State
 from pysaic.use_cases.game import (
+    ConnectionLostUseCase,
     GameChannelMessageUseCase,
     GameHandshakeUseCase,
-    PlayerDiedUseCase,
-    ConnectionLostUseCase,
     MoneyChangeUseCase,
-    channel_change_use_case,
-    actor_status_use_case,
-    location_use_case,
+    PlayerDiedUseCase,
     achievement_use_case,
-    reputation_use_case,
-    rank_use_case,
+    actor_status_use_case,
     afk_use_case,
+    channel_change_use_case,
     item_add,
+    location_use_case,
+    rank_use_case,
+    reputation_use_case,
 )
 
 
@@ -182,3 +183,15 @@ async def _handle_item(
     _state: State,
 ):
     await item_add(Item.from_line(rest), incoming_queue)
+
+
+async def _handle_error(
+    rest: str,
+    _config: Config,
+    incoming_queue: IncomingQueue,
+    _outgoing_queue: OutgoingQueue,
+    _state: State,
+):
+    await incoming_queue.put(
+        IncomingQueue.create_error_event(Error.from_line(rest).content)
+    )

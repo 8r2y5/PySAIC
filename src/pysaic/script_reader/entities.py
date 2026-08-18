@@ -2,9 +2,9 @@ import logging
 from dataclasses import field
 from datetime import datetime
 from functools import partial, wraps
-from typing import List, Optional, NamedTuple, Self
+from typing import List, NamedTuple, Optional, Self
 
-from pysaic.enums import FactionsEnum, NetworkDestroyReasonEnum, LocationEnum
+from pysaic.enums import FactionsEnum, LocationEnum, NetworkDestroyReasonEnum
 
 main_logger = logging.getLogger(__name__)
 
@@ -248,3 +248,16 @@ class Item(NamedTuple):
 
 class ArtifactFound(Item):
     in_file_id = "ArtifactFound"
+
+
+class Text(NamedTuple):
+    content: str
+    in_file_id = "Text"
+
+    @classmethod
+    def from_line(cls, line: str) -> Self:
+        return cls(content=line)
+
+
+class Error(Text):
+    pass

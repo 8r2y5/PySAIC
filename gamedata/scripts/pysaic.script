@@ -73,6 +73,10 @@ local function _get_title_value(faction, user_type)
     elseif user_type == pysaic_constants.IRCUserModeEnum.Voice then
         title_value = pysaic_utils.gt("pysaic_irc_voice")
     end
+    if not title_value then
+        title_value = ''
+        pysaic_io.send('Error/Could not find translation for: %s', user_type)
+    end
     if title_value ~= '' then
         title_value = title_value .. ', '
     end

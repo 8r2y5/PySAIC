@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="windows-1251"?>
+<string_table>
+	<string id="pysaic_irc_operator">
+		<text>Оператор</text>
+	</string>
+	<string id="pysaic_irc_halfop">
+		<text>Полу-ОП</text>
+	</string>
+	<string id="pysaic_irc_voice">
+		<text>Озвученный</text>
+	</string>
+</string_table>
