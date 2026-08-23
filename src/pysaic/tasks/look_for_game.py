@@ -12,7 +12,9 @@ logger = logging.getLogger(__name__)
 
 
 def find_game_process():
-    logger.debug("Looking for game process in the system processes")
+    logger.getChild("find_game_process").debug(
+        "Looking for game process in the system processes"
+    )
     for p in psutil.process_iter():
         try:
             if "AnomalyDX" in p.name():
