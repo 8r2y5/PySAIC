@@ -27,6 +27,12 @@ async def _internal_ping(conn: "PySaicIrcProtocol", message: Message) -> None:
 
 
 class PySaicIrcProtocol(IrcProtocol):
+    # this is to avoid issues with the `with` statements
+    __enter__ = None
+    __exit__ = None
+    __aenter__ = None
+    __aexit__ = None
+
     def __init__(
         self,
         servers: Sequence[Server],
