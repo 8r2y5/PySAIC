@@ -4,7 +4,7 @@ import logging
 import socket
 from asyncio import AbstractEventLoop
 from itertools import cycle
-from typing import Optional, Sequence, Tuple, Union
+from typing import Optional, Sequence, Tuple, Union, cast
 
 import inject
 from asyncirc.protocol import IrcProtocol, SASLMechanism
@@ -191,3 +191,19 @@ class PySaicIrcProtocol(IrcProtocol):
 
     async def async_send(self, text: SEND_TYPE) -> asyncio.Future:
         return asyncio.wrap_future(self.send(text), loop=self.loop)
+
+    def connection_made(self, transport: "asyncio.BaseTransport") -> None:
+        """Called by the event loop when the connection has been established"""
+        if not self.server:
+            msg = "Server not set during connection_made()"
+            raise ValueError(msg)
+
+        self._transport = cast(asyncio.Transport, transport)
+        self._connected = True
+        self._connected_future.set_result(None)
+        self.send("CAP LS 302")
+        if self.server.password:
+            self.send(f"PASS {self.server.password}")
+
+        self.send(f"NICK {self.nick}")
+        self.send(f"USER {self.user} 0 * :{self.realname}")
