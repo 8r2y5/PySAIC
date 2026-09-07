@@ -22,7 +22,7 @@ logger = logging.getLogger(__name__)
 
 
 async def _internal_ping(conn: "PySaicIrcProtocol", message: Message) -> None:
-    # difference between asyncirc and pysaic this use await to send PONG
+    # difference between asyncirc and pysaic this uses await to send PONG
     await conn.async_send(f"PONG {message.parameters}")
 
 
