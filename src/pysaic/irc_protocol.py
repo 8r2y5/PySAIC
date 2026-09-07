@@ -106,7 +106,8 @@ class PySaicIrcProtocol(IrcProtocol):
         self.logger.warning("Connection lost")
         incoming_queue.put_nowait(
             IncomingEvent.create_app_event(
-                AppEventEnum.CONNECTION_TO_SERVER_ISSUE, "Connection lost."
+                AppEventEnum.CONNECTION_TO_SERVER_ISSUE,
+                "Connection lost with the server.",
             )
         )
         super().connection_lost(exc)

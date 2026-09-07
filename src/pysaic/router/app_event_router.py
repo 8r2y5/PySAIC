@@ -1,7 +1,10 @@
 import logging
+from asyncio import AbstractEventLoop
 from datetime import UTC, datetime
 from logging import LogRecord
 from tkinter import END, TclError
+
+import inject
 
 from pysaic.controllers.game import (
     add_faction_colored_nicks,
@@ -18,6 +21,7 @@ from pysaic.entities import (
     OutgoingPart,
 )
 from pysaic.enums import AppEventEnum, NetworkDestroyReasonEnum
+from pysaic.irc_protocol import PySaicIrcProtocol
 from pysaic.log import escape_stand_and_end
 from pysaic.router.router import Router
 from pysaic.router.utils import send_saic_afk, send_saic_avatar
@@ -219,13 +223,18 @@ class AppEventRouter(Router):
             command = content
             params = None
 
-        CommandUseCase.handle(
-            self.state,
-            self.config,
-            self.ui,
-            command,
-            params,
-        )
+        try:
+            CommandUseCase.handle(
+                self.state,
+                self.config,
+                self.ui,
+                command,
+                params,
+            )
+        except Exception:
+            logger.exception(
+                "Error occurred while handling command: %s %s", command, params
+            )
 
     def _handle_nickname_changed(self):
         logger.debug("Handling NICKNAME_CHANGED event")
@@ -263,7 +272,10 @@ class AppEventRouter(Router):
         self._update_ui_user_list()
         self._add_information_text(f"Nick changed to {self.state.nick!r}")
 
-    def _handle_connection_to_server_issue(self):
+    @inject.autoparams()
+    def _handle_connection_to_server_issue(
+        self, bot: PySaicIrcProtocol, loop: AbstractEventLoop
+    ):
         self._add_information_text(
             f"Connection problem: {self.event.event.payload}"
         )
@@ -273,6 +285,7 @@ class AppEventRouter(Router):
         self.state.is_author_authorized.clear()
         self._update_ui_user_list()
         self._update_crc_users_data()
+        loop.create_task(bot.connect())
 
     def _handle_game_channel_change(self, payload):
         part = OutgoingPart(channel=self.config.server.previous_channel)

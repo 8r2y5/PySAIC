@@ -4,14 +4,14 @@ import logging
 import logging.config
 import sys
 import traceback
-from functools import partial
 from dataclasses import asdict
+from functools import partial
 
 import inject
 import yaml
 from asyncirc.server import Server
 
-from pysaic.config import Config, ColorsConfig
+from pysaic.config import ColorsConfig, Config
 from pysaic.entities import IncomingEvent, IncomingQueue, OutgoingQueue
 from pysaic.enums import IrcEvents
 from pysaic.irc_protocol import PySaicIrcProtocol
@@ -20,10 +20,10 @@ from pysaic.settings import (
     APP_IDENTITY,
     DEBUG,
     GAMEDATA_PATH,
-    WORKDIR,
-    THEMES_PATH,
-    get_log_config,
     PROJECT_PATH,
+    THEMES_PATH,
+    WORKDIR,
+    get_log_config,
 )
 from pysaic.state import State
 from pysaic.tasks.app import update_app
@@ -31,9 +31,9 @@ from pysaic.tasks.common import close_everything_callback
 from pysaic.use_cases.get_user_for_irc import get_user_for_irc
 from pysaic.use_cases.local_server import (
     ask_instance_to_focus,
-    get_pysaic_localserver,
-    get_game_server,
     game_message_processor,
+    get_game_server,
+    get_pysaic_localserver,
 )
 from pysaic.use_cases.notification_registry import (
     check_and_register_uri_protocol,
@@ -203,13 +203,13 @@ def setup_inject(
     logger.debug("Configuring inject")
     from pysaic.ui.app import App
 
-    binder.bind(App, app)
-    binder.bind(State, state)
-    binder.bind(IncomingQueue, incoming_queue)
-    binder.bind(OutgoingQueue, outgoing_queue)
-    binder.bind(Config, config)
-    binder.bind(asyncio.AbstractEventLoop, loop)
-    binder.bind(PySaicIrcProtocol, irc)
+    binder.bind_to_provider(App, lambda: app)
+    binder.bind_to_provider(State, lambda: state)
+    binder.bind_to_provider(IncomingQueue, lambda: incoming_queue)
+    binder.bind_to_provider(OutgoingQueue, lambda: outgoing_queue)
+    binder.bind_to_provider(Config, lambda: config)
+    binder.bind_to_provider(asyncio.AbstractEventLoop, lambda: loop)
+    binder.bind_to_provider(PySaicIrcProtocol, lambda: irc)
 
 
 def initialize_logging():
@@ -327,7 +327,9 @@ def main():
             config=config,
             loop=loop,
             irc=irc,
-        )
+        ),
+        once=True,
+        bind_in_runtime=False,
     )
     from pysaic.tasks.update_checker import update_checker
 
