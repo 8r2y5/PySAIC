@@ -333,18 +333,11 @@ class ConnectionLostUseCase:
             return
 
         if state.is_currently_under_network_destruction == self.entity.reason:
-            logger.info(
-                "Already in the desired state, ignoring",
-            )
+            self._check_if_already_in_desired_state()
             return
+
         state.is_currently_under_network_destruction = self.entity.reason
-        if self.entity.lost is True:
-            if state.fake_disconnect:
-                self._do_full_disconnect()
-            elif state.should_malform_messages:
-                self._do_only_malform_messages()
-        elif self.entity.lost is False:
-            self._dont_disconnect()
+        self._handle_network_destruction()
 
     @inject.autoparams()
     def _do_full_disconnect(self, state: State, loop: AbstractEventLoop):
@@ -398,6 +391,22 @@ class ConnectionLostUseCase:
         loop.create_task(
             _task(self.entity.reason), name="malform_only_disconnect"
         )
+
+    @inject.autoparams()
+    def _check_if_already_in_desired_state(self, state: State):
+        logger.info("Already in the desired state.")
+        if state.is_in_channel:
+            self._handle_network_destruction()
+
+    @inject.autoparams()
+    def _handle_network_destruction(self, state: State):
+        if self.entity.lost is True:
+            if state.fake_disconnect:
+                self._do_full_disconnect()
+            elif state.should_malform_messages:
+                self._do_only_malform_messages()
+        elif self.entity.lost is False:
+            self._dont_disconnect()
 
 
 async def actor_status_use_case(actor_status, incoming_queue: IncomingQueue):
