@@ -16,10 +16,10 @@ from pysaic.enums import (
     DisconnectOnNetworkDestructionSetting,
     HistoryMessageEnum,
     LocationEnum,
-    SAICStateEnum,
+    NetworkDestroyReasonEnum,
     RankEnum,
     ReputationEnum,
-    NetworkDestroyReasonEnum,
+    SAICStateEnum,
 )
 from pysaic.use_cases.avatar import calculate_icon_based_on_faction_and_name
 
@@ -130,8 +130,8 @@ class RandomNetworkDestructionStrategy(NetworkDestructionStrategy):
 class RealisticNetworkDestructionStrategy(RandomNetworkDestructionStrategy):
     STRATEGY_WEIGHTS = {
         NeverNetworkDestructionStrategy: 1,
-        AlwaysNetworkDestructionStrategy: 4,
-        MalformOnlyNetworkDestructionStrategy: 2,
+        AlwaysNetworkDestructionStrategy: 10,
+        MalformOnlyNetworkDestructionStrategy: 3,
     }
 
     def __init__(self):

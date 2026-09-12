@@ -8,9 +8,9 @@
   - Now padding will be the same for the elements, making UI look more consistent.
 - **New option *default* for Emission and Underground disconnection**:
   - Each time you go under emission or underground PySAIC will choose what do, but more often PySAIC will disconnect or malform messages
-    - $4$ out of $7$ times PySAIC will disconnect (Common - $57.14$%)
-    - $2$ out of $7$ times PySAIC will malform text (Uncommon - $28.57$%)
-    - $1$ out of $7$ times PySAIC will stay connected (Rare - $14.29$%)
+    - $10$ out of $15$ times PySAIC will disconnect (Common - 71.40%)
+    - $4$ out of $15$ times PySAIC will malform text (Uncommon - 21.40%)
+    - $1$ out of $15$ times PySAIC will stay connected (Rare - 7.10%)
 - **Improved AFK logic**:
   - Previously when you went AFK and came back after e.g. 15 minutes, PySAIC would send all messages after that time at once, causing a flood of messages. Now it won't happen anymore, you will see only recent ones.
   - Improves logic to player won't be mared as AFK during game loading.

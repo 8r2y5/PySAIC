@@ -1,6 +1,6 @@
 # Python Stalker Anomaly IRC Client
-or PySAIC for short.  
-Based on [CRCR / Chernobyl Relay Chat Rebirth](https://github.com/8r2y5/Chernobyl-Relay-Chat-Rebirth), rewritten in Python with additional features and improvements.  
+or PySAIC for short.
+Based on [CRCR / Chernobyl Relay Chat Rebirth](https://github.com/8r2y5/Chernobyl-Relay-Chat-Rebirth), rewritten in Python with additional features and improvements.
 Compatible with any Stalker Anomaly version and modpack that uses Stalker Anomaly.
 
 ![preview](preview1.png)
@@ -27,7 +27,7 @@ Compatible with any Stalker Anomaly version and modpack that uses Stalker Anomal
   - Want to use your own server? You can do that! Just edit the `server.yml` file.
   - You can connect to any IRC server that supports the protocol, not only the one that Chernobyl Relay Chat uses. Just change it in `server.yml` file.
   - Twitch IRC is supported too, you can use it to chat with your viewers while streaming Stalker Anomaly.
-    - Check [Twitch Connection Guide here](#Twitch-Connection-Guide).  
+    - Check [Twitch Connection Guide here](#Twitch-Connection-Guide).
 - **Custom channels / Networks**
   - Want to create your own channel? Perhaps even use different network for your community? You can do that! Just add it or modify the `server.yml` file.
 - **Customizable**
@@ -51,7 +51,7 @@ Compatible with any Stalker Anomaly version and modpack that uses Stalker Anomal
 - **Custom Avatars / Profile Picture**
   - You can create your own avatar using PySAIC avatar creator, please note it will be only visible to you.
 - **See others status in-game - Compatible with [CRCR / Chernobyl Relay Chat Rebirth](https://github.com/8r2y5/Chernobyl-Relay-Chat-Rebirth)**
-  - Online status 
+  - Online status
   - Avatar / Profile Picture
   - Faction
   - **PySAIC Client** (if they use it)
@@ -62,13 +62,13 @@ Compatible with any Stalker Anomaly version and modpack that uses Stalker Anomal
     - Status (Underground / Emission)
 - **Simulation of signal reception in-game**
   - You can configure what PySAIC should do when you are under emission or underground (you can set it up separately in options):
-    - **Random**
+    - Random
       - each time you go under emission or underground PySAIC will choose what do
-    - **Realistic**  (_default_)
+    - Realistic  (***default***)
       - each time you go under emission or underground PySAIC will choose what do, but more often PySAIC will disconnect or malform messages
-        - $4$ out of $7$ times PySAIC will disconnect (Common - 57.14%)
-        - $2$ out of $7$ times PySAIC will malform text (Uncommon - 28.57%)
-        - $1$ out of $7$ times PySAIC will stay connected (Rare - 14.29%)
+        - $10$ out of $15$ times PySAIC will disconnect (Common - 71.40%)
+        - $4$ out of $15$ times PySAIC will malform text (Uncommon - 21.40%)
+        - $1$ out of $15$ times PySAIC will stay connected (Rare - 7.10%)
     - **Never**
       - PySAIC will stay always connected no matter what
     - **Malform Signal Only**
@@ -80,7 +80,7 @@ Compatible with any Stalker Anomaly version and modpack that uses Stalker Anomal
 
 
 ## Ability to identify with IRC server
-You can provide password in `Options`.  
+You can provide password in `Options`.
 To register your nick type, `/msg NickServ REGISTER [password] [email]` and follow the instructions.
 Configuration is stored in `config.yml` file, which is created after the first run of the client.
 
@@ -134,9 +134,9 @@ It is stored inside `config.yml` file.
             <img src="https://img.shields.io/discord/1254093654172110898?color=5865F2&label=Discord%20Server&logo=discord&logoColor=5865F2&style=for-the-badge" alt="Discord Server">
         </a>
     </p>
-</div> 
+</div>
 
-# Installation 
+# Installation
 Use mod manager or for those who are not using it, here are steps how to install it directly into Anomaly
 1. Extract the contents of the zip wherever you like, preferably inside Anomaly's game directory.
 2. Copy the included in `00_Core` folder (`bin`, `gamedata`, `res`, `pysaic`) folders to your Anomaly directory.
@@ -146,9 +146,9 @@ Use mod manager or for those who are not using it, here are steps how to install
     - `pysaic` -> `Anomaly\pysaic`
 
 # Usage
-Run `pysaic.exe`; the application must be running for in-game chat to work.  
-After connecting, click the Options button to change your name and other settings, it can be lunched after/before Anomaly.  
-Once playing, press Enter (by default) to bring up the chat interface and Enter again to send your message, or Escape to close without sending.  
+Run `pysaic.exe`; the application must be running for in-game chat to work.
+After connecting, click the Options button to change your name and other settings, it can be lunched after/before Anomaly.
+Once playing, press Enter (by default) to bring up the chat interface and Enter again to send your message, or Escape to close without sending.
 You may use text commands from the game or client by starting with a /. Use `/commands` to see all available commands.
 
 # Connecting to different IRC servers
