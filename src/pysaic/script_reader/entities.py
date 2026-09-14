@@ -2,6 +2,7 @@ import logging
 from dataclasses import field
 from datetime import datetime
 from decimal import Decimal
+from enum import StrEnum
 from functools import partial, wraps
 from typing import List, NamedTuple, Optional, Self
 
@@ -244,6 +245,18 @@ class ItemUpgrade(NamedTuple):
     value: Decimal
 
 
+class AttachmentEnum(StrEnum):
+    grenade_launcher = "gl"
+    silencer = "sn"
+    scope = "s"
+
+
+class ItemAttachment(NamedTuple):
+    item_id: str
+    attachment_type: type[AttachmentEnum]
+    value: Decimal
+
+
 class InventoryItem(NamedTuple):
     item_id: str
     game_id: str
@@ -253,6 +266,8 @@ class InventoryItem(NamedTuple):
     estimated_value: Decimal
     parts: list[ItemPart]
     upgrades: list[ItemUpgrade]
+    attachments: list[ItemAttachment]
+    is_equipped: bool
     in_file_id = "InventoryItem"
 
     @classmethod
@@ -266,9 +281,11 @@ class InventoryItem(NamedTuple):
             estimated_value,
             parts_string,
             upgrade_string,
-        ) = line.split("/", 7)
+            attachments_string,
+            is_equipped,
+        ) = line.split("/", 9)
+        parts = []
         if parts_string != "none":
-            parts = []
             for part_string in parts_string.split("|"):
                 item_id, condition, estimated_value = part_string.split(":", 2)
                 parts.append(
@@ -278,11 +295,9 @@ class InventoryItem(NamedTuple):
                         estimated_value=Decimal(estimated_value),
                     )
                 )
-        else:
-            parts = []
 
+        upgrades = []
         if upgrade_string != "none":
-            upgrades = []
             for upgrade_string in upgrade_string.split("|"):
                 item_id, estimated_value = upgrade_string.split(":", 1)
                 upgrades.append(
@@ -291,8 +306,20 @@ class InventoryItem(NamedTuple):
                         value=Decimal(estimated_value),
                     )
                 )
-        else:
-            upgrades = []
+
+        attachments = []
+        if attachments_string != "none":
+            for attachment_string in attachments_string.split("|"):
+                item_id, attachment_type, value = attachment_string.split(
+                    ":", 1
+                )
+                attachments.append(
+                    ItemAttachment(
+                        item_id=item_id,
+                        attachment_type=AttachmentEnum[attachment_type],
+                        value=Decimal(estimated_value),
+                    )
+                )
 
         return cls(
             item_id=item_id,
@@ -303,6 +330,8 @@ class InventoryItem(NamedTuple):
             estimated_value=Decimal(estimated_value),
             parts=parts,
             upgrades=upgrades,
+            attachments=attachments,
+            is_equipped=is_equipped,
         )
 
 

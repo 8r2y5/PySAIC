@@ -28,14 +28,14 @@ local function _parse_inventory_item(owner, item)
 
     local parts_string = "none"
     local upgrades_string = "none"
+    local attachments_string = "none"
 
     if item_parts and (IsWeapon(nil, clsid) or IsOutfit(nil, clsid) or IsHeadgear(nil, clsid)) then
+        -- 1. Parts
         local parts_data = item_parts.get_parts_con(item)
-
         if parts_data and type(parts_data) == "table" then
             local p_list = {}
             for p_sec, p_cond in pairs(parts_data) do
-                -- Format as section:condition:value
                 local part_value = tostring(math.floor(get_section_base_cost(p_sec) * p_cond))
                 p_list[#p_list + 1] = string.format("%s:%s:%s", p_sec, tostring(p_cond), part_value)
             end
@@ -43,24 +43,48 @@ local function _parse_inventory_item(owner, item)
             if #p_list > 0 then
                 parts_string = table.concat(p_list, "|")
             end
+            if #p_list > 0 then parts_string = table.concat(p_list, "|") end
         end
 
+        -- 2. Upgrades
         local upgrades_list = {}
         item:iterate_installed_upgrades(function(upg_sec)
             -- Format as section:value
             upgrades_list[#upgrades_list + 1] = string.format('%s:%s', upg_sec, get_section_base_cost(upg_sec))
         end)
+        if #upgrades_list > 0 then upgrades_string = table.concat(upgrades_list, "|") end
 
-        if #upgrades_list > 0 then
-            upgrades_string = table.concat(upgrades_list, "|")
+        -- 3. Attachments (Weapons only)
+        if IsWeapon(nil, clsid) then
+            local flags = item:get_addon_flags()
+            local att_list = {}
+
+            -- Scope Attached?
+            if (flags % 2 >= 1) then
+                local scope = item:get_scope_name()
+                if scope then table.insert(att_list, "s:" .. scope) end
+            end
+            -- Silencer Attached?
+            if (flags % 4 >= 2) then
+                local silencer = ini_sys:r_string_ex(section, "silencer_name")
+                if silencer then table.insert(att_list, "sn:" .. silencer) end
+            end
+            -- GL Attached?
+            if (flags % 8 >= 4) then
+                local gl = ini_sys:r_string_ex(section, "grenade_launcher_name")
+                if gl then table.insert(att_list, "gl:" .. gl) end
+            end
+
+            if #att_list > 0 then attachments_string = table.concat(att_list, "|") end
         end
     end
 
-    printf("Item: %s (ID: %s), Condition: %s, Amount: %s (%s), Value: %s, Parts: %s, Upgrades: %s",
-        section, id, condition, tostring(amount), amount_type, estimated_value, parts_string, upgrades_string)
+    local is_equipped = is_item_equipped(item) and "true" or "false"
 
-    local payload = string.format('InventoryItem/%s/%s/%s/%s/%s/%s/%s/%s',
-        section, id, tostring(condition), tostring(amount), amount_type, estimated_value, parts_string, upgrades_string)
+    -- Added attachments_string to payload
+    local payload = string.format('InventoryItem/%s/%s/%s/%s/%s/%s/%s/%s/%s/%s',
+        section, id, tostring(condition), tostring(amount), amount_type, estimated_value,
+        parts_string, upgrades_string, attachments_string, is_equipped)
 
     pysaic_io.send(payload)
 end

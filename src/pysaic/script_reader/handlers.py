@@ -220,6 +220,7 @@ class Inventory:
                     item.estimated_value
                     + sum(part.estimated_value for part in item.parts)
                     + sum(upgrade.value for upgrade in item.upgrades)
+                    + sum(attachment.value for attachment in item.attachments)
                 )
 
         estimated_inventory_value = sum(money_counter.values())
