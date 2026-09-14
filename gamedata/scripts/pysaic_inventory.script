@@ -1,0 +1,126 @@
+function _parse_inventory_item(owner, item)
+    local section = item:section()
+    local id = tostring(item:id())
+    local condition = item:condition()
+
+    local amount = 1
+    local amount_type = "single"
+    local clsid = item:clsid()
+
+    if IsAmmo(nil, clsid) then
+        -- Check ammo count in the box
+        amount = item:ammo_get_count()
+        amount_type = 'ammo'
+    elseif ini_sys:r_float_ex(section, "max_uses") then
+        -- Check remaining charges for multi-use items
+        amount = item:get_remaining_uses()
+        amount_type = 'uses'
+    end
+
+    local base_cost = ini_sys:r_float_ex(section, "cost", 2) or 0
+
+    -- Multiply base cost by current item condition (0.0 to 1.0)
+    local estimated_value = tostring(math.floor(base_cost * condition))
+    printf("Item: %s (ID: %s), Condition: %s, Amount: %s (%s), estimated_value: %s", section, id, condition, tostring(amount), amount_type, estimated_value)
+    local payload = string.format('InventoryItem/%s/%s/%s/%s/%s/%s', section, id, tostring(condition), tostring(amount), amount_type, estimated_value)
+    pysaic_io.send(payload)
+end
+
+function scan_inventory()
+    pysaic_io.send('InventoryStart/')
+    db.actor:iterate_inventory(
+        _parse_inventory_item,
+        db.actor
+    )
+    pysaic_io.send('InventoryEnd/')
+end
+
+
+function get_item_data(item)
+    if not item then return nil end
+
+    local section = item:section()
+    local cls_id = item:clsid()
+
+    ---------------------------------------------------------
+    -- 1. DISPLAY NAME (Localized Text)
+    ---------------------------------------------------------
+    -- Read string ID from LTX (e.g. "st_wpn_ak74_name") and translate it
+    local inv_name_id = SYS_GI:r_string_ex(section, "inv_name") or section
+    local item_name = game.translate_string(inv_name_id)
+
+    ---------------------------------------------------------
+    -- 2. ITEM TYPE / CATEGORY
+    ---------------------------------------------------------
+    local item_type = "Misc"
+
+    -- Engine Helper Check (Class IDs)
+    if IsWeapon(nil, cls_id) then
+        item_type = "Weapon"
+    elseif IsOutfit(nil, cls_id) or IsHeadgear(nil, cls_id) then
+        item_type = "Armor"
+    elseif IsArtefact(nil, cls_id) then
+        item_type = "Artefact"
+    elseif IsAmmo(nil, cls_id) then
+        item_type = "Ammo"
+    else
+        -- Fallback check for consumables/medical items via LTX configuration
+        local kind = SYS_GI:r_string_ex(section, "kind") or ""
+        if kind:find("i_medical") or kind:find("i_food") then
+            item_type = "Consumable"
+        end
+    end
+
+    ---------------------------------------------------------
+    -- 3. IN-GAME VALUE CALCULATIONS
+    ---------------------------------------------------------
+    -- Read base price defined in item's LTX configuration
+    local base_cost = SYS_GI:r_value(section, "cost", 2) or 0
+
+    -- Multiply base cost by current item condition (0.0 to 1.0)
+    local condition = item:condition()
+    local estimated_value = math.floor(base_cost * condition)
+
+    return {
+        section = section,
+        name = item_name,
+        type = item_type,
+        base_cost = base_cost,
+        condition = condition,
+        value = estimated_value
+    }
+end
+
+
+function get_weapon_attachments(wpn)
+    if not wpn or not IsWeapon(nil, wpn:clsid()) then return nil end
+
+    -- Helper functions exposed by the engine
+    local has_scope    = wpn:weapon_is_scope()    -- returns boolean
+    local has_silencer = wpn:weapon_is_silencer() -- returns boolean
+    local has_gl       = wpn:weapon_is_grenadelauncher() -- returns boolean
+
+    -- Fetch specific section names if attached
+    local scope_sec, silencer_sec, gl_sec = nil, nil, nil
+
+    if has_scope then
+        -- Reads the scope section attached to the gun
+        scope_sec = wpn:get_scope_name()
+    end
+
+    if has_silencer then
+        -- Reads silencer section from LTX config
+        silencer_sec = SYS_GI:r_string_ex(wpn:section(), "silencer_name")
+    end
+
+    if has_gl then
+        -- Reads grenade launcher section from LTX config
+        gl_sec = SYS_GI:r_string_ex(wpn:section(), "grenade_launcher_name")
+    end
+
+    return {
+        scope = scope_sec,
+        silencer = silencer_sec,
+        grenade_launcher = gl_sec
+    }
+end

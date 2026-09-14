@@ -212,6 +212,7 @@ class State:
         ]()
 
     def __init__(self, config: Config):
+        self.inventory = []
         self.state_lock = threading.Lock()
         self.pending_updates: dict[str, int | str] = {}
         self.id: str = str(id(self))

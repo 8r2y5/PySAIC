@@ -17,6 +17,9 @@ from pysaic.script_reader.entities import (
     Death,
     Error,
     Handshake,
+    InventoryEnd,
+    InventoryItem,
+    InventoryStart,
     Item,
     Location,
     Money,
@@ -24,6 +27,7 @@ from pysaic.script_reader.entities import (
     Reputation,
 )
 from pysaic.script_reader.handlers import (
+    Inventory,
     _handle_achievement,
     _handle_actor_status,
     _handle_afk,
@@ -101,6 +105,15 @@ router.register_handler(Achievement.in_file_id, _handle_achievement)
 router.register_handler(Reputation.in_file_id, _handle_reputation)
 router.register_handler(Rank.in_file_id, _handle_rank)
 router.register_handler(AFK.in_file_id, _handle_afk)
+router.register_handler(
+    InventoryItem.in_file_id, Inventory._handle_inventory_item
+)
+router.register_handler(
+    InventoryStart.in_file_id, Inventory._handle_inventory_start
+)
+router.register_handler(
+    InventoryEnd.in_file_id, Inventory._handle_inventory_end
+)
 router.register_handler(Item.in_file_id, _handle_item)
 router.register_handler(ArtifactFound.in_file_id, _handle_item)
 router.register_handler(Error.in_file_id, _handle_error)

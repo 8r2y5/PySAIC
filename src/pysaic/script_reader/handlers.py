@@ -1,3 +1,6 @@
+import logging
+from collections import Counter
+
 from pysaic.config import Config
 from pysaic.entities import IncomingQueue, OutgoingQueue
 from pysaic.script_reader.entities import (
@@ -10,6 +13,7 @@ from pysaic.script_reader.entities import (
     Death,
     Error,
     Handshake,
+    InventoryItem,
     Item,
     Location,
     Money,
@@ -32,6 +36,8 @@ from pysaic.use_cases.game import (
     rank_use_case,
     reputation_use_case,
 )
+
+logger = logging.getLogger(__name__)
 
 
 async def _handle_channel_message(
@@ -173,6 +179,60 @@ async def _handle_afk(
     _state: State,
 ):
     await afk_use_case(AFK.from_line(rest), incoming_queue)
+
+
+class Inventory:
+    logger = logger.getChild("Inventory")
+
+    @classmethod
+    async def _handle_inventory_start(
+        cls,
+        rest: str,
+        _config: Config,
+        _incoming_queue: IncomingQueue,
+        _outgoing_queue: OutgoingQueue,
+        state: State,
+    ):
+        cls.logger.info("Handling inventory start: %s", rest)
+        state.inventory.clear()
+
+    @classmethod
+    async def _handle_inventory_end(
+        cls,
+        rest: str,
+        _config: Config,
+        _incoming_queue: IncomingQueue,
+        _outgoing_queue: OutgoingQueue,
+        state: State,
+    ):
+        cls.logger.info("Handling inventory end: %s", rest)
+        cls.logger.info("Inventory: %s", state.inventory)
+        estimated_inventory_value = sum(
+            item.estimated_value for item in state.inventory
+        )
+        cls.logger.info(
+            "Estimated inventory value: %s", estimated_inventory_value
+        )
+        most_expensive_item = max(
+            state.inventory, key=lambda item: item.estimated_value
+        )
+        cls.logger.info("Most expensive item: %s", most_expensive_item)
+        counted_items = Counter()
+        for item in state.inventory:
+            counted_items[item.item_id] += item.amount
+        cls.logger.info("Grouped items: %s", counted_items)
+
+    @classmethod
+    async def _handle_inventory_item(
+        cls,
+        rest: str,
+        _config: Config,
+        _incoming_queue: IncomingQueue,
+        _outgoing_queue: OutgoingQueue,
+        state: State,
+    ):
+        cls.logger.info("Handling inventory item: %s", rest)
+        state.inventory.append(InventoryItem.from_line(rest))
 
 
 async def _handle_item(

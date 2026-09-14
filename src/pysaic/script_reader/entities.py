@@ -1,6 +1,7 @@
 import logging
 from dataclasses import field
 from datetime import datetime
+from decimal import Decimal
 from functools import partial, wraps
 from typing import List, NamedTuple, Optional, Self
 
@@ -230,6 +231,38 @@ class AFK(NamedTuple):
     @classmethod
     def from_line(cls, line):
         return cls(value=line)
+
+
+class InventoryItem(NamedTuple):
+    item_id: str
+    game_id: str
+    condition: Decimal
+    amount: int
+    amount_type: str
+    estimated_value: Decimal
+    in_file_id = "InventoryItem"
+
+    @classmethod
+    def from_line(cls, line):
+        item_id, game_id, condition, amount, amount_type, estimated_value = (
+            line.split("/", 6)
+        )
+        return cls(
+            item_id=item_id,
+            game_id=game_id,
+            condition=Decimal(condition),
+            amount=int(amount),
+            amount_type=amount_type,
+            estimated_value=Decimal(estimated_value),
+        )
+
+
+class InventoryStart(NamedTuple):
+    in_file_id = "InventoryStart"
+
+
+class InventoryEnd(NamedTuple):
+    in_file_id = "InventoryEnd"
 
 
 class Item(NamedTuple):

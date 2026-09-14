@@ -119,6 +119,28 @@ def add_signal_state(content: str):
 
 
 @ensure_game_is_running
+def ask_about_inventory():
+    logger.debug("Asking about inventory")
+    add_to_crc_input_file("InventoryList/")
+
+
+@ensure_game_is_running
+def add_item_to_inventory(
+    item_id: str, count_type: str, count: int, condition: str
+):
+    logger.debug(
+        "Adding item to inventory: %s %s %s %s",
+        item_id,
+        count_type,
+        count,
+        condition,
+    )
+    add_to_crc_input_file(
+        f"Inventory/Add/{item_id}/{count_type}/{count}/{condition}"
+    )
+
+
+@ensure_game_is_running
 def add_faction_colored_nicks(enabled: bool):
     add_setting_to_game("FactionColoredNicks", str(enabled))
 

@@ -485,6 +485,10 @@ function parseSignalState(body)
     IS_SIGNAL_LOST = body == 'True'
 end
 
+function parseInventoryList(body)
+	pysaic_inventory.scan_inventory()
+end
+
 local inputActions = {
 	Information = addInformationMessage,
 	Error = addErrorMessage,
@@ -498,7 +502,8 @@ local inputActions = {
 	Users = parseUsers,
 	UserUpdate = parse_single_user,
 	UserRemove = parseUserRemove,
-    SignalState = parseSignalState
+    SignalState = parseSignalState,
+	InventoryList = parseInventoryList
 }
 
 
