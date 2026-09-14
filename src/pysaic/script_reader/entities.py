@@ -239,6 +239,11 @@ class ItemPart(NamedTuple):
     estimated_value: Decimal
 
 
+class ItemUpgrade(NamedTuple):
+    item_id: str
+    value: Decimal
+
+
 class InventoryItem(NamedTuple):
     item_id: str
     game_id: str
@@ -247,6 +252,7 @@ class InventoryItem(NamedTuple):
     amount_type: str
     estimated_value: Decimal
     parts: list[ItemPart]
+    upgrades: list[ItemUpgrade]
     in_file_id = "InventoryItem"
 
     @classmethod
@@ -259,7 +265,8 @@ class InventoryItem(NamedTuple):
             amount_type,
             estimated_value,
             parts_string,
-        ) = line.split("/", 6)
+            upgrade_string,
+        ) = line.split("/", 7)
         if parts_string != "none":
             parts = []
             for part_string in parts_string.split("|"):
@@ -274,6 +281,19 @@ class InventoryItem(NamedTuple):
         else:
             parts = []
 
+        if upgrade_string != "none":
+            upgrades = []
+            for upgrade_string in upgrade_string.split("|"):
+                item_id, estimated_value = upgrade_string.split(":", 1)
+                upgrades.append(
+                    ItemUpgrade(
+                        item_id=item_id,
+                        value=Decimal(estimated_value),
+                    )
+                )
+        else:
+            upgrades = []
+
         return cls(
             item_id=item_id,
             game_id=game_id,
@@ -282,6 +302,7 @@ class InventoryItem(NamedTuple):
             amount_type=amount_type,
             estimated_value=Decimal(estimated_value),
             parts=parts,
+            upgrades=upgrades,
         )
 
 

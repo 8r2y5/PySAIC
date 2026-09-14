@@ -205,6 +205,7 @@ class Inventory:
         _outgoing_queue: OutgoingQueue,
         state: State,
     ):
+        state.inventory.release_lock()
         cls.logger.info("Handling inventory end: %s", rest)
         cls.logger.info("Inventory: %s", state.inventory)
         inventory = defaultdict(list)
@@ -215,8 +216,10 @@ class Inventory:
         money_counter = Counter()
         for items in inventory.values():
             for item in items:
-                money_counter[item.item_id] += item.estimated_value + sum(
-                    part.estimated_value for part in item.parts
+                money_counter[item.item_id] += (
+                    item.estimated_value
+                    + sum(part.estimated_value for part in item.parts)
+                    + sum(upgrade.value for upgrade in item.upgrades)
                 )
 
         estimated_inventory_value = sum(money_counter.values())
@@ -239,7 +242,7 @@ class Inventory:
         state: State,
     ):
         cls.logger.info("Handling inventory item: %s", rest)
-        state.inventory.append(InventoryItem.from_line(rest))
+        state.inventory.append_item(InventoryItem.from_line(rest))
 
 
 async def _handle_item(

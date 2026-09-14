@@ -1,4 +1,8 @@
-function _parse_inventory_item(owner, item)
+local function get_section_base_cost(section)
+    return ini_sys:r_float_ex(section, "cost", 2) or 0
+end
+
+local function _parse_inventory_item(owner, item)
     local section = item:section()
     local id = tostring(item:id())
     local condition = item:condition()
@@ -17,36 +21,47 @@ function _parse_inventory_item(owner, item)
         amount_type = 'uses'
     end
 
-    local base_cost = ini_sys:r_float_ex(section, "cost", 2) or 0
+    local base_cost = get_section_base_cost(section)
 
     -- Multiply base cost by current item condition (0.0 to 1.0)
     local estimated_value = tostring(math.floor(base_cost * condition))
-    -- Extract item parts for weapons and armor
+
     local parts_string = "none"
+    local upgrades_string = "none"
 
     if item_parts and (IsWeapon(nil, clsid) or IsOutfit(nil, clsid) or IsHeadgear(nil, clsid)) then
-        -- get_parts_con returns a table: { ["prt_w_barrel_1"] = 85, ["prt_w_trigger_1"] = 92 }
         local parts_data = item_parts.get_parts_con(item)
 
         if parts_data and type(parts_data) == "table" then
             local p_list = {}
             for p_sec, p_cond in pairs(parts_data) do
-                -- Format as section:condition
-                local part_value = tostring(math.floor(ini_sys:r_float_ex(p_sec, "cost", 2)), p_cond)
-                table.insert(p_list, string.format("%s:%s:%s", p_sec, tostring(p_cond), part_value))
+                -- Format as section:condition:value
+                local part_value = tostring(math.floor(get_section_base_cost(p_sec) * p_cond))
+                p_list[#p_list + 1] = string.format("%s:%s:%s", p_sec, tostring(p_cond), part_value)
             end
 
             if #p_list > 0 then
-                -- Join multiple parts with a pipe character
                 parts_string = table.concat(p_list, "|")
             end
         end
+
+        local upgrades_list = {}
+        item:iterate_installed_upgrades(function(upg_sec)
+            -- Format as section:value
+            upgrades_list[#upgrades_list + 1] = string.format('%s:%s', upg_sec, get_section_base_cost(upg_sec))
+        end)
+
+        if #upgrades_list > 0 then
+            upgrades_string = table.concat(upgrades_list, "|")
+        end
     end
 
-    printf("Item: %s (ID: %s), Condition: %s, Amount: %s (%s), Value: %s, Parts: %s", section, id, condition, tostring(amount), amount_type, estimated_value, parts_string)
+    printf("Item: %s (ID: %s), Condition: %s, Amount: %s (%s), Value: %s, Parts: %s, Upgrades: %s",
+        section, id, condition, tostring(amount), amount_type, estimated_value, parts_string, upgrades_string)
 
-    -- Appended parts_string to the end of the payload
-    local payload = string.format('InventoryItem/%s/%s/%s/%s/%s/%s/%s', section, id, tostring(condition), tostring(amount), amount_type, estimated_value, parts_string)
+    local payload = string.format('InventoryItem/%s/%s/%s/%s/%s/%s/%s/%s',
+        section, id, tostring(condition), tostring(amount), amount_type, estimated_value, parts_string, upgrades_string)
+
     pysaic_io.send(payload)
 end
 

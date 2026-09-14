@@ -2,7 +2,7 @@ import asyncio
 import logging
 import threading
 from abc import ABC, abstractmethod
-from collections import deque
+from collections import UserList, deque
 from dataclasses import dataclass
 from datetime import datetime
 from pathlib import Path
@@ -151,6 +151,26 @@ NETWORK_DESTRUCTION_MAP = {
 }
 
 
+class StateInventory(UserList):
+    def __init__(self):
+        super().__init__()
+        self.lock = threading.RLock()
+
+    def clear(self) -> None:
+        self.lock.acquire(blocking=True, timeout=3)
+        self.data.clear()
+
+    def append_item(self, item) -> None:
+        self.data.append(item)
+
+    def release_lock(self):
+        self.lock.release()
+
+    def __iter__(self):
+        with self.lock:
+            return iter(self.data)
+
+
 class State:
     @property
     def nick(self) -> str:
@@ -212,7 +232,7 @@ class State:
         ]()
 
     def __init__(self, config: Config):
-        self.inventory = []
+        self.inventory = StateInventory()
         self.state_lock = threading.Lock()
         self.pending_updates: dict[str, int | str] = {}
         self.id: str = str(id(self))
