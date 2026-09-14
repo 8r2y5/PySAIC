@@ -1,5 +1,5 @@
 import logging
-from collections import Counter
+from collections import Counter, defaultdict
 
 from pysaic.config import Config
 from pysaic.entities import IncomingQueue, OutgoingQueue
@@ -207,20 +207,27 @@ class Inventory:
     ):
         cls.logger.info("Handling inventory end: %s", rest)
         cls.logger.info("Inventory: %s", state.inventory)
-        estimated_inventory_value = sum(
-            item.estimated_value for item in state.inventory
-        )
+        inventory = defaultdict(list)
+        for item in state.inventory:
+            inventory[item.item_id].append(item)
+
+        cls.logger.info("Parsed inventory: %s", inventory)
+        money_counter = Counter()
+        for items in inventory.values():
+            for item in items:
+                money_counter[item.item_id] += item.estimated_value + sum(
+                    part.estimated_value for part in item.parts
+                )
+
+        estimated_inventory_value = sum(money_counter.values())
         cls.logger.info(
             "Estimated inventory value: %s", estimated_inventory_value
         )
+
         most_expensive_item = max(
-            state.inventory, key=lambda item: item.estimated_value
+            money_counter, key=lambda item_id: money_counter[item_id]
         )
         cls.logger.info("Most expensive item: %s", most_expensive_item)
-        counted_items = Counter()
-        for item in state.inventory:
-            counted_items[item.item_id] += item.amount
-        cls.logger.info("Grouped items: %s", counted_items)
 
     @classmethod
     async def _handle_inventory_item(

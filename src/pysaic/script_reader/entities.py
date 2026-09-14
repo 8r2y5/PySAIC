@@ -233,6 +233,12 @@ class AFK(NamedTuple):
         return cls(value=line)
 
 
+class ItemPart(NamedTuple):
+    item_id: str
+    condition: Decimal
+    estimated_value: Decimal
+
+
 class InventoryItem(NamedTuple):
     item_id: str
     game_id: str
@@ -240,13 +246,34 @@ class InventoryItem(NamedTuple):
     amount: int
     amount_type: str
     estimated_value: Decimal
+    parts: list[ItemPart]
     in_file_id = "InventoryItem"
 
     @classmethod
     def from_line(cls, line):
-        item_id, game_id, condition, amount, amount_type, estimated_value = (
-            line.split("/", 6)
-        )
+        (
+            item_id,
+            game_id,
+            condition,
+            amount,
+            amount_type,
+            estimated_value,
+            parts_string,
+        ) = line.split("/", 6)
+        if parts_string != "none":
+            parts = []
+            for part_string in parts_string.split("|"):
+                item_id, condition, estimated_value = part_string.split(":", 2)
+                parts.append(
+                    ItemPart(
+                        item_id=item_id,
+                        condition=Decimal(condition),
+                        estimated_value=Decimal(estimated_value),
+                    )
+                )
+        else:
+            parts = []
+
         return cls(
             item_id=item_id,
             game_id=game_id,
@@ -254,6 +281,7 @@ class InventoryItem(NamedTuple):
             amount=int(amount),
             amount_type=amount_type,
             estimated_value=Decimal(estimated_value),
+            parts=parts,
         )
 
 
