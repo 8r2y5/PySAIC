@@ -3,7 +3,7 @@ from collections import Counter
 from tkinter import END
 
 from pysaic.entities import ChatUser
-from pysaic.enums import FactionsEnum, UserListDisplayModeEnum, SAICStateEnum
+from pysaic.enums import FactionsEnum, SAICStateEnum, UserListDisplayModeEnum
 
 ONLINE_ICON = "●"
 OFFLINE_ICON = "○"
@@ -23,6 +23,7 @@ class SortedMixin:
         self.config = config
         self.users_list = users_list
         self.users = users
+        self.new_line = ""
 
     def _add_user(self, chat_user):
         tag, icon = (
@@ -42,12 +43,16 @@ class SortedMixin:
             )
         # logger.debug("Adding user: %r (%r)", chat_user, tag)
         faction_tag = get_faction_tag(chat_user.faction)
-        self.users_list.insert(END, f" {icon} ", tag)
+        self.users_list.insert(END, f"{self.new_line} {icon} ", tag)
+        prefix = (
+            chat_user.irc_mode if self.config.enable_irc_user_display else ""
+        )
         self.users_list.insert(
             END,
-            f"{chat_user.irc_mode if self.config.enable_irc_user_display else ''}{chat_user.name}\n",
+            f"{prefix}{chat_user.name}",
             faction_tag,
         )
+        self.new_line = "\n"
 
 
 class NamesInAlphabeticalOrder(SortedMixin):
@@ -104,6 +109,8 @@ class GroupByFactionWithCounter(SortedMixin):
         self.counter = Counter(
             [chat_user.faction for chat_user in self.users.values()]
         )
+        # we need to override _add_user section will be first item
+        self.new_line = "\n"
 
     def sort_by(self, chat_user: ChatUser):
         faction = get_faction_tag(chat_user.faction)
@@ -117,6 +124,7 @@ class GroupByFactionWithCounter(SortedMixin):
 
     def write(self):
         last_group = None
+        section_new_line = ""
         users_sorted = sorted(
             self.users.values(), key=self.sort_by, reverse=False
         )
@@ -124,11 +132,14 @@ class GroupByFactionWithCounter(SortedMixin):
             faction_tag = get_faction_tag(chat_user.faction)
             if last_group != faction_tag:
                 display_tag = faction_tag.replace("_", " ")
-                self.users_list.insert(END, f"{display_tag}", faction_tag)
                 self.users_list.insert(
-                    END, f" ({self.counter[chat_user.faction]})\n", "Text"
+                    END, f"{section_new_line}{display_tag}", faction_tag
+                )
+                self.users_list.insert(
+                    END, f" ({self.counter[chat_user.faction]})", "Text"
                 )
                 last_group = faction_tag
+                section_new_line = "\n"
 
             self._add_user(chat_user)
 
