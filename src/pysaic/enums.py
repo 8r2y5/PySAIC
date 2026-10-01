@@ -1,6 +1,6 @@
 import logging
 from contextlib import suppress
-from enum import Enum, StrEnum, auto
+from enum import Enum, EnumMeta, StrEnum, auto
 
 import yaml
 
@@ -267,9 +267,11 @@ class SAICStateEnum(StrEnum):
     ok = "0"
     emission = "1"
     underground = "2"
+    psy_storm = "3"
 
 
 class NetworkDestroyReasonEnum(StrEnum):
+    psy_storm = auto()
     none = auto()
     surge = auto()
     underground = auto()
@@ -283,7 +285,37 @@ class UserListDisplayModeEnum(StrEnum):
     GroupByFactionWithCounter = "Group by faction with counter"
 
 
-class SAICCTCPEnum(StrEnum):
+class NestedEnum(Enum):
+    def __new__(cls, *args):
+        obj = object.__new__(cls)
+        obj._value_ = args[0]
+        return obj
+
+    def __init__(self, value, nested=None):
+        if nested and isinstance(nested, EnumMeta):
+            for enm in nested:
+                # combine parent enum value with child enum value
+                setattr(self, enm.name, f"{self.value}.{enm.value}")
+
+
+class NestedStrEnum(NestedEnum, StrEnum):
+    def __new__(cls, *args):
+        value = args[0]
+        # must pass value to str.__new__ since str instances are immutable
+        obj = str.__new__(cls, value)
+        obj._value_ = value
+        return obj
+
+
+class SAICTrade(NestedStrEnum):
+    ADD_ITEM = "ADD"
+    MODIFY = "MODIFY"
+    DEL_ITEM = "DEL"
+    ACCEPT = "ACCEPT"
+    CANCEL = "CANCEL"
+
+
+class SAICCTCPEnum(NestedStrEnum):
     VERSION = "VERSION"
     CLIENTINFO = "CLIENTINFO"
     PING = "PING"
@@ -296,6 +328,8 @@ class SAICCTCPEnum(StrEnum):
     SAICAFK = "SAICAFK"
     SAICAVATAR = "SAICAVATAR"
     SAICSTATE = "SAICSTATE"
+
+    SAICTrade = "SAICTRADE.1", SAICTrade
 
 
 class GameEvents(Enum):
