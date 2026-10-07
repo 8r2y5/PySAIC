@@ -489,6 +489,18 @@ function parseInventoryList(body)
 	pysaic_inventory.scan_inventory()
 end
 
+function parseItem(body)
+	local action, item_id, game_id, amount, amount_type, condition, parts_string, upgrades_string, attachments_string = body:match("([^/]+)/([^/]+)/([^/]+)/([^/]+)/([^/]+)/([^/]+)/([^/]+)/([^/]+)/(.+)")
+	printf('body: %s', body)
+	printf("item_id:%s, game_id:%s, amount:%s, amount_type:%s, condition:%s, parts_string:%s, upgrades_string:%s, attachments_string:%s", item_id, game_id, amount, amount_type, condition, parts_string, upgrades_string, attachments_string)
+	if action then
+		local handler = pysaic_item_utils.itemActions[action]
+		if handler then
+			handler(item_id, game_id, amount, amount_type, condition, parts_string, upgrades_string, attachments_string)
+		end
+	end
+end
+
 local inputActions = {
 	Information = addInformationMessage,
 	Error = addErrorMessage,
@@ -503,7 +515,8 @@ local inputActions = {
 	UserUpdate = parse_single_user,
 	UserRemove = parseUserRemove,
     SignalState = parseSignalState,
-	InventoryList = parseInventoryList
+	InventoryList = parseInventoryList,
+	Item = parseItem
 }
 
 

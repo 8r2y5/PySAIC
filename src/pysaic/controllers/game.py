@@ -126,17 +126,39 @@ def ask_about_inventory():
 
 @ensure_game_is_running
 def add_item_to_inventory(
-    item_id: str, count_type: str, count: int, condition: str
+    item_id: str,
+    amount: str = "1",
+    amount_type: str = "single",
+    condition: str = "1",
+    parts_string: str = "none",
+    upgrades_string: str = "none",
+    attachments_string: str = "none",
 ):
     logger.debug(
-        "Adding item to inventory: %s %s %s %s",
+        "Adding %s, %s, %s, %s, %s, %s, %s",
         item_id,
-        count_type,
-        count,
+        amount,
+        amount_type,
         condition,
+        parts_string,
+        upgrades_string,
+        attachments_string,
     )
     add_to_crc_input_file(
-        f"Inventory/Add/{item_id}/{count_type}/{count}/{condition}"
+        "/".join(
+            (
+                "Item",
+                "add",
+                item_id,
+                "none",
+                amount,
+                amount_type,
+                condition,
+                parts_string,
+                upgrades_string,
+                attachments_string,
+            )
+        )
     )
 
 

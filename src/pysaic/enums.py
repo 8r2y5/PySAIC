@@ -311,6 +311,7 @@ class SAICTrade(NestedStrEnum):
     ADD_ITEM = "ADD"
     MODIFY = "MODIFY"
     DEL_ITEM = "DEL"
+    CHECK = "CHECK"
     ACCEPT = "ACCEPT"
     CANCEL = "CANCEL"
 

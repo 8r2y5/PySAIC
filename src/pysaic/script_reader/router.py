@@ -70,7 +70,7 @@ class Router:
             logger.exception("Error parsing line: %r", line)
             return
         else:
-            logger.info("Got line: %r", line)
+            logger.debug("Got line: %r", line)
 
         if (
             not state.got_first_handshake.is_set()

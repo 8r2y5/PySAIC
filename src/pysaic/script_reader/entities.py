@@ -291,7 +291,7 @@ class InventoryItem(NamedTuple):
                 parts.append(
                     ItemPart(
                         item_id=item_id,
-                        condition=Decimal(condition),
+                        condition=round(Decimal(condition), 2),
                         estimated_value=Decimal(estimated_value),
                     )
                 )
@@ -324,7 +324,7 @@ class InventoryItem(NamedTuple):
         return cls(
             item_id=item_id,
             game_id=game_id,
-            condition=Decimal(condition),
+            condition=round(Decimal(condition), 2),
             amount=int(amount),
             amount_type=amount_type,
             estimated_value=Decimal(estimated_value),

@@ -1,0 +1,365 @@
+local function get_section_base_cost(section)
+    return ini_sys:r_float_ex(section, "cost", 2) or 0
+end
+
+
+local function is_item_equipped(item)
+    -- Check if it's an artifact on the belt
+    if db.actor:is_on_belt(item) then
+        return true
+    end
+
+    -- Check all 13 standard inventory slots (weapons, outfit, helmet, PDA, etc.)
+    for i = 1, 13 do
+        local slot_item = db.actor:item_in_slot(i)
+        if slot_item and slot_item:id() == item:id() then
+            return true
+        end
+    end
+
+    return false
+end
+
+
+local function _get_item_parts_string(item)
+    local parts_data = item_parts.get_parts_con(item)
+    local parts_string = 'none'
+    if parts_data and type(parts_data) == "table" then
+        local p_list = {}
+        for p_sec, p_cond in pairs(parts_data) do
+            local part_value = tostring(math.floor(get_section_base_cost(p_sec) * p_cond))
+            p_list[#p_list + 1] = string.format("%s:%s:%s", p_sec, tostring(p_cond), part_value)
+        end
+
+        if #p_list > 0 then
+            parts_string = table.concat(p_list, "|")
+        end
+    end
+    return parts_string
+end
+
+
+local function _get_item_upgrades_string(item)
+    local upgrades_list = {}
+    local upgrades_string = 'none'
+    item:iterate_installed_upgrades(
+        function(upg_sec)
+            -- Format as section:value
+            upgrades_list[#upgrades_list + 1] = string.format('%s:%s', upg_sec, get_section_base_cost(upg_sec))
+        end
+    )
+    if #upgrades_list > 0 then
+        upgrades_string = table.concat(upgrades_list, "|")
+    end
+    return upgrades_string
+end
+
+
+local function _get_item_attachments_string(item)
+    local attachments_string = 'none'
+    local se_wpn = alife_object(item:id())
+    local flags = se_wpn.addon_flags
+    local att_list = {}
+    if not flags then
+        return attachments_string
+    end
+
+    -- Scope Attached?
+    if (flags % 2 >= 1) then
+        local scope = item:get_scope_name()
+        if scope then
+            att_list[#att_list + 1] = string.format('s:%s:%s', scope, get_section_base_cost(scope))
+        end
+    end
+    -- Silencer Attached?
+    if (flags % 4 >= 2) then
+        local silencer = ini_sys:r_string_ex(section, "silencer_name")
+        if silencer then
+            att_list[#att_list + 1] = string.format('sn:%s:%s', silencer, get_section_base_cost(silencer))
+        end
+    end
+    -- GL Attached?
+    if (flags % 8 >= 4) then
+        local gl = ini_sys:r_string_ex(section, "grenade_launcher_name")
+        if gl then
+            att_list[#att_list + 1] = string.format('gl:%s:%s', gl, get_section_base_cost(gl))
+        end
+    end
+
+    if #att_list > 0 then
+        attachments_string = table.concat(att_list, "|")
+    end
+    return attachments_string
+end
+
+
+local function _parse_inventory_item(owner, item)
+    local section = item:section()
+    local id = tostring(item:id())
+    local condition = item:condition()
+
+    local amount = 1
+    local amount_type = "single"
+    local clsid = item:clsid()
+
+    if IsAmmo(nil, clsid) then
+        -- Check ammo count in the box
+        amount = item:ammo_get_count()
+        amount_type = 'ammo'
+    elseif ini_sys:r_float_ex(section, "max_uses") then
+        -- Check remaining charges for multi-use items
+        amount = item:get_remaining_uses()
+        amount_type = 'uses'
+    end
+
+    local base_cost = get_section_base_cost(section)
+
+    -- Multiply base cost by current item condition (0.0 to 1.0)
+    local estimated_value = tostring(math.floor(base_cost * condition))
+
+    local parts_string = "none"
+    local upgrades_string = "none"
+    local attachments_string = "none"
+
+    if item_parts and (IsWeapon(nil, clsid) or IsOutfit(nil, clsid) or IsHeadgear(nil, clsid)) then
+        -- 1. Parts
+        parts_string = _get_item_parts_string(item)
+
+        -- 2. Upgrades
+        upgrades_string = _get_item_upgrades_string(item)
+
+        -- 3. Attachments (Weapons only)
+        if IsWeapon(nil, clsid) then
+            attachments_string = _get_item_attachments_string(item)
+        end
+    end
+
+    local is_equipped = is_item_equipped(item) and "true" or "false"
+
+    -- Added attachments_string to payload
+    local payload = string.format('InventoryItem/%s/%s/%s/%s/%s/%s/%s/%s/%s/%s',
+        section, id, tostring(condition), tostring(amount), amount_type, estimated_value,
+        parts_string, upgrades_string, attachments_string, is_equipped)
+
+    pysaic_io.send(payload)
+end
+
+
+function scan_inventory()
+    pysaic_io.send('InventoryStart/')
+    db.actor:iterate_inventory(
+        _parse_inventory_item,
+        db.actor
+    )
+    pysaic_io.send('InventoryEnd/')
+end
+
+local function is_item_valid(item_id)
+    return ini_sys:section_exist(item_id)
+end
+
+
+local function handle_add_item(item_id, game_id, amount, amount_type, condition, parts_string, upgrades_string, attachments_string)
+    -- Cast primary values
+	printf("item_id:%s, game_id:%s, amount:%s, amount_type:%s, condition:%s, parts_string:%s, upgrades_string:%s, attachments_string:%s", item_id, game_id, amount, amount_type, condition, parts_string, upgrades_string, attachments_string)
+    amount = tonumber(amount) or 1
+    condition = tonumber(condition) or 1.0
+
+    ---------------------------------------------------------
+    -- 1. AMMO HANDLING
+    ---------------------------------------------------------
+    if amount_type == "ammo" then
+		printf('adding ammo %s:%s', item_id, amount)
+        -- Anomaly's native create_ammo safely handles spawning across multiple boxes
+        -- if the amount exceeds a single box's max capacity.
+        create_ammo(item_id, db.actor:position(), db.actor:level_vertex_id(), db.actor:game_vertex_id(), db.actor:id(), amount)
+        return -- Ammo doesn't have parts, upgrades, or attachments, so we skip the rest
+    end
+
+    ---------------------------------------------------------
+    -- 2. ITEM SPAWNING (Single or Multi-use)
+    ---------------------------------------------------------
+    -- If "single", we might need to spawn multiple distinct items. If "uses", we spawn exactly 1 item and set its charges.
+    local loops = (amount_type == "single") and amount or 1
+
+    for i = 1, loops do
+        local se_obj = alife_create_item(item_id, db.actor)
+		printf('spawning item %s:%s', item_id, amount)
+        if not se_obj then
+			printf('no se_obj')
+			return
+		end
+
+        local se_id = se_obj.id
+
+        -- Wait for the client object to come online before applying properties
+        CreateTimeEvent("pysaic_trade", "setup_item_" .. se_id, 0, function()
+            local obj = level.object_by_id(se_id)
+            if not obj then
+				printf('no obj')
+                return false -- Returns false to tell the engine to wait and run this again next frame
+            end
+
+            -- Apply base condition
+            obj:set_condition(condition)
+
+            -- Apply uses (e.g. medkits, water, grease)
+            if amount_type == "uses" then
+                obj:set_remaining_uses(amount)
+            end
+
+            ---------------------------------------------------------
+            -- 3. INTERNAL PARTS
+            ---------------------------------------------------------
+            if parts_string and parts_string ~= "none" then
+                local parts_data = {}
+                -- Split by '|' for each part, then by ':' for section/condition
+                for part_str in string.gmatch(parts_string, "([^|]+)") do
+                    local p_sec, p_cond = part_str:match("([^:]+):([^:]+)")
+                    if p_sec and p_cond then
+                        parts_data[p_sec] = tonumber(p_cond)
+                    end
+                end
+
+                -- item_parts.set_parts_con acts on the ID, not the object directly
+                if item_parts and item_parts.set_parts_con then
+                    item_parts.set_parts_con(se_id, parts_data)
+                end
+            end
+
+            ---------------------------------------------------------
+            -- 4. UPGRADES
+            ---------------------------------------------------------
+            if upgrades_string and upgrades_string ~= "none" then
+                -- Split by '|' to get each upgrade section
+                for upg_sec in string.gmatch(upgrades_string, "([^|]+)") do
+                    obj:install_upgrade(upg_sec)
+                end
+            end
+
+            return true -- Everything is applied, safely end the time event
+        end)
+    end
+
+    ---------------------------------------------------------
+    -- 5. ATTACHMENTS
+    ---------------------------------------------------------
+    if attachments_string and attachments_string ~= "none" then
+        -- Split by '|' for each attachment, then by ':' for type/section
+        for att_str in string.gmatch(attachments_string, "([^|]+)") do
+            local att_type, att_sec = att_str:match("([^:]+):([^:]+)")
+
+            if att_sec then
+                -- Safest approach: Spawn the attachment directly into the receiver's inventory
+                alife_create_item(att_sec, db.actor)
+            end
+        end
+    end
+	local inv_name_id = ini_sys:r_string_ex(item_id, "inv_name") or item_id
+	local item_name = game.translate_string(inv_name_id)
+
+	-- 2. Format the string based on the amount type
+	local summary_text = ""
+	if amount_type == "uses" then
+		summary_text = string.format("%s : %s", item_name, amount)
+	else
+		summary_text = string.format("%s x%s", item_name, amount)
+	end
+
+	-- 3. Send a PDA notification to the player
+	-- args: (actor, text, sender_id, icon, duration_ms)
+	news_manager.send_tip(db.actor, "Popov gives you:\n\n" .. summary_text, nil, "ui_inGame2_Log_Trade", 5000)
+end
+
+itemActions = {
+	add = handle_add_item,
+}
+
+function get_item_data(item)
+    if not item then return nil end
+
+    local section = item:section()
+    local cls_id = item:clsid()
+
+    ---------------------------------------------------------
+    -- 1. DISPLAY NAME (Localized Text)
+    ---------------------------------------------------------
+    -- Read string ID from LTX (e.g. "st_wpn_ak74_name") and translate it
+    local inv_name_id = SYS_GI:r_string_ex(section, "inv_name") or section
+    local item_name = game.translate_string(inv_name_id)
+
+    ---------------------------------------------------------
+    -- 2. ITEM TYPE / CATEGORY
+    ---------------------------------------------------------
+    local item_type = "Misc"
+
+    -- Engine Helper Check (Class IDs)
+    if IsWeapon(nil, cls_id) then
+        item_type = "Weapon"
+    elseif IsOutfit(nil, cls_id) or IsHeadgear(nil, cls_id) then
+        item_type = "Armor"
+    elseif IsArtefact(nil, cls_id) then
+        item_type = "Artefact"
+    elseif IsAmmo(nil, cls_id) then
+        item_type = "Ammo"
+    else
+        -- Fallback check for consumables/medical items via LTX configuration
+        local kind = SYS_GI:r_string_ex(section, "kind") or ""
+        if kind:find("i_medical") or kind:find("i_food") then
+            item_type = "Consumable"
+        end
+    end
+
+    ---------------------------------------------------------
+    -- 3. IN-GAME VALUE CALCULATIONS
+    ---------------------------------------------------------
+    -- Read base price defined in item's LTX configuration
+    local base_cost = SYS_GI:r_value(section, "cost", 2) or 0
+
+    -- Multiply base cost by current item condition (0.0 to 1.0)
+    local condition = item:condition()
+    local estimated_value = math.floor(base_cost * condition)
+
+    return {
+        section = section,
+        name = item_name,
+        type = item_type,
+        base_cost = base_cost,
+        condition = condition,
+        value = estimated_value
+    }
+end
+
+
+function get_weapon_attachments(wpn)
+    if not wpn or not IsWeapon(nil, wpn:clsid()) then return nil end
+
+    -- Helper functions exposed by the engine
+    local has_scope    = wpn:weapon_is_scope()    -- returns boolean
+    local has_silencer = wpn:weapon_is_silencer() -- returns boolean
+    local has_gl       = wpn:weapon_is_grenadelauncher() -- returns boolean
+
+    -- Fetch specific section names if attached
+    local scope_sec, silencer_sec, gl_sec = nil, nil, nil
+
+    if has_scope then
+        -- Reads the scope section attached to the gun
+        scope_sec = wpn:get_scope_name()
+    end
+
+    if has_silencer then
+        -- Reads silencer section from LTX config
+        silencer_sec = SYS_GI:r_string_ex(wpn:section(), "silencer_name")
+    end
+
+    if has_gl then
+        -- Reads grenade launcher section from LTX config
+        gl_sec = SYS_GI:r_string_ex(wpn:section(), "grenade_launcher_name")
+    end
+
+    return {
+        scope = scope_sec,
+        silencer = silencer_sec,
+        grenade_launcher = gl_sec
+    }
+end
