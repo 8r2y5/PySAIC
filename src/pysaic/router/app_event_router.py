@@ -285,7 +285,6 @@ class AppEventRouter(Router):
         self.state.is_author_authorized.clear()
         self._update_ui_user_list()
         self._update_crc_users_data()
-        loop.create_task(bot.connect())
 
     def _handle_game_channel_change(self, payload):
         part = OutgoingPart(channel=self.config.server.previous_channel)
