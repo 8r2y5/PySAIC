@@ -391,6 +391,8 @@
 			<string>was precise-shot by an ecologist</string>
 			<string>was surprisingly dispatched by a Zone scholar</string>
 			<string>was unexpectedly terminated by an ecologist</string>
+			<string>was killed by glow in the dark eco</string>
+			<string>was analyzed by the four eyes one</string>
 		</ECOLOG>
 		<KILLER>
 			<string>became another victim of a mercenary</string>
@@ -522,7 +524,7 @@
 			<string>was surgically eliminated by a highly trained operative</string>
 		</ISG>
 	</eng>
-	
+
 	<rus>
 		<O_ACTOR>
 			<string>покончил с собой</string>
@@ -660,7 +662,7 @@
 			<string>взрывная волна</string>
 		</S_EXPLO>
 		<II_EXPLO clone="S_EXPLO"/>
-		
+
 		<STALKER>
 			<string>убит вольным сталкером</string>
 			<string>убит одиночкой</string>
