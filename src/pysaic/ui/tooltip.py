@@ -5,6 +5,7 @@ from tkinter.ttk import Label
 
 from pysaic.config import Config
 from pysaic.entities import ChatUser
+from pysaic.enums import SAICStateEnum
 from pysaic.state import State
 from pysaic.use_cases.irc_mode_to_rank import parse_and_get_highest_rank
 from pysaic.use_cases.irc_mode_to_user_type import (
@@ -98,6 +99,8 @@ class UserListToolTip(ToolTip):
                         )
                     tooltip_lines.append(f"User: {irc_user.user}")
                     tooltip_lines.append(f"Host: {irc_user.host}")
+
+                tooltip_lines.append(self._get_state_text(user_info))
                 tooltip_lines.append(f"Location: {user_info.location.value}")
                 tooltip_lines.append(f"Rank: {user_info.rank.title()}")
                 tooltip_lines.append(
@@ -107,3 +110,13 @@ class UserListToolTip(ToolTip):
         except TclError:
             pass
         return ""
+
+    def _get_state_text(self, user_info: ChatUser) -> str:
+        text = "In Game" if user_info.in_game else "Not In Game"
+        if user_info.state != SAICStateEnum.ok:
+            text += f" ({user_info.state.name.title()})"
+
+        if user_info.afk:
+            text += " (AFK)"
+
+        return text
