@@ -26,7 +26,6 @@ from pysaic.config import (
     FactionColors,
 )
 from pysaic.controllers.ui.user_list import (
-    AFK_ICON,
     OFFLINE_ICON,
     ONLINE_ICON,
     SURGE_ICON,
@@ -221,7 +220,7 @@ class ColorsOptions:
             ("Error", "error"),
             ("Standard Text", "text"),
             ("Hyperlink", "hyper_link"),
-            (f"{AFK_ICON} AFK", "afk"),
+            (f"{ONLINE_ICON} {OFFLINE_ICON} AFK", "afk"),
             ("-> DM", "direct_message"),
             (f"{OFFLINE_ICON} Offline", "offline"),
             (f"{ONLINE_ICON} Online", "online"),

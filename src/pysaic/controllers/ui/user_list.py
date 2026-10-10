@@ -7,7 +7,6 @@ from pysaic.enums import FactionsEnum, SAICStateEnum, UserListDisplayModeEnum
 
 ONLINE_ICON = "●"
 OFFLINE_ICON = "○"
-AFK_ICON = "●"
 SURGE_ICON = "⚡"
 UNDERGROUND_ICON = "⊝"
 
@@ -33,7 +32,7 @@ class SortedMixin:
         )
         if chat_user.afk:
             tag = "afk"
-            icon = AFK_ICON
+
         if chat_user.state != SAICStateEnum.ok and chat_user.in_game:
             # tag = chat_user.state.name
             icon = (
