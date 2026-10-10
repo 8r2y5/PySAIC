@@ -17,8 +17,8 @@ from pysaic.enums import DeathReportTypeEnum, FactionsEnum, LocationEnum
 from pysaic.script_reader.entities import Death
 from pysaic.settings import (
     END_OF_ACTOR_CHARACTER,
-    START_OF_ACTOR_CHARACTER,
     RES_PATH,
+    START_OF_ACTOR_CHARACTER,
 )
 
 tags_regexp = re.compile(r"(\w+)")
@@ -49,18 +49,25 @@ def random_name():
 
 class XMLFileController:
     def __init__(self, file_path, flat=False):
+        self.logger = logger.getChild("XMLFileController")
         self.flat = flat
         from pysaic.state import State
 
         try:
             state = inject.instance(State)
         except inject.InjectorException:
+            self.logger.warning("State not found, using default path")
             self.file_path = PATH / file_path
         else:
             if state.is_game_running:
+                self.logger.debug("Game is running, using resource path")
                 self.file_path = RES_PATH / file_path
             else:
+                self.logger.debug("Game not running, using default path")
                 self.file_path = PATH / file_path
+        self.logger.debug(
+            "Path: %s, Full path: %s", self.file_path, self.file_path
+        )
 
     def load(self):
         tree = ET.parse(self.file_path)
@@ -286,6 +293,12 @@ class DeathMessageUseCase(StringsController):
         return load_simple("death_generic.xml")
 
 
+def _load_flat(filename: str) -> list[str]:
+    return [
+        record.text for record in XMLFileController(filename, flat=True).load()
+    ]
+
+
 class TravelMessageUseCase(StringsController):
     def __init__(self, state, config, nick, location):
         self.state = state
@@ -332,12 +345,7 @@ class TravelMessageUseCase(StringsController):
 
     @staticmethod
     def _load_random_comment() -> str:
-        return choice(
-            [
-                record.text
-                for record in XMLFileController("travel_remarks.xml").load()
-            ]
-        )
+        return choice(_load_flat("travel_remarks.xml"))
 
     def _load_location(self) -> str:
         try:
@@ -347,32 +355,10 @@ class TravelMessageUseCase(StringsController):
             return f"somewhere in the Zone ({self.location.value})"
 
     def _load_i_saw(self) -> str:
-        return choice(
-            [
-                record.text
-                for record in XMLFileController("location_remarks.xml").load()
-            ]
-        )
+        return choice(_load_flat("location_remarks.xml"))
 
     def _load_random_time(self):
-        return choice(
-            (
-                "is now",
-                "has arrived",
-                "is here",
-                "has come",
-                "is present",
-                "is located",
-                "is",
-                "is situated",
-                "can be found",
-                "is currently",
-                "is currently located",
-                "is currently situated",
-                "is currently found",
-                "is currently present",
-            )
-        )
+        return choice(_load_flat("travel_time.xml"))
 
 
 if __name__ == "__main__":
@@ -389,6 +375,7 @@ if __name__ == "__main__":
     #     death_by="S_ACTOR",
     #     meta="actor",
     # )
+    logging.basicConfig(level=logging.DEBUG)
     death = Death(
         user_actor="actor_bandit",
         location="l10_limansk",
@@ -402,6 +389,14 @@ if __name__ == "__main__":
     state.chat_users = {
         "user2": type("User", (), {"faction": FactionsEnum.Mercenary}),
     }
+    state.is_game_running = True
+
+    def setup(binder):
+        from pysaic.state import State
+
+        binder.bind_to_provider(State, lambda: state)
+
+    inject.configure(setup)
     use_case = DeathMessageUseCase(state, config, "Balon", death)
     print(use_case.execute())
 
