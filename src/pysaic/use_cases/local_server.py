@@ -6,7 +6,7 @@ import inject
 from pysaic.entities import IncomingEvent, IncomingQueue
 from pysaic.enums import AppEventEnum
 from pysaic.script_reader.router import parse_line
-from pysaic.state import State
+from pysaic.use_cases.game_client import GameClientProtocol
 
 logger = logging.getLogger(__name__)
 HOST = "127.0.0.1"
@@ -17,60 +17,20 @@ GAME_PORT = 8008  # Corrected port to match Lua script
 game_message_queue = asyncio.Queue()
 
 
-class GameClientProtocol(asyncio.Protocol):
-    def __init__(self, message_queue):
-        self.message_queue = message_queue
-        self.transport = None
-        self.logger = logger.getChild("game")
-
-    @inject.autoparams()
-    def connection_made(self, transport, incoming_queue: IncomingQueue):
-        self.transport = transport
-        incoming_queue.create_app_event(
-            AppEventEnum.GAME_TRANSPORT_CREATED, transport
-        )
-        self.logger.debug(
-            "Game connection made from %s",
-            transport.get_extra_info("peername"),
-        )
-
-    def data_received(self, data):
-        message = data.decode()
-        self.logger.debug("Game data received: %r", message)
-        for line in message.splitlines():
-            line = line.strip()
-            if not line:
-                continue
-            # Put messages into the queue instead of creating tasks
-            self.message_queue.put_nowait(line)
-
-    @inject.autoparams()
-    def connection_lost(
-        self, exc, state: State, incoming_queue: IncomingQueue
-    ):
-        self.logger.debug("Game connection lost")
-        incoming_queue.create_app_event(
-            AppEventEnum.GAME_TRANSPORT_DELETED, None
-        )
-        self.transport = None
-
-
 class PySAICClientProtocol(asyncio.Protocol):
     def __init__(self, incoming_queue):
         self.incoming_queue = incoming_queue
         self.transport = None
         self.logger = logger.getChild("client")
 
-    @inject.autoparams()
-    def connection_made(self, transport, state: State):
+    def connection_made(self, transport):
         self.transport = transport
         # Do not overwrite game_transport here
         self.logger.debug(
             "Connection made from %s", transport.get_extra_info("peername")
         )
 
-    @inject.autoparams()
-    def data_received(self, data, state: State):
+    def data_received(self, data):
         message = data.decode()
         self.logger.debug("Data received: %r", message)
 

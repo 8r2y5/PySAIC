@@ -371,6 +371,7 @@ class AppEventRouter(Router):
             self._add_information_text("You are no longer marked as AFK.")
 
         if close_socket:
+            logger.debug("Closing socket because user is now marked as AFK")
             self.state.close_socket()
 
         prev_value = self.state.player.afk

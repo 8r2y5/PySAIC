@@ -22,6 +22,7 @@ from pysaic.enums import (
     SAICStateEnum,
 )
 from pysaic.use_cases.avatar import calculate_icon_based_on_faction_and_name
+from pysaic.use_cases.game_client import PySAICTransportProxy
 
 logger = logging.getLogger(__name__)
 
@@ -262,7 +263,7 @@ class State:
             NetworkDestructionStrategy
         ] = None
         self.last_private_message_from: Optional[str] = None
-        self.game_transport: Optional[asyncio.Transport] = None
+        self.game_transport: Optional[PySAICTransportProxy] = None
         self.sent_achievements: set[str] = set()
 
     def money_enough(self, amount) -> bool:
