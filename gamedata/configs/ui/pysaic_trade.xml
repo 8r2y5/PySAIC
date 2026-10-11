@@ -1,0 +1,122 @@
+<?xml version="1.0" encoding="windows-1251"?>
+<window>
+	<background x="0" y="0" width="1024" height="768" stretch="1">
+		<texture>ui\crc_log_background</texture>
+	</background>
+
+	<main_frame x="30" y="20" width="964" height="728" stretch="1">
+		<texture r="0" g="0" b="0" a="180">ui_icons_PDA_tooltips</texture>
+	</main_frame>
+
+	<title_bar x="40" y="25" width="944" height="30">
+		<text font="letterica18" color="ui_1" vert_align="c">S.T.A.L.K.E.R. Secure Trade Barter</text>
+	</title_bar>
+
+	<!-- LEFT PANEL: Local Player's Inventory & Offer -->
+	<panel_player x="40" y="60" width="300" height="635" stretch="1">
+		<texture r="0" g="0" b="0" a="120">ui_icons_PDA_tooltips</texture>
+	</panel_player>
+
+	<lbl_backpack x="50" y="65" width="280" height="20">
+		<text font="letterica16" color="ui_5">Your Backpack (Click to Select)</text>
+	</lbl_backpack>
+
+	<scroll_backpack x="50" y="90" width="280" height="240" right_ident="5" left_ident="0" top_indent="0" bottom_indent="0" vert_interval="2" always_show_scroll="1"/>
+
+	<btn_add_offer x="50" y="335" width="135" height="24" stretch="1">
+		<texture>ui_inGame2_button</texture>
+		<text font="letterica16" align="c">Add to Offer</text>
+	</btn_add_offer>
+
+	<btn_del_offer x="195" y="335" width="135" height="24" stretch="1">
+		<texture>ui_inGame2_button</texture>
+		<text font="letterica16" align="c">Remove</text>
+	</btn_del_offer>
+
+	<lbl_my_offer x="50" y="365" width="280" height="20">
+		<text font="letterica16" color="ui_5">Your Offer (You are Giving)</text>
+	</lbl_my_offer>
+
+	<scroll_my_offer x="50" y="390" width="280" height="255" right_ident="5" left_ident="0" top_indent="0" bottom_indent="0" vert_interval="2" always_show_scroll="1"/>
+
+	<lbl_my_status x="50" y="655" width="280" height="25">
+		<text font="letterica16" color="ui_1" vert_align="c">Your Status: Not Ready</text>
+	</lbl_my_status>
+
+	<!-- MIDDLE PANEL: Partner's Offer -->
+	<panel_partner x="350" y="60" width="300" height="635" stretch="1">
+		<texture r="0" g="0" b="0" a="120">ui_icons_PDA_tooltips</texture>
+	</panel_partner>
+
+	<lbl_partner_offer x="360" y="65" width="280" height="20">
+		<text font="letterica16" color="ui_5">Partner's Offer (You will Receive)</text>
+	</lbl_partner_offer>
+
+	<scroll_partner_offer x="360" y="90" width="280" height="555" right_ident="5" left_ident="0" top_indent="0" bottom_indent="0" vert_interval="2" always_show_scroll="1"/>
+
+	<lbl_partner_status x="360" y="655" width="280" height="25">
+		<text font="letterica16" color="ui_1" vert_align="c">Partner Status: Waiting</text>
+	</lbl_partner_status>
+
+	<!-- RIGHT PANEL: Chat & Controls -->
+	<panel_controls x="660" y="60" width="324" height="635" stretch="1">
+		<texture r="0" g="0" b="0" a="120">ui_icons_PDA_tooltips</texture>
+	</panel_controls>
+
+	<lbl_chat x="670" y="65" width="304" height="20">
+		<text font="letterica16" color="ui_5">Private Trade Chat</text>
+	</lbl_chat>
+
+	<scroll_chat x="670" y="90" width="304" height="375" right_ident="5" left_ident="0" top_indent="0" bottom_indent="0" vert_interval="2" always_show_scroll="1"/>
+
+	<edit_chat x="670" y="475" width="230" height="24">
+		<texture>ui_inGame2_edit_box_1</texture>
+		<text x="3" font="letterica16" vert_align="c"/>
+	</edit_chat>
+
+	<btn_chat_send x="905" y="475" width="69" height="24" stretch="1">
+		<texture>ui_inGame2_button</texture>
+		<text font="letterica16" align="c">Send</text>
+	</btn_chat_send>
+
+	<!-- Action Buttons -->
+	<btn_accept x="675" y="520" width="294" height="36" stretch="1">
+		<texture>ui_inGame2_button</texture>
+		<text font="letterica18" align="c">Accept Offer</text>
+	</btn_accept>
+
+	<btn_finalize x="675" y="565" width="294" height="36" stretch="1">
+		<texture>ui_inGame2_button</texture>
+		<text font="letterica18" align="c">Finalize Trade</text>
+	</btn_finalize>
+
+	<btn_cancel x="675" y="615" width="294" height="36" stretch="1">
+		<texture>ui_inGame2_button</texture>
+		<text font="letterica18" align="c">Cancel Trade</text>
+	</btn_cancel>
+
+	<lbl_trade_hint x="675" y="660" width="294" height="25">
+		<text font="letterica14" color="ui_6" align="c">Both players must Accept before Finalizing.</text>
+	</lbl_trade_hint>
+
+	<!-- Item row template for scroll views -->
+	<item_entry x="0" y="0" width="270" height="42" stretch="1">
+		<texture r="20" g="20" b="20" a="180">ui_icons_PDA_tooltips</texture>
+		<name x="4" y="2" width="260" height="18">
+			<text font="letterica16" color="ui_1" vert_align="t"/>
+		</name>
+		<details x="4" y="20" width="260" height="18">
+			<text font="letterica14" color="ui_6" vert_align="b"/>
+		</details>
+	</item_entry>
+
+	<!-- Chat message template -->
+	<chat_entry x="0" y="0" width="295" height="32" stretch="1">
+		<author x="2" y="1" width="290" height="15">
+			<text font="letterica14" color="ui_5"/>
+		</author>
+		<text x="2" y="15" width="290" height="16" complex_mode="1">
+			<text font="letterica14" color="ui_1"/>
+		</text>
+	</chat_entry>
+</window>

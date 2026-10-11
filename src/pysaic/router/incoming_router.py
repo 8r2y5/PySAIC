@@ -39,6 +39,7 @@ from pysaic.use_cases.command import CommandUseCase
 from pysaic.use_cases.irc_mode_to_user_type import parsed_mode_to_name
 from pysaic.use_cases.money_transfer import IncomingMoneyTransferUseCase
 from pysaic.use_cases.text import make_content_malformed
+from pysaic.use_cases.trade import TradeUseCase
 from pysaic.use_cases.ui.add_dm_message import AddDmMessage
 from pysaic.use_cases.ui.add_message import AddMessageUseCase
 from pysaic.use_cases.ui.utils import get_faction_actor, normalize_content
@@ -247,7 +248,12 @@ class IncomingRouter(Router):
             case SAICCTCPEnum.SAICSTATE:
                 self._parse_saicstate(event.author.nick, message)
             case _:
-                logger.warning("Unknown CTCP: %r", ctcp)
+                if ctcp.startswith(f"{SAICCTCPEnum.SAICTrade.value}."):
+                    TradeUseCase.handle_incoming_ctcp(
+                        event.author.nick, message
+                    )
+                else:
+                    logger.warning("Unknown CTCP: %r", ctcp)
 
     def _send_ctcp_version(self, event):
         logger.debug("Sending CTCP VERSION")

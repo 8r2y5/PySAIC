@@ -246,6 +246,9 @@ function parsePrivateMessage(body)
 		chatBox:UpdateUsers()
 	end
 	addMessage(icon, from .. " -> " .. to, pysaic_config.QUERY_COLOR .. message, reputation, rank, from, time)
+	if pysaic_trade and pysaic_trade.on_incoming_private_message then
+		pysaic_trade.on_incoming_private_message(from, message)
+	end
 end
 
 function parseSendingMoney(body)
@@ -501,6 +504,20 @@ function parseItem(body)
 	end
 end
 
+function parseTrade(body)
+	local sub_action, rest = body:match("([^/]+)/(.*)")
+	printf("[PySAIC] Trade action: %s, payload: %s", sub_action or "nil", rest or body)
+	if sub_action == "Check" and rest then
+		local session_id, ref_id, item_id = rest:match("([^/]+)/([^/]+)/(.+)")
+		if session_id and ref_id and item_id then
+			local exists = ini_sys:section_exist(item_id) and "1" or "0"
+			pysaic_io.send(string.format("TradeCheckResult/%s/%s/%s", session_id, ref_id, exists))
+		end
+	elseif pysaic_trade and pysaic_trade.handle_trade_command then
+		pysaic_trade.handle_trade_command(body)
+	end
+end
+
 local inputActions = {
 	Information = addInformationMessage,
 	Error = addErrorMessage,
@@ -516,7 +533,8 @@ local inputActions = {
 	UserRemove = parseUserRemove,
     SignalState = parseSignalState,
 	InventoryList = parseInventoryList,
-	Item = parseItem
+	Item = parseItem,
+	Trade = parseTrade
 }
 
 

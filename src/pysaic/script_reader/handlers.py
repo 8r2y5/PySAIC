@@ -266,3 +266,75 @@ async def _handle_error(
     await incoming_queue.put(
         IncomingQueue.create_error_event(Error.from_line(rest).content)
     )
+
+
+async def _handle_trade_add_item(
+    rest: str,
+    _config: Config,
+    _incoming_queue: IncomingQueue,
+    _outgoing_queue: OutgoingQueue,
+    _state: State,
+):
+    from pysaic.use_cases.trade import TradeUseCase
+
+    TradeUseCase.handle_game_add_item(rest)
+
+
+async def _handle_trade_del_item(
+    rest: str,
+    _config: Config,
+    _incoming_queue: IncomingQueue,
+    _outgoing_queue: OutgoingQueue,
+    _state: State,
+):
+    from pysaic.use_cases.trade import TradeUseCase
+
+    TradeUseCase.handle_game_del_item(rest)
+
+
+async def _handle_trade_check_result(
+    rest: str,
+    _config: Config,
+    _incoming_queue: IncomingQueue,
+    _outgoing_queue: OutgoingQueue,
+    _state: State,
+):
+    from pysaic.use_cases.trade import TradeUseCase
+
+    TradeUseCase.handle_game_check_result(rest)
+
+
+async def _handle_trade_accept(
+    rest: str,
+    _config: Config,
+    _incoming_queue: IncomingQueue,
+    _outgoing_queue: OutgoingQueue,
+    _state: State,
+):
+    from pysaic.use_cases.trade import TradeUseCase
+
+    TradeUseCase.handle_game_accept(rest)
+
+
+async def _handle_trade_verify_result(
+    rest: str,
+    _config: Config,
+    _incoming_queue: IncomingQueue,
+    _outgoing_queue: OutgoingQueue,
+    _state: State,
+):
+    from pysaic.use_cases.trade import TradeUseCase
+
+    TradeUseCase.handle_game_verify_result(rest)
+
+
+async def _handle_trade_cancel(
+    rest: str,
+    _config: Config,
+    _incoming_queue: IncomingQueue,
+    _outgoing_queue: OutgoingQueue,
+    _state: State,
+):
+    from pysaic.use_cases.trade import TradeUseCase
+
+    TradeUseCase.handle_game_cancel(rest)

@@ -3,11 +3,12 @@ import logging
 import threading
 from abc import ABC, abstractmethod
 from collections import UserList, deque
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from datetime import datetime
+from enum import StrEnum
 from pathlib import Path
 from random import choice, choices
-from typing import Optional, Self
+from typing import Dict, List, Optional, Self
 
 from pysaic.config import Config
 from pysaic.entities import ChatUser, ChatUsers
@@ -25,6 +26,44 @@ from pysaic.use_cases.avatar import calculate_icon_based_on_faction_and_name
 from pysaic.use_cases.game_client import PySAICTransportProxy
 
 logger = logging.getLogger(__name__)
+
+
+class TradeStatus(StrEnum):
+    IDLE = "IDLE"
+    WAITING_HANDSHAKE = "WAITING_HANDSHAKE"
+    ACTIVE = "ACTIVE"
+    LOCKED = "LOCKED"
+    ACCEPTED = "ACCEPTED"
+    COMMITTING = "COMMITTING"
+
+
+@dataclass
+class TradeItem:
+    ref_id: str
+    item_id: str
+    amount: int = 1
+    amount_type: str = "single"
+    condition: float = 1.0
+    parts: Dict[str, float] = field(default_factory=dict)
+    upgrades: List[str] = field(default_factory=list)
+    attachments: Dict[str, str] = field(default_factory=dict)
+    game_id: Optional[str] = None
+
+
+@dataclass
+class TradeSession:
+    session_id: str
+    partner_nick: str
+    is_initiator: bool
+    status: TradeStatus
+    created_at: datetime
+    my_items: Dict[str, TradeItem] = field(default_factory=dict)
+    partner_items: Dict[str, TradeItem] = field(default_factory=dict)
+    partial_partner_items: Dict[str, TradeItem] = field(default_factory=dict)
+    my_locked: bool = False
+    partner_locked: bool = False
+    my_accepted: bool = False
+    partner_accepted: bool = False
 
 
 @dataclass()
@@ -265,6 +304,21 @@ class State:
         self.last_private_message_from: Optional[str] = None
         self.game_transport: Optional[PySAICTransportProxy] = None
         self.sent_achievements: set[str] = set()
+        self.trade: Optional[TradeSession] = None
+        self.pending_incoming_trades: Dict[str, tuple[str, datetime]] = {}
+        self.pending_outgoing_trades: Dict[str, tuple[str, datetime]] = {}
+
+    def clean_expired_trades(self):
+        now = datetime.now()
+        self.pending_incoming_trades = {
+            k: v for k, v in self.pending_incoming_trades.items() if v[1] > now
+        }
+        self.pending_outgoing_trades = {
+            k: v for k, v in self.pending_outgoing_trades.items() if v[1] > now
+        }
+
+    def cancel_active_trade(self):
+        self.trade = None
 
     def money_enough(self, amount) -> bool:
         return self.player.money >= amount

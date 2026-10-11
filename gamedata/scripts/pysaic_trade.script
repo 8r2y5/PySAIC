@@ -1,0 +1,523 @@
+--| PySAIC In-Game Trade System UI
+--| Provides full drag/drop barter window, incoming offer inspection,
+--| real-time private trade chat, and two-step agreement/verification controls.
+
+trade_window = nil
+
+class "TradeWindow" (CUIScriptWnd)
+
+function TradeWindow:__init(session_id, partner_nick) super()
+    self.session_id = session_id
+    self.partner_nick = partner_nick
+
+    self.backpack_items = {}
+    self.selected_backpack_idx = nil
+    self.my_offered_items = {}
+    self.selected_my_offer_ref = nil
+    self.partner_offered_items = {}
+    self.selected_partner_ref = nil
+
+    self.my_accepted = false
+    self.partner_accepted = false
+    self.next_ref_id = 1
+
+    self:InitControls()
+    self:InitInventory()
+end
+
+function TradeWindow:InitControls()
+    self:SetWndRect(Frect():set(0, 0, 1024, 768))
+    self.xml = CScriptXmlInit()
+    self.xml:ParseFile("pysaic_trade.xml")
+
+    -- Background & Frames
+    self.xml:InitStatic("background", self)
+    self.xml:InitFrame("main_frame", self)
+    self.xml:InitFrame("panel_player", self)
+    self.xml:InitFrame("panel_partner", self)
+    self.xml:InitFrame("panel_controls", self)
+
+    -- Titles & Labels
+    self.title_bar = self.xml:InitStatic("title_bar", self)
+    self.title_bar:TextControl():SetText(string.format("Trade Session [%s] with %s", self.session_id, self.partner_nick))
+
+    self.xml:InitStatic("lbl_backpack", self)
+    self.xml:InitStatic("lbl_my_offer", self)
+    self.xml:InitStatic("lbl_partner_offer", self)
+    self.xml:InitStatic("lbl_chat", self)
+    self.xml:InitStatic("lbl_trade_hint", self)
+
+    self.lbl_my_status = self.xml:InitStatic("lbl_my_status", self)
+    self.lbl_partner_status = self.xml:InitStatic("lbl_partner_status", self)
+    self:UpdateStatusLabels()
+
+    -- Scroll Views
+    self.scroll_backpack = self.xml:InitScrollView("scroll_backpack", self)
+    self.scroll_my_offer = self.xml:InitScrollView("scroll_my_offer", self)
+    self.scroll_partner_offer = self.xml:InitScrollView("scroll_partner_offer", self)
+    self.scroll_chat = self.xml:InitScrollView("scroll_chat", self)
+
+    -- Chat input
+    self.edit_chat = self.xml:InitEditBox("edit_chat", self)
+    self.btn_chat_send = self.xml:Init3tButton("btn_chat_send", self)
+    self:Register(self.btn_chat_send, "btn_chat_send")
+    self:AddCallback("btn_chat_send", ui_events.BUTTON_CLICKED, self.SendChat, self)
+
+    -- Offer manipulation buttons
+    self.btn_add_offer = self.xml:Init3tButton("btn_add_offer", self)
+    self.btn_del_offer = self.xml:Init3tButton("btn_del_offer", self)
+    self:Register(self.btn_add_offer, "btn_add_offer")
+    self:Register(self.btn_del_offer, "btn_del_offer")
+    self:AddCallback("btn_add_offer", ui_events.BUTTON_CLICKED, self.AddSelectedToOffer, self)
+    self:AddCallback("btn_del_offer", ui_events.BUTTON_CLICKED, self.RemoveSelectedFromOffer, self)
+
+    -- Trade action buttons
+    self.btn_accept = self.xml:Init3tButton("btn_accept", self)
+    self.btn_finalize = self.xml:Init3tButton("btn_finalize", self)
+    self.btn_cancel = self.xml:Init3tButton("btn_cancel", self)
+    self:Register(self.btn_accept, "btn_accept")
+    self:Register(self.btn_finalize, "btn_finalize")
+    self:Register(self.btn_cancel, "btn_cancel")
+    self:AddCallback("btn_accept", ui_events.BUTTON_CLICKED, self.OnAcceptClicked, self)
+    self:AddCallback("btn_finalize", ui_events.BUTTON_CLICKED, self.OnFinalizeClicked, self)
+    self:AddCallback("btn_cancel", ui_events.BUTTON_CLICKED, self.Cancel, self)
+
+    self.btn_finalize:Enable(false)
+end
+
+function TradeWindow:UpdateStatusLabels()
+    if self.my_accepted then
+        self.lbl_my_status:TextControl():SetText("Your Status: READY (Accepted)")
+    else
+        self.lbl_my_status:TextControl():SetText("Your Status: NOT READY")
+    end
+
+    if self.partner_accepted then
+        self.lbl_partner_status:TextControl():SetText("Partner Status: READY (Accepted)")
+    else
+        self.lbl_partner_status:TextControl():SetText("Partner Status: WAITING")
+    end
+
+    -- Finalize button is only enabled when both players have accepted
+    if self.my_accepted and self.partner_accepted then
+        self.btn_finalize:Enable(true)
+    else
+        self.btn_finalize:Enable(false)
+    end
+end
+
+-- Scan player inventory to populate available barter items
+function TradeWindow:InitInventory()
+    self.backpack_items = {}
+    if not db.actor then return end
+
+    db.actor:iterate_inventory(function(owner, item)
+        if not item then return end
+        local sec = item:section()
+        local id = item:id()
+        local clsid = item:clsid()
+
+        -- Exclude quest items or equipped items if on belt/slot
+        local amount = 1
+        local amount_type = "single"
+        if IsAmmo(nil, clsid) then
+            amount = item:ammo_get_count()
+            amount_type = "ammo"
+        elseif ini_sys:r_float_ex(sec, "max_uses") then
+            amount = item:get_remaining_uses()
+            amount_type = "uses"
+        end
+
+        local inv_name_id = ini_sys:r_string_ex(sec, "inv_name") or sec
+        local display_name = game.translate_string(inv_name_id)
+        local cond = math.floor((item:condition() or 1.0) * 100)
+
+        table.insert(self.backpack_items, {
+            game_id = id,
+            item_id = sec,
+            name = display_name,
+            amount = amount,
+            amount_type = amount_type,
+            condition = item:condition() or 1.0,
+            cond_pct = cond,
+            obj = item
+        })
+    end, db.actor)
+
+    self:RenderBackpack()
+end
+
+function TradeWindow:RenderBackpack()
+    self.scroll_backpack:Clear()
+    for idx, itm in ipairs(self.backpack_items) do
+        -- Only show if not already moved to our offer
+        local already_offered = false
+        for _, off in pairs(self.my_offered_items) do
+            if off.game_id == itm.game_id then
+                already_offered = true
+                break
+            end
+        end
+
+        if not already_offered then
+            local entry = self.xml:InitStatic("item_entry", nil)
+            entry:TextControl():SetText(itm.name)
+
+            local detail_text = string.format("Cond: %d%% | Amount: %s", itm.cond_pct, itm.amount)
+            self.xml:InitStatic("item_entry:name", entry):TextControl():SetText(itm.name)
+            self.xml:InitStatic("item_entry:details", entry):TextControl():SetText(detail_text)
+
+            -- Selection highlight button overlay
+            local btn = CUIButton()
+            btn:SetWndRect(Frect():set(0, 0, 270, 42))
+            btn:SetAutoDelete(true)
+            entry:AttachChild(btn)
+            self:Register(btn, "bp_item_" .. idx)
+            self:AddCallback("bp_item_" .. idx, ui_events.BUTTON_CLICKED, function()
+                self.selected_backpack_idx = idx
+                self:HighlightBackpackItem(entry)
+            end, self)
+
+            self.scroll_backpack:AddWindow(entry, true)
+            entry:SetAutoDelete(true)
+        end
+    end
+end
+
+function TradeWindow:HighlightBackpackItem(entry)
+    printf("[PySAIC Trade] Selected backpack item index: %s", self.selected_backpack_idx)
+end
+
+function TradeWindow:AddSelectedToOffer()
+    if not self.selected_backpack_idx then return end
+    local itm = self.backpack_items[self.selected_backpack_idx]
+    if not itm then return end
+
+    local ref_id = tostring(self.next_ref_id)
+    self.next_ref_id = self.next_ref_id + 1
+
+    -- Gather parts, upgrades, and attachments via pysaic_item_utils
+    local parts_str = "none"
+    local upg_str = "none"
+    local att_str = "none"
+
+    if pysaic_item_utils and itm.obj then
+        local clsid = itm.obj:clsid()
+        if IsWeapon(nil, clsid) or IsOutfit(nil, clsid) or IsHeadgear(nil, clsid) then
+            -- Internal parts
+            if item_parts and item_parts.get_parts_con then
+                local parts_data = item_parts.get_parts_con(itm.obj)
+                if parts_data and type(parts_data) == "table" then
+                    local p_list = {}
+                    for p_sec, p_cond in pairs(parts_data) do
+                        p_list[#p_list + 1] = string.format("%s:%s", p_sec, tostring(p_cond))
+                    end
+                    if #p_list > 0 then parts_str = table.concat(p_list, "|") end
+                end
+            end
+            -- Installed upgrades
+            local upg_list = {}
+            itm.obj:iterate_installed_upgrades(function(upg_sec)
+                upg_list[#upg_list + 1] = tostring(upg_sec)
+            end)
+            if #upg_list > 0 then upg_str = table.concat(upg_list, "|") end
+            -- Attachments (weapons only)
+            if IsWeapon(nil, clsid) and pysaic_item_utils.get_weapon_attachments then
+                local atts = pysaic_item_utils.get_weapon_attachments(itm.obj)
+                if atts then
+                    local att_list = {}
+                    if atts.scope then att_list[#att_list + 1] = "s:" .. atts.scope end
+                    if atts.silencer then att_list[#att_list + 1] = "sn:" .. atts.silencer end
+                    if atts.grenade_launcher then att_list[#att_list + 1] = "gl:" .. atts.grenade_launcher end
+                    if #att_list > 0 then att_str = table.concat(att_list, "|") end
+                end
+            end
+        end
+    end
+
+    self.my_offered_items[ref_id] = {
+        ref_id = ref_id,
+        game_id = itm.game_id,
+        item_id = itm.item_id,
+        name = itm.name,
+        amount = itm.amount,
+        amount_type = itm.amount_type,
+        condition = itm.condition,
+        cond_pct = itm.cond_pct,
+        parts_str = parts_str,
+        upg_str = upg_str,
+        att_str = att_str
+    }
+
+    -- Any change resets acceptance
+    self.my_accepted = false
+    self.partner_accepted = false
+    self:UpdateStatusLabels()
+
+    -- Send TradeAddItem to PySAIC socket
+    pysaic_io.send(string.format("TradeAddItem/%s/%s/%s/%s/%s/%s/%s/%s/%s",
+        self.session_id, ref_id, itm.item_id, itm.amount, itm.amount_type,
+        tostring(itm.condition), parts_str, upg_str, att_str))
+
+    self.selected_backpack_idx = nil
+    self:RenderBackpack()
+    self:RenderMyOffer()
+end
+
+function TradeWindow:RenderMyOffer()
+    self.scroll_my_offer:Clear()
+    for ref_id, itm in pairs(self.my_offered_items) do
+        local entry = self.xml:InitStatic("item_entry", nil)
+        self.xml:InitStatic("item_entry:name", entry):TextControl():SetText(itm.name)
+        local detail_text = string.format("Cond: %d%% | Qty: %s", itm.cond_pct, itm.amount)
+        self.xml:InitStatic("item_entry:details", entry):TextControl():SetText(detail_text)
+
+        local btn = CUIButton()
+        btn:SetWndRect(Frect():set(0, 0, 270, 42))
+        btn:SetAutoDelete(true)
+        entry:AttachChild(btn)
+        self:Register(btn, "my_off_" .. ref_id)
+        self:AddCallback("my_off_" .. ref_id, ui_events.BUTTON_CLICKED, function()
+            self.selected_my_offer_ref = ref_id
+        end, self)
+
+        self.scroll_my_offer:AddWindow(entry, true)
+        entry:SetAutoDelete(true)
+    end
+end
+
+function TradeWindow:RemoveSelectedFromOffer()
+    if not self.selected_my_offer_ref then return end
+    local ref_id = self.selected_my_offer_ref
+
+    self.my_offered_items[ref_id] = nil
+    self.selected_my_offer_ref = nil
+
+    self.my_accepted = false
+    self.partner_accepted = false
+    self:UpdateStatusLabels()
+
+    pysaic_io.send(string.format("TradeDelItem/%s/%s", self.session_id, ref_id))
+
+    self:RenderBackpack()
+    self:RenderMyOffer()
+end
+
+-- Incoming partner items
+function TradeWindow:OnPartnerAdd(ref_id, item_id, amount, condition, parts_string, upgrades_string, attachments_string)
+    local inv_name_id = ini_sys:r_string_ex(item_id, "inv_name") or item_id
+    local display_name = game.translate_string(inv_name_id)
+    local cond_num = tonumber(condition) or 1.0
+
+    self.partner_offered_items[ref_id] = {
+        ref_id = ref_id,
+        item_id = item_id,
+        name = display_name,
+        amount = amount,
+        condition = cond_num,
+        cond_pct = math.floor(cond_num * 100),
+        parts_string = parts_string,
+        upgrades_string = upgrades_string,
+        attachments_string = attachments_string
+    }
+
+    self.my_accepted = false
+    self.partner_accepted = false
+    self:UpdateStatusLabels()
+    self:RenderPartnerOffer()
+end
+
+function TradeWindow:OnPartnerDel(ref_id)
+    self.partner_offered_items[ref_id] = nil
+    self.my_accepted = false
+    self.partner_accepted = false
+    self:UpdateStatusLabels()
+    self:RenderPartnerOffer()
+end
+
+function TradeWindow:RenderPartnerOffer()
+    self.scroll_partner_offer:Clear()
+    for ref_id, itm in pairs(self.partner_offered_items) do
+        local entry = self.xml:InitStatic("item_entry", nil)
+        self.xml:InitStatic("item_entry:name", entry):TextControl():SetText(itm.name)
+
+        local detail_text = string.format("Cond: %d%% | Qty: %s", itm.cond_pct, itm.amount)
+        if itm.upgrades_string and itm.upgrades_string ~= "none" then
+            detail_text = detail_text .. " [Upgraded]"
+        end
+        self.xml:InitStatic("item_entry:details", entry):TextControl():SetText(detail_text)
+
+        self.scroll_partner_offer:AddWindow(entry, true)
+        entry:SetAutoDelete(true)
+    end
+end
+
+-- Acceptance & Finalization logic
+function TradeWindow:OnAcceptClicked()
+    self.my_accepted = true
+    self:UpdateStatusLabels()
+    pysaic_io.send(string.format("TradeAccept/%s", self.session_id))
+end
+
+function TradeWindow:OnPartnerAccept()
+    self.partner_accepted = true
+    self:UpdateStatusLabels()
+end
+
+function TradeWindow:OnResetAccept()
+    self.my_accepted = false
+    self.partner_accepted = false
+    self:UpdateStatusLabels()
+end
+
+function TradeWindow:OnFinalizeClicked()
+    if not (self.my_accepted and self.partner_accepted) then return end
+    self:VerifyAndCommit()
+end
+
+function TradeWindow:VerifyAndCommit()
+    -- Security verification: confirm all offered items still exist in actor inventory
+    local verified = true
+    for _, itm in pairs(self.my_offered_items) do
+        local obj = level.object_by_id(itm.game_id)
+        if not obj or obj:section() ~= itm.item_id then
+            verified = false
+            break
+        end
+    end
+
+    local status = verified and "1" or "0"
+    pysaic_io.send(string.format("TradeVerifyResult/%s/%s", self.session_id, status))
+end
+
+function TradeWindow:OnSuccess()
+    -- Release offered items from actor inventory upon successful trade
+    for _, itm in pairs(self.my_offered_items) do
+        local se_obj = alife():object(itm.game_id)
+        if se_obj then
+            alife():release(se_obj, true)
+        end
+    end
+
+    if xr_sound and db.actor then
+        xr_sound.set_sound_play(db.actor:id(), "pda_tips")
+    end
+
+    news_manager.send_tip(db.actor, "Trade Successful! Items swapped.", nil, "ui_inGame2_Log_Trade", 5000)
+    self:Cancel(true)
+end
+
+function TradeWindow:Cancel(skip_notify)
+    if not skip_notify then
+        pysaic_io.send(string.format("TradeCancel/%s/user_cancelled", self.session_id))
+    end
+    self:HideDialog()
+    Unregister_UI("TradeWindow")
+    trade_window = nil
+end
+
+-- Direct private trade chat
+function TradeWindow:AddChatMessage(author, text)
+    local entry = self.xml:InitStatic("chat_entry", nil)
+    self.xml:InitStatic("chat_entry:author", entry):TextControl():SetText(author .. ":")
+    self.xml:InitStatic("chat_entry:text", entry):TextControl():SetText(text)
+    self.scroll_chat:AddWindow(entry, true)
+    entry:SetAutoDelete(true)
+    self.scroll_chat:ScrollToEnd()
+end
+
+function TradeWindow:SendChat()
+    local text = self.edit_chat:GetText()
+    if not text or text == "" then return end
+    self.edit_chat:SetText("")
+
+    -- Add to local trade chat view
+    self:AddChatMessage("You", text)
+
+    -- Send private message via PySAIC socket
+    local my_faction = db.actor and db.actor:character_community() or "actor_stalker"
+    local my_name = db.actor and db.actor:character_name() or "Player"
+    pysaic_io.send(string.format("Query/%s/%s/%s/%s", my_faction, my_name, self.partner_nick, text))
+end
+
+function TradeWindow:OnKeyboard(dik, keyboard_action)
+    CUIScriptWnd.OnKeyboard(self, dik, keyboard_action)
+    if keyboard_action == ui_events.WINDOW_KEY_PRESSED then
+        if dik == DIK_keys.DIK_ESCAPE then
+            self:Cancel()
+        elseif dik == DIK_keys.DIK_RETURN or dik == DIK_keys.DIK_NUMPADENTER then
+            self:SendChat()
+        end
+    end
+    return true
+end
+
+
+-------------------------------------------------------------------------------
+-- Global Trade IPC Dispatcher (invoked from pysaic.script parseTrade)
+-------------------------------------------------------------------------------
+
+function open_trade(session_id, partner_nick)
+    if trade_window then
+        trade_window:Cancel(true)
+    end
+    trade_window = TradeWindow(session_id, partner_nick)
+    trade_window:ShowDialog(true)
+    Register_UI("TradeWindow", "pysaic_trade")
+end
+
+function close_trade()
+    if trade_window then
+        trade_window:Cancel(true)
+    end
+end
+
+function handle_trade_command(body)
+    local action, rest = body:match("([^/]+)/(.*)")
+    if not action then action = body rest = "" end
+    printf("[PySAIC Trade UI] Action: %s, Rest: %s", action, rest)
+
+    if action == "Open" then
+        local session_id, partner_nick = rest:match("([^/]+)/(.+)")
+        if session_id and partner_nick then
+            open_trade(session_id, partner_nick)
+        end
+
+    elseif action == "PartnerAdd" and trade_window then
+        local session_id, ref_id, item_id, amount, cond, parts, upgs, atts =
+            rest:match("([^/]+)/([^/]+)/([^/]+)/([^/]+)/([^/]+)/([^/]+)/([^/]+)/(.+)")
+        if ref_id and item_id then
+            trade_window:OnPartnerAdd(ref_id, item_id, amount, cond, parts, upgs, atts)
+        end
+
+    elseif action == "PartnerDel" and trade_window then
+        local session_id, ref_id = rest:match("([^/]+)/(.+)")
+        if ref_id then
+            trade_window:OnPartnerDel(ref_id)
+        end
+
+    elseif action == "PartnerAccept" and trade_window then
+        trade_window:OnPartnerAccept()
+
+    elseif action == "ResetAccept" and trade_window then
+        trade_window:OnResetAccept()
+
+    elseif action == "VerifyRequest" and trade_window then
+        trade_window:VerifyAndCommit()
+
+    elseif action == "Success" and trade_window then
+        trade_window:OnSuccess()
+
+    elseif action == "Abort" and trade_window then
+        trade_window:Cancel(true)
+        local _, reason = rest:match("([^/]+)/(.+)")
+        news_manager.send_tip(db.actor, "Trade Aborted: " .. (reason or "cancelled"), nil, "ui_inGame2_Log_Trade", 5000)
+    end
+end
+
+-- Hook incoming private message into trade chat window if open
+function on_incoming_private_message(from, text)
+    if trade_window and (trade_window.partner_nick == from) then
+        trade_window:AddChatMessage(from, text)
+    end
+end

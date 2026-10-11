@@ -308,11 +308,20 @@ class NestedStrEnum(NestedEnum, StrEnum):
 
 
 class SAICTrade(NestedStrEnum):
-    ADD_ITEM = "ADD"
-    MODIFY = "MODIFY"
-    DEL_ITEM = "DEL"
+    REQ = "REQ"
+    ACCEPT_REQ = "ACCEPT_REQ"
+    REJECT_REQ = "REJECT_REQ"
     CHECK = "CHECK"
+    CHECK_RESP = "CHECK_RESP"
+    ADD = "ADD"
+    ADDCOMPLEX = "ADDCOMPLEX"
+    MODIFY = "MODIFY"
+    ITEMDONE = "ITEMDONE"
+    DEL = "DEL"
+    LOCK = "LOCK"
+    UNLOCK = "UNLOCK"
     ACCEPT = "ACCEPT"
+    COMMIT = "COMMIT"
     CANCEL = "CANCEL"
 
 
@@ -330,7 +339,7 @@ class SAICCTCPEnum(NestedStrEnum):
     SAICAVATAR = "SAICAVATAR"
     SAICSTATE = "SAICSTATE"
 
-    SAICTrade = "SAICTRADE.1", SAICTrade
+    SAICTrade = "SAICTRADE", SAICTrade
 
 
 class GameEvents(Enum):

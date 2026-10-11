@@ -42,6 +42,12 @@ from pysaic.script_reader.handlers import (
     _handle_money,
     _handle_rank,
     _handle_reputation,
+    _handle_trade_accept,
+    _handle_trade_add_item,
+    _handle_trade_cancel,
+    _handle_trade_check_result,
+    _handle_trade_del_item,
+    _handle_trade_verify_result,
 )
 from pysaic.state import State
 
@@ -117,6 +123,12 @@ router.register_handler(
 router.register_handler(Item.in_file_id, _handle_item)
 router.register_handler(ArtifactFound.in_file_id, _handle_item)
 router.register_handler(Error.in_file_id, _handle_error)
+router.register_handler("TradeAddItem", _handle_trade_add_item)
+router.register_handler("TradeDelItem", _handle_trade_del_item)
+router.register_handler("TradeCheckResult", _handle_trade_check_result)
+router.register_handler("TradeAccept", _handle_trade_accept)
+router.register_handler("TradeVerifyResult", _handle_trade_verify_result)
+router.register_handler("TradeCancel", _handle_trade_cancel)
 
 
 async def parse_line(line, incoming_queue: IncomingQueue):

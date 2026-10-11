@@ -23,6 +23,7 @@ from pysaic.irc_protocol import PySaicIrcProtocol
 from pysaic.state import State
 from pysaic.ui.app import App
 from pysaic.use_cases.money_transfer import send_money_use_case
+from pysaic.use_cases.trade import TradeUseCase
 from pysaic.use_cases.ui.our_priv_message import OurPrivMessageUseCase
 
 logger = logging.getLogger(__name__)
@@ -163,6 +164,7 @@ class CommandUseCase:
             "r": self.handle_reply,
             "i": self.handle_inventory,
             "b": self.handle_beer,
+            "trade": self.handle_trade,
         }
 
     def handle_inventory(self, params):
@@ -172,6 +174,21 @@ class CommandUseCase:
         add_item_to_inventory(
             item_id="beer", amount="3", amount_type="single", condition="1"
         )
+
+    def handle_trade(self, params):
+        """
+        Initiate or accept a trade with user. Usage: /trade <user> or /trade cancel
+        """
+        if not params or not params.strip():
+            self.handle_help("trade")
+            return
+
+        target = params.strip()
+        if target.lower() == "cancel":
+            TradeUseCase.cancel_active_trade()
+            return
+
+        TradeUseCase.initiate_trade(target)
 
     @classmethod
     def handle(cls, state, config, ui: "App", command, params):

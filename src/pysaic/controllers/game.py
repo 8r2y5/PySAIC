@@ -274,6 +274,94 @@ def add_setting_to_game(setting: str, value: str):
     add_to_crc_input_file(f"Setting/{setting}/{value}")
 
 
+@ensure_game_is_running
+def send_trade_open_to_game(session_id: str, partner_nick: str):
+    logger.debug("Opening in-game trade window with %s", partner_nick)
+    add_to_crc_input_file(f"Trade/Open/{session_id}/{partner_nick}")
+
+
+@ensure_game_is_running
+def send_trade_check_to_game(session_id: str, ref_id: str, item_id: str):
+    logger.debug("Asking game to check item %s", item_id)
+    add_to_crc_input_file(f"Trade/Check/{session_id}/{ref_id}/{item_id}")
+
+
+@ensure_game_is_running
+def send_trade_check_failed_to_game(
+    session_id: str, ref_id: str, item_id: str
+):
+    logger.debug("Sending trade check failed for item %s", item_id)
+    add_to_crc_input_file(f"Trade/CheckFailed/{session_id}/{ref_id}/{item_id}")
+
+
+@ensure_game_is_running
+def send_trade_partner_add_to_game(
+    session_id: str,
+    ref_id: str,
+    item_id: str,
+    amount: str = "1",
+    condition: str = "1",
+    parts_string: str = "none",
+    upgrades_string: str = "none",
+    attachments_string: str = "none",
+):
+    logger.debug(
+        "Sending partner item add to game: %s (ref %s)", item_id, ref_id
+    )
+    add_to_crc_input_file(
+        "/".join(
+            (
+                "Trade",
+                "PartnerAdd",
+                session_id,
+                ref_id,
+                item_id,
+                amount,
+                condition,
+                parts_string,
+                upgrades_string,
+                attachments_string,
+            )
+        )
+    )
+
+
+@ensure_game_is_running
+def send_trade_partner_del_to_game(session_id: str, ref_id: str):
+    logger.debug("Sending partner item del to game: ref %s", ref_id)
+    add_to_crc_input_file(f"Trade/PartnerDel/{session_id}/{ref_id}")
+
+
+@ensure_game_is_running
+def send_trade_partner_accept_to_game(session_id: str):
+    logger.debug("Sending partner accept to game")
+    add_to_crc_input_file(f"Trade/PartnerAccept/{session_id}")
+
+
+@ensure_game_is_running
+def send_trade_reset_accept_to_game(session_id: str):
+    logger.debug("Sending reset accept to game")
+    add_to_crc_input_file(f"Trade/ResetAccept/{session_id}")
+
+
+@ensure_game_is_running
+def send_trade_verify_request_to_game(session_id: str):
+    logger.debug("Sending verify request to game")
+    add_to_crc_input_file(f"Trade/VerifyRequest/{session_id}")
+
+
+@ensure_game_is_running
+def send_trade_success_to_game(session_id: str):
+    logger.debug("Sending trade success to game")
+    add_to_crc_input_file(f"Trade/Success/{session_id}")
+
+
+@ensure_game_is_running
+def send_trade_abort_to_game(session_id: str, reason: str = "cancelled"):
+    logger.debug("Sending trade abort to game: %s", reason)
+    add_to_crc_input_file(f"Trade/Abort/{session_id}/{reason}")
+
+
 @inject.autoparams()
 def add_to_crc_input_file(content: str, state: State):
     content = (
