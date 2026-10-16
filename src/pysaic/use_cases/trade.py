@@ -2,6 +2,7 @@ import asyncio
 import logging
 import secrets
 from datetime import datetime, timedelta
+from typing import Optional
 
 import inject
 
@@ -34,9 +35,160 @@ HANDSHAKE_TIMEOUT_SECONDS = 30
 
 
 class TradeUseCase:
+    # -------------------------------------------------------------------------
+    # Internal Helpers to Eliminate Duplication
+    # -------------------------------------------------------------------------
+
     @staticmethod
+    def _send_info(incoming_queue: IncomingQueue, text: str):
+        """Pushes an information message to the user UI/chat."""
+        incoming_queue.put_nowait(IncomingEvent.create_information_event(text))
+
+    @staticmethod
+    def _send_trade_ctcp(
+        outgoing_queue: OutgoingQueue,
+        target: str,
+        action: SAICTrade,
+        session_id: str,
+        *payload_parts: object,
+    ):
+        """Constructs and queues a standardized SAICTRADE CTCP NOTICE."""
+        suffix = (
+            ("/" + "/".join(str(p) for p in payload_parts))
+            if payload_parts
+            else ""
+        )
+        action_name = (
+            action.name if isinstance(action, SAICTrade) else str(action)
+        )
+        action_str = getattr(SAICCTCPEnum.SAICTrade, action_name, action_name)
+        outgoing_queue.put_nowait(
+            OutgoingCTCP(
+                target=target,
+                content=f"{action_str} {PROTOCOL_VERSION}/{session_id}{suffix}",
+            )
+        )
+
+    @staticmethod
+    def _serialize_item_details(item: TradeItem) -> tuple[str, str, str]:
+        """Serializes parts, upgrades, and attachments into game pipe-delimited format."""
+        parts_string = (
+            "|".join(
+                f"{sec}:{cond}:{int(float(cond) * 1000)}"
+                for sec, cond in item.parts.items()
+            )
+            if item.parts
+            else "none"
+        )
+        upgrades_string = (
+            "|".join(f"{upg}:1000" for upg in item.upgrades)
+            if item.upgrades
+            else "none"
+        )
+        attachments_string = (
+            "|".join(
+                f"{att_type}:{sec}:1000"
+                for att_type, sec in item.attachments.items()
+            )
+            if item.attachments
+            else "none"
+        )
+        return parts_string, upgrades_string, attachments_string
+
+    @staticmethod
+    def _reset_acceptance(session: TradeSession, notify_game: bool = True):
+        """Resets offer acceptance flags for both parties when offer contents change."""
+        session.my_accepted = False
+        session.partner_accepted = False
+        if notify_game:
+            send_trade_reset_accept_to_game(session.session_id)
+
+    @classmethod
+    def _start_active_session(
+        cls,
+        state: State,
+        session_id: str,
+        partner: str,
+        is_initiator: bool,
+        incoming_queue: IncomingQueue,
+    ):
+        """Initializes a new active trade session and alerts the game client."""
+        state.trade = TradeSession(
+            session_id=session_id,
+            partner_nick=partner,
+            is_initiator=is_initiator,
+            status=TradeStatus.ACTIVE,
+            created_at=datetime.now(),
+        )
+        send_trade_open_to_game(session_id, partner)
+        cls._send_info(
+            incoming_queue, f"Trade session started with {partner}."
+        )
+
+    @staticmethod
+    def _get_active_session_payload(
+        state: State, payload: str, min_fields: int = 1
+    ) -> tuple[Optional[TradeSession], list[str]]:
+        """Validates that a trade session is active and matches the incoming socket payload session_id."""
+        session = state.trade
+        if not session:
+            return None, []
+        fields = payload.strip().split("/")
+        if len(fields) < min_fields or session.session_id != fields[0]:
+            return None, []
+        return session, fields
+
+    @staticmethod
+    def _parse_game_item_components(
+        fields: list[str],
+    ) -> tuple[dict[str, float], list[str], dict[str, str]]:
+        """Parses optional parts, upgrades, and attachments arrays from socket fields."""
+        parts = {}
+        if len(fields) > 6 and fields[6] != "none":
+            for part in fields[6].split("|"):
+                if ":" in part:
+                    sec, cond = part.split(":")[:2]
+                    parts[sec] = float(cond)
+
+        upgrades = []
+        if len(fields) > 7 and fields[7] != "none":
+            for upg in fields[7].split("|"):
+                sec = upg.split(":")[0]
+                if sec:
+                    upgrades.append(sec)
+
+        attachments = {}
+        if len(fields) > 8 and fields[8] != "none":
+            for att in fields[8].split("|"):
+                if ":" in att:
+                    att_type, sec = att.split(":")[:2]
+                    attachments[att_type] = sec
+
+        return parts, upgrades, attachments
+
+    @staticmethod
+    def _is_valid_session(state: State, author: str, session_id: str) -> bool:
+        if (
+            state.trade is None
+            or state.trade.partner_nick != author
+            or state.trade.session_id != session_id
+        ):
+            logger.debug(
+                "Trade message discarded: mismatch or no active trade. Author: %s, session: %s",
+                author,
+                session_id,
+            )
+            return False
+        return True
+
+    # -------------------------------------------------------------------------
+    # Core Handshake & Lifecycle Use Cases
+    # -------------------------------------------------------------------------
+
+    @classmethod
     @inject.autoparams()
     def initiate_trade(
+        cls,
         target: str,
         state: State,
         incoming_queue: IncomingQueue,
@@ -47,122 +199,80 @@ class TradeUseCase:
         Validates readiness, matches mutual requests, or registers an outgoing request.
         """
         if not state.is_game_running:
-            incoming_queue.put_nowait(
-                IncomingEvent.create_information_event(
-                    "You need to be in game to trade."
-                )
-            )
+            cls._send_info(incoming_queue, "You need to be in game to trade.")
             return False
 
         if target.startswith("@"):
             target = target[1:]
 
         if target == state.nick:
-            incoming_queue.put_nowait(
-                IncomingEvent.create_information_event(
-                    "You cannot trade with yourself."
-                )
-            )
+            cls._send_info(incoming_queue, "You cannot trade with yourself.")
             return False
 
         target_user = state.chat_users.get(target)
         if not target_user:
-            incoming_queue.put_nowait(
-                IncomingEvent.create_information_event(
-                    f"{target!r} is not in the chat."
-                )
-            )
+            cls._send_info(incoming_queue, f"{target!r} is not in the chat.")
             return False
 
         if not target_user.in_game:
-            incoming_queue.put_nowait(
-                IncomingEvent.create_information_event(
-                    f"{target!r} is not in game."
-                )
-            )
+            cls._send_info(incoming_queue, f"{target!r} is not in game.")
             return False
 
         if state.trade is not None:
-            incoming_queue.put_nowait(
-                IncomingEvent.create_information_event(
-                    f"You are already in a trade session with {state.trade.partner_nick!r}. "
-                    "Type '/trade cancel' to abort."
-                )
+            cls._send_info(
+                incoming_queue,
+                f"You are already in a trade session with {state.trade.partner_nick!r}. "
+                "Type '/trade cancel' to abort.",
             )
             return False
 
         state.clean_expired_trades()
 
-        # Check if target already sent us an incoming request (mutual handshake matched!)
+        # Mutual handshake match: partner already sent us a silent request
         if target in state.pending_incoming_trades:
-            session_id, _expires = state.pending_incoming_trades.pop(target)
-            state.trade = TradeSession(
-                session_id=session_id,
-                partner_nick=target,
-                is_initiator=False,
-                status=TradeStatus.ACTIVE,
-                created_at=datetime.now(),
+            session_id, _ = state.pending_incoming_trades.pop(target)
+            cls._start_active_session(
+                state, session_id, target, False, incoming_queue
             )
-
-            # Send ACCEPT_REQ CTCP NOTICE back to partner
-            outgoing_queue.put_nowait(
-                OutgoingCTCP(
-                    target=target,
-                    content=f"{SAICCTCPEnum.SAICTrade.ACCEPT_REQ} {PROTOCOL_VERSION}/{session_id}",
-                )
-            )
-
-            send_trade_open_to_game(session_id, target)
-            incoming_queue.put_nowait(
-                IncomingEvent.create_information_event(
-                    f"Trade session started with {target}."
-                )
+            cls._send_trade_ctcp(
+                outgoing_queue, target, SAICTrade.ACCEPT_REQ, session_id
             )
             return True
 
         # Check if we already have an active outgoing request to target
         if target in state.pending_outgoing_trades:
-            incoming_queue.put_nowait(
-                IncomingEvent.create_information_event(
-                    f"Trade request to {target} is already pending. Waiting for response..."
-                )
+            cls._send_info(
+                incoming_queue,
+                f"Trade request to {target} is already pending. Waiting for response...",
             )
             return True
 
-        # Generate unique 4-character hex session ID
+        # Generate unique 4-character hex session ID and record outgoing request
         session_id = secrets.token_hex(2).upper()
         expires_at = datetime.now() + timedelta(
             seconds=HANDSHAKE_TIMEOUT_SECONDS
         )
         state.pending_outgoing_trades[target] = (session_id, expires_at)
 
-        # Send silent CTCP NOTICE to target
-        outgoing_queue.put_nowait(
-            OutgoingCTCP(
-                target=target,
-                content=f"{SAICCTCPEnum.SAICTrade.REQ} {PROTOCOL_VERSION}/{session_id}",
-            )
+        cls._send_trade_ctcp(outgoing_queue, target, SAICTrade.REQ, session_id)
+        cls._send_info(
+            incoming_queue,
+            f"Trade request sent to {target}. Waiting for {target} to type /trade {state.nick} ({HANDSHAKE_TIMEOUT_SECONDS}s timeout)...",
         )
 
-        incoming_queue.put_nowait(
-            IncomingEvent.create_information_event(
-                f"Trade request sent to {target}. Waiting for {target} to type /trade {state.nick} ({HANDSHAKE_TIMEOUT_SECONDS}s timeout)..."
-            )
-        )
-
-        # Schedule timeout check in background if event loop is running
         try:
             loop = asyncio.get_running_loop()
             loop.create_task(
-                TradeUseCase._schedule_handshake_timeout(target, session_id)
+                cls._schedule_handshake_timeout(target, session_id)
             )
         except RuntimeError:
             pass
         return True
 
-    @staticmethod
+    @classmethod
     @inject.autoparams()
     async def _schedule_handshake_timeout(
+        cls,
         target: str,
         session_id: str,
         state: State,
@@ -173,52 +283,47 @@ class TradeUseCase:
             stored_session, _ = state.pending_outgoing_trades[target]
             if stored_session == session_id:
                 state.pending_outgoing_trades.pop(target, None)
-                incoming_queue.put_nowait(
-                    IncomingEvent.create_information_event(
-                        f"Trade request with {target} expired."
-                    )
+                cls._send_info(
+                    incoming_queue, f"Trade request with {target} expired."
                 )
 
-    @staticmethod
+    @classmethod
     @inject.autoparams()
     def cancel_active_trade(
+        cls,
         reason: str = "cancelled",
         state: State = None,
         incoming_queue: IncomingQueue = None,
         outgoing_queue: OutgoingQueue = None,
     ):
-        """
-        Cancels active trade session or all pending requests.
-        """
+        """Cancels active trade session or clears pending requests."""
         state.pending_incoming_trades.clear()
         state.pending_outgoing_trades.clear()
 
         if state.trade:
             session_id = state.trade.session_id
             partner = state.trade.partner_nick
-            outgoing_queue.put_nowait(
-                OutgoingCTCP(
-                    target=partner,
-                    content=f"{SAICCTCPEnum.SAICTrade.CANCEL} {PROTOCOL_VERSION}/{session_id}/{reason}",
-                )
+            cls._send_trade_ctcp(
+                outgoing_queue, partner, SAICTrade.CANCEL, session_id, reason
             )
             send_trade_abort_to_game(session_id, reason)
-            incoming_queue.put_nowait(
-                IncomingEvent.create_information_event(
-                    f"Trade with {partner} aborted: {reason}."
-                )
+            cls._send_info(
+                incoming_queue, f"Trade with {partner} aborted: {reason}."
             )
             state.trade = None
         else:
-            incoming_queue.put_nowait(
-                IncomingEvent.create_information_event(
-                    "No active trade session to cancel."
-                )
+            cls._send_info(
+                incoming_queue, "No active trade session to cancel."
             )
 
-    @staticmethod
+    # -------------------------------------------------------------------------
+    # Incoming CTCP Routing (Partner -> PySAIC)
+    # -------------------------------------------------------------------------
+
+    @classmethod
     @inject.autoparams()
     def handle_incoming_ctcp(
+        cls,
         author: str,
         content: str,
         state: State,
@@ -255,9 +360,17 @@ class TradeUseCase:
 
         state.clean_expired_trades()
 
+        # Session-bound actions require an active session matching author and session_id
+        if action not in (
+            SAICTrade.REQ,
+            SAICTrade.ACCEPT_REQ,
+            SAICTrade.CANCEL,
+        ):
+            if not cls._is_valid_session(state, author, session_id):
+                return
+
         match action:
             case SAICTrade.REQ:
-                # Silently record pending incoming trade. DO NOT show any in-game popups!
                 logger.info(
                     "Received silent trade request from %s (session %s)",
                     author,
@@ -270,68 +383,37 @@ class TradeUseCase:
                 )
 
             case SAICTrade.ACCEPT_REQ:
-                # Target accepted our /trade request!
                 if author in state.pending_outgoing_trades:
                     stored_session, _ = state.pending_outgoing_trades.pop(
                         author
                     )
                     if stored_session == session_id:
-                        state.trade = TradeSession(
-                            session_id=session_id,
-                            partner_nick=author,
-                            is_initiator=True,
-                            status=TradeStatus.ACTIVE,
-                            created_at=datetime.now(),
-                        )
-                        send_trade_open_to_game(session_id, author)
-                        incoming_queue.put_nowait(
-                            IncomingEvent.create_information_event(
-                                f"Trade session started with {author}."
-                            )
+                        cls._start_active_session(
+                            state, session_id, author, True, incoming_queue
                         )
 
             case SAICTrade.CHECK:
-                # Partner is pre-checking if item section exists in our modpack
-                # Payload: ref_id/item_id/amount/condition
-                if not TradeUseCase._is_valid_session(
-                    state, author, session_id
-                ):
-                    return
                 if len(payload) >= 2:
-                    ref_id = payload[0]
-                    item_id = payload[1]
+                    ref_id, item_id = payload[0], payload[1]
                     send_trade_check_to_game(session_id, ref_id, item_id)
 
             case SAICTrade.CHECK_RESP:
-                # Response to our pre-check: ref_id/status (1=OK, 0=Missing)
-                if not TradeUseCase._is_valid_session(
-                    state, author, session_id
-                ):
-                    return
                 if len(payload) >= 2:
-                    ref_id = payload[0]
-                    status = payload[1]
-                    TradeUseCase._handle_check_response(
+                    ref_id, status = payload[0], payload[1]
+                    cls._handle_check_response(
                         ref_id, status, state, outgoing_queue, incoming_queue
                     )
 
             case SAICTrade.ADD:
-                # Simple item added by partner: ref_id/item_id/amount/condition
-                if not TradeUseCase._is_valid_session(
-                    state, author, session_id
-                ):
-                    return
                 if len(payload) >= 4:
                     ref_id, item_id, amount, condition = payload[:4]
-                    item = TradeItem(
+                    state.trade.partner_items[ref_id] = TradeItem(
                         ref_id=ref_id,
                         item_id=item_id,
                         amount=int(amount),
                         condition=float(condition),
                     )
-                    state.trade.partner_items[ref_id] = item
-                    state.trade.my_accepted = False
-                    state.trade.partner_accepted = False
+                    cls._reset_acceptance(state.trade)
                     send_trade_partner_add_to_game(
                         session_id=session_id,
                         ref_id=ref_id,
@@ -339,14 +421,8 @@ class TradeUseCase:
                         amount=amount,
                         condition=condition,
                     )
-                    send_trade_reset_accept_to_game(session_id)
 
             case SAICTrade.ADDCOMPLEX:
-                # Complex item root shell: ref_id/item_id/amount/condition
-                if not TradeUseCase._is_valid_session(
-                    state, author, session_id
-                ):
-                    return
                 if len(payload) >= 4:
                     ref_id, item_id, amount, condition = payload[:4]
                     state.trade.partial_partner_items[ref_id] = TradeItem(
@@ -357,92 +433,45 @@ class TradeUseCase:
                     )
 
             case SAICTrade.MODIFY:
-                # Streamed component chunk: ref_id/type/data
-                if not TradeUseCase._is_valid_session(
-                    state, author, session_id
-                ):
-                    return
                 if len(payload) >= 3:
                     ref_id, mod_type, data = payload[0], payload[1], payload[2]
-                    TradeUseCase._handle_streamed_modify(
-                        ref_id, mod_type, data, state
-                    )
+                    cls._handle_streamed_modify(ref_id, mod_type, data, state)
 
             case SAICTrade.ITEMDONE:
-                # Finalized complex item: ref_id
-                if not TradeUseCase._is_valid_session(
-                    state, author, session_id
-                ):
-                    return
                 if len(payload) >= 1:
-                    ref_id = payload[0]
-                    TradeUseCase._handle_complex_item_done(ref_id, state)
+                    cls._handle_complex_item_done(payload[0], state)
 
             case SAICTrade.DEL:
-                # Partner removed item: ref_id
-                if not TradeUseCase._is_valid_session(
-                    state, author, session_id
-                ):
-                    return
                 if len(payload) >= 1:
                     ref_id = payload[0]
                     state.trade.partner_items.pop(ref_id, None)
                     state.trade.partial_partner_items.pop(ref_id, None)
-                    state.trade.my_accepted = False
-                    state.trade.partner_accepted = False
+                    cls._reset_acceptance(state.trade)
                     send_trade_partner_del_to_game(session_id, ref_id)
-                    send_trade_reset_accept_to_game(session_id)
 
             case SAICTrade.ACCEPT:
-                # Partner clicked accept
-                if not TradeUseCase._is_valid_session(
-                    state, author, session_id
-                ):
-                    return
                 state.trade.partner_accepted = True
                 send_trade_partner_accept_to_game(session_id)
-                TradeUseCase._check_both_accepted(state, outgoing_queue)
+                cls._check_both_accepted(state, outgoing_queue)
 
             case SAICTrade.COMMIT:
-                # Partner confirmed inventory verification and committed swap
-                if not TradeUseCase._is_valid_session(
-                    state, author, session_id
-                ):
-                    return
-                TradeUseCase._execute_trade_swap(state, incoming_queue)
+                cls._execute_trade_swap(state, incoming_queue)
 
             case SAICTrade.CANCEL:
-                # Trade aborted by partner
                 reason = payload[0] if payload else "Partner cancelled trade."
                 if state.trade and state.trade.session_id == session_id:
                     send_trade_abort_to_game(session_id, reason)
-                    incoming_queue.put_nowait(
-                        IncomingEvent.create_information_event(
-                            f"Trade aborted by {author}: {reason}."
-                        )
+                    cls._send_info(
+                        incoming_queue, f"Trade aborted by {author}: {reason}."
                     )
                     state.trade = None
 
             case _:
                 logger.warning("Unknown trade action: %r", action)
 
-    @staticmethod
-    def _is_valid_session(state: State, author: str, session_id: str) -> bool:
-        if (
-            state.trade is None
-            or state.trade.partner_nick != author
-            or state.trade.session_id != session_id
-        ):
-            logger.debug(
-                "Trade message discarded: mismatch or no active trade. Author: %s, session: %s",
-                author,
-                session_id,
-            )
-            return False
-        return True
-
-    @staticmethod
+    @classmethod
     def _handle_check_response(
+        cls,
         ref_id: str,
         status: str,
         state: State,
@@ -455,7 +484,6 @@ class TradeUseCase:
 
         item = session.my_items[ref_id]
         if status != "1":
-            # Modpack mismatch! Target client does not recognize item section
             logger.warning(
                 "Target player does not have item section %r", item.item_id
             )
@@ -463,80 +491,29 @@ class TradeUseCase:
             send_trade_check_failed_to_game(
                 session.session_id, ref_id, item.item_id
             )
-            incoming_queue.put_nowait(
-                IncomingEvent.create_information_event(
-                    f"Target player's game does not recognize item: {item.item_id}"
-                )
+            cls._send_info(
+                incoming_queue,
+                f"Target player's game does not recognize item: {item.item_id}",
             )
             return
 
-        # Modpack matched: send item details!
         is_complex = bool(item.parts or item.upgrades or item.attachments)
         if not is_complex:
-            outgoing_queue.put_nowait(
-                OutgoingCTCP(
-                    target=session.partner_nick,
-                    content=(
-                        f"{SAICCTCPEnum.SAICTrade.ADD} {PROTOCOL_VERSION}/{session.session_id}/"
-                        f"{ref_id}/{item.item_id}/{item.amount}/{item.condition}"
-                    ),
-                )
+            cls._send_trade_ctcp(
+                outgoing_queue,
+                session.partner_nick,
+                SAICTrade.ADD,
+                session.session_id,
+                ref_id,
+                item.item_id,
+                item.amount,
+                item.condition,
             )
-        else:
-            # Stream complex item sequentially
-            outgoing_queue.put_nowait(
-                OutgoingCTCP(
-                    target=session.partner_nick,
-                    content=(
-                        f"{SAICCTCPEnum.SAICTrade.ADDCOMPLEX} {PROTOCOL_VERSION}/{session.session_id}/"
-                        f"{ref_id}/{item.item_id}/{item.amount}/{item.condition}"
-                    ),
-                )
-            )
-            if item.parts:
-                parts_str = ",".join(
-                    f"{sec}:{cond}" for sec, cond in item.parts.items()
-                )
-                outgoing_queue.put_nowait(
-                    OutgoingCTCP(
-                        target=session.partner_nick,
-                        content=(
-                            f"{SAICCTCPEnum.SAICTrade.MODIFY} {PROTOCOL_VERSION}/{session.session_id}/"
-                            f"{ref_id}/parts/{parts_str}"
-                        ),
-                    )
-                )
-            if item.upgrades:
-                upgrades_str = ",".join(item.upgrades)
-                outgoing_queue.put_nowait(
-                    OutgoingCTCP(
-                        target=session.partner_nick,
-                        content=(
-                            f"{SAICCTCPEnum.SAICTrade.MODIFY} {PROTOCOL_VERSION}/{session.session_id}/"
-                            f"{ref_id}/upgrades/{upgrades_str}"
-                        ),
-                    )
-                )
-            if item.attachments:
-                attach_str = ",".join(
-                    f"{sec}:{att_type}"
-                    for att_type, sec in item.attachments.items()
-                )
-                outgoing_queue.put_nowait(
-                    OutgoingCTCP(
-                        target=session.partner_nick,
-                        content=(
-                            f"{SAICCTCPEnum.SAICTrade.MODIFY} {PROTOCOL_VERSION}/{session.session_id}/"
-                            f"{ref_id}/attach/{attach_str}"
-                        ),
-                    )
-                )
-            outgoing_queue.put_nowait(
-                OutgoingCTCP(
-                    target=session.partner_nick,
-                    content=f"{SAICCTCPEnum.SAICTrade.ITEMDONE} {PROTOCOL_VERSION}/{session.session_id}/{ref_id}",
-                )
-            )
+            return
+
+        cls._handle_check_response_complex(
+            ref_id, item, session, outgoing_queue
+        )
 
     @staticmethod
     def _handle_streamed_modify(
@@ -561,39 +538,19 @@ class TradeUseCase:
                     att_sec, att_type = att_entry.split(":", 1)
                     item.attachments[att_type] = att_sec
 
-    @staticmethod
-    def _handle_complex_item_done(ref_id: str, state: State):
+    @classmethod
+    def _handle_complex_item_done(cls, ref_id: str, state: State):
         session = state.trade
         item = session.partial_partner_items.pop(ref_id, None)
         if not item:
             return
 
         session.partner_items[ref_id] = item
-        session.my_accepted = False
-        session.partner_accepted = False
+        cls._reset_acceptance(session)
 
-        parts_string = (
-            "|".join(
-                f"{sec}:{cond}:{int(float(cond) * 1000)}"
-                for sec, cond in item.parts.items()
-            )
-            if item.parts
-            else "none"
+        parts_string, upgrades_string, attachments_string = (
+            cls._serialize_item_details(item)
         )
-        upgrades_string = (
-            "|".join(f"{upg}:1000" for upg in item.upgrades)
-            if item.upgrades
-            else "none"
-        )
-        attachments_string = (
-            "|".join(
-                f"{att_type}:{sec}:1000"
-                for att_type, sec in item.attachments.items()
-            )
-            if item.attachments
-            else "none"
-        )
-
         send_trade_partner_add_to_game(
             session_id=session.session_id,
             ref_id=ref_id,
@@ -604,7 +561,6 @@ class TradeUseCase:
             upgrades_string=upgrades_string,
             attachments_string=attachments_string,
         )
-        send_trade_reset_accept_to_game(session.session_id)
 
     @staticmethod
     def _check_both_accepted(state: State, outgoing_queue: OutgoingQueue):
@@ -617,8 +573,8 @@ class TradeUseCase:
             session.status = TradeStatus.COMMITTING
             send_trade_verify_request_to_game(session.session_id)
 
-    @staticmethod
-    def _execute_trade_swap(state: State, incoming_queue: IncomingQueue):
+    @classmethod
+    def _execute_trade_swap(cls, state: State, incoming_queue: IncomingQueue):
         session = state.trade
         if not session:
             return
@@ -629,28 +585,9 @@ class TradeUseCase:
             session.partner_nick,
         )
 
-        # 1. Add all received partner items into our actor's inventory
         for item in session.partner_items.values():
-            parts_string = (
-                "|".join(
-                    f"{sec}:{cond}:{int(float(cond) * 1000)}"
-                    for sec, cond in item.parts.items()
-                )
-                if item.parts
-                else "none"
-            )
-            upgrades_string = (
-                "|".join(f"{upg}:1000" for upg in item.upgrades)
-                if item.upgrades
-                else "none"
-            )
-            attachments_string = (
-                "|".join(
-                    f"{att_type}:{sec}:1000"
-                    for att_type, sec in item.attachments.items()
-                )
-                if item.attachments
-                else "none"
+            parts_string, upgrades_string, attachments_string = (
+                cls._serialize_item_details(item)
             )
             add_item_to_inventory(
                 item_id=item.item_id,
@@ -662,23 +599,84 @@ class TradeUseCase:
                 attachments_string=attachments_string,
             )
 
-        # 2. Tell game that trade succeeded so it releases our offered items
         send_trade_success_to_game(session.session_id)
-
-        incoming_queue.put_nowait(
-            IncomingEvent.create_information_event(
-                f"Trade Successful with {session.partner_nick}! Items swapped."
-            )
+        cls._send_info(
+            incoming_queue,
+            f"Trade Successful with {session.partner_nick}! Items swapped.",
         )
         state.trade = None
+
+    @classmethod
+    def _handle_check_response_complex(
+        cls,
+        ref_id: str,
+        item: TradeItem,
+        session: TradeSession,
+        outgoing_queue: OutgoingQueue,
+    ):
+        cls._send_trade_ctcp(
+            outgoing_queue,
+            session.partner_nick,
+            SAICTrade.ADDCOMPLEX,
+            session.session_id,
+            ref_id,
+            item.item_id,
+            item.amount,
+            item.condition,
+        )
+        if item.parts:
+            parts_str = ",".join(
+                f"{sec}:{cond}" for sec, cond in item.parts.items()
+            )
+            cls._send_trade_ctcp(
+                outgoing_queue,
+                session.partner_nick,
+                SAICTrade.MODIFY,
+                session.session_id,
+                ref_id,
+                "parts",
+                parts_str,
+            )
+        if item.upgrades:
+            cls._send_trade_ctcp(
+                outgoing_queue,
+                session.partner_nick,
+                SAICTrade.MODIFY,
+                session.session_id,
+                ref_id,
+                "upgrades",
+                ",".join(item.upgrades),
+            )
+        if item.attachments:
+            attach_str = ",".join(
+                f"{sec}:{att_type}"
+                for att_type, sec in item.attachments.items()
+            )
+            cls._send_trade_ctcp(
+                outgoing_queue,
+                session.partner_nick,
+                SAICTrade.MODIFY,
+                session.session_id,
+                ref_id,
+                "attach",
+                attach_str,
+            )
+        cls._send_trade_ctcp(
+            outgoing_queue,
+            session.partner_nick,
+            SAICTrade.ITEMDONE,
+            session.session_id,
+            ref_id,
+        )
 
     # -------------------------------------------------------------------------
     # Game Socket IPC Handlers (Game -> PySAIC)
     # -------------------------------------------------------------------------
 
-    @staticmethod
+    @classmethod
     @inject.autoparams()
     def handle_game_add_item(
+        cls,
         payload: str,
         state: State,
         outgoing_queue: OutgoingQueue,
@@ -687,40 +685,16 @@ class TradeUseCase:
         Game notified us player put item in barter window:
         Payload: session_id/ref_id/item_id/amount/amount_type/condition[/parts/upgrades/attachments]
         """
-        session = state.trade
+        session, fields = cls._get_active_session_payload(
+            state, payload, min_fields=6
+        )
         if not session:
-            return
-
-        fields = payload.split("/")
-        if len(fields) < 6:
             return
 
         session_id, ref_id, item_id, amount, amount_type, condition = fields[
             :6
         ]
-        if session.session_id != session_id:
-            return
-
-        parts_dict = {}
-        if len(fields) > 6 and fields[6] != "none":
-            for part in fields[6].split("|"):
-                if ":" in part:
-                    p_sec, p_cond = part.split(":")[:2]
-                    parts_dict[p_sec] = float(p_cond)
-
-        upgrades_list = []
-        if len(fields) > 7 and fields[7] != "none":
-            for upg in fields[7].split("|"):
-                upg_sec = upg.split(":")[0]
-                if upg_sec:
-                    upgrades_list.append(upg_sec)
-
-        attachments_dict = {}
-        if len(fields) > 8 and fields[8] != "none":
-            for att in fields[8].split("|"):
-                if ":" in att:
-                    att_type, att_sec = att.split(":")[:2]
-                    attachments_dict[att_type] = att_sec
+        parts, upgrades, attachments = cls._parse_game_item_components(fields)
 
         item = TradeItem(
             ref_id=ref_id,
@@ -728,61 +702,58 @@ class TradeUseCase:
             amount=int(amount),
             amount_type=amount_type,
             condition=float(condition),
-            parts=parts_dict,
-            upgrades=upgrades_list,
-            attachments=attachments_dict,
+            parts=parts,
+            upgrades=upgrades,
+            attachments=attachments,
         )
         session.my_items[ref_id] = item
-        session.my_accepted = False
-        session.partner_accepted = False
+        cls._reset_acceptance(session, notify_game=False)
 
-        # Pre-check item with target client before streaming
-        outgoing_queue.put_nowait(
-            OutgoingCTCP(
-                target=session.partner_nick,
-                content=(
-                    f"{SAICCTCPEnum.SAICTrade.CHECK} {PROTOCOL_VERSION}/{session_id}/"
-                    f"{ref_id}/{item_id}/{amount}/{condition}"
-                ),
-            )
+        cls._send_trade_ctcp(
+            outgoing_queue,
+            session.partner_nick,
+            SAICTrade.CHECK,
+            session_id,
+            ref_id,
+            item_id,
+            amount,
+            condition,
         )
 
-    @staticmethod
+    @classmethod
     @inject.autoparams()
     def handle_game_del_item(
+        cls,
         payload: str,
         state: State,
         outgoing_queue: OutgoingQueue,
     ):
         """
-        Game notified us player removed item from barter window:
+        Game notified us player removed an item from barter window:
         Payload: session_id/ref_id
         """
-        session = state.trade
+        session, fields = cls._get_active_session_payload(
+            state, payload, min_fields=2
+        )
         if not session:
             return
 
-        fields = payload.split("/")
-        if len(fields) < 2:
-            return
-        session_id, ref_id = fields[0], fields[1]
-        if session.session_id != session_id:
-            return
-
+        ref_id = fields[1]
         session.my_items.pop(ref_id, None)
-        session.my_accepted = False
-        session.partner_accepted = False
+        cls._reset_acceptance(session, notify_game=False)
 
-        outgoing_queue.put_nowait(
-            OutgoingCTCP(
-                target=session.partner_nick,
-                content=f"{SAICCTCPEnum.SAICTrade.DEL} {PROTOCOL_VERSION}/{session_id}/{ref_id}",
-            )
+        cls._send_trade_ctcp(
+            outgoing_queue,
+            session.partner_nick,
+            SAICTrade.DEL,
+            session.session_id,
+            ref_id,
         )
 
-    @staticmethod
+    @classmethod
     @inject.autoparams()
     def handle_game_check_result(
+        cls,
         payload: str,
         state: State,
         outgoing_queue: OutgoingQueue,
@@ -791,51 +762,53 @@ class TradeUseCase:
         Game answered section existence check:
         Payload: session_id/ref_id/status (1=OK, 0=Missing)
         """
-        session = state.trade
+        session, fields = cls._get_active_session_payload(
+            state, payload, min_fields=3
+        )
         if not session:
             return
 
-        fields = payload.split("/")
-        if len(fields) < 3:
-            return
-        session_id, ref_id, status = fields[0], fields[1], fields[2]
-        if session.session_id != session_id:
-            return
-
-        outgoing_queue.put_nowait(
-            OutgoingCTCP(
-                target=session.partner_nick,
-                content=f"{SAICCTCPEnum.SAICTrade.CHECK_RESP} {PROTOCOL_VERSION}/{session_id}/{ref_id}/{status}",
-            )
+        ref_id, status = fields[1], fields[2]
+        cls._send_trade_ctcp(
+            outgoing_queue,
+            session.partner_nick,
+            SAICTrade.CHECK_RESP,
+            session.session_id,
+            ref_id,
+            status,
         )
 
-    @staticmethod
+    @classmethod
     @inject.autoparams()
     def handle_game_accept(
+        cls,
         payload: str,
         state: State,
         outgoing_queue: OutgoingQueue,
     ):
         """
-        Local player clicked Accept in game:
+        Local player clicked `Accept` in game:
         Payload: session_id
         """
-        session = state.trade
-        if not session or session.session_id != payload.strip():
+        session, _ = cls._get_active_session_payload(
+            state, payload, min_fields=1
+        )
+        if not session:
             return
 
         session.my_accepted = True
-        outgoing_queue.put_nowait(
-            OutgoingCTCP(
-                target=session.partner_nick,
-                content=f"{SAICCTCPEnum.SAICTrade.ACCEPT} {PROTOCOL_VERSION}/{session.session_id}",
-            )
+        cls._send_trade_ctcp(
+            outgoing_queue,
+            session.partner_nick,
+            SAICTrade.ACCEPT,
+            session.session_id,
         )
-        TradeUseCase._check_both_accepted(state, outgoing_queue)
+        cls._check_both_accepted(state, outgoing_queue)
 
-    @staticmethod
+    @classmethod
     @inject.autoparams()
     def handle_game_verify_result(
+        cls,
         payload: str,
         state: State,
         outgoing_queue: OutgoingQueue,
@@ -845,46 +818,39 @@ class TradeUseCase:
         Game finished pre-swap inventory integrity check:
         Payload: session_id/status (1=Verified, 0=Exploit/Missing)
         """
-        session = state.trade
+        session, fields = cls._get_active_session_payload(
+            state, payload, min_fields=1
+        )
         if not session:
             return
 
-        fields = payload.split("/")
-        session_id = fields[0]
         status = fields[1] if len(fields) > 1 else "0"
-        if session.session_id != session_id:
-            return
-
         if status == "1":
-            # Verification passed: send COMMIT
-            outgoing_queue.put_nowait(
-                OutgoingCTCP(
-                    target=session.partner_nick,
-                    content=f"{SAICCTCPEnum.SAICTrade.COMMIT} {PROTOCOL_VERSION}/{session_id}",
-                )
+            cls._send_trade_ctcp(
+                outgoing_queue,
+                session.partner_nick,
+                SAICTrade.COMMIT,
+                session.session_id,
             )
-            # If partner also committed, finish swap
-            TradeUseCase._execute_trade_swap(state, incoming_queue)
+            cls._execute_trade_swap(state, incoming_queue)
         else:
-            # Verification failed! Abort immediately
             logger.warning(
                 "Inventory verification failed for trade session %s",
-                session_id,
+                session.session_id,
             )
-            TradeUseCase.cancel_active_trade(
-                reason="inventory_verification_failed"
-            )
+            cls.cancel_active_trade(reason="inventory_verification_failed")
 
-    @staticmethod
+    @classmethod
     @inject.autoparams()
     def handle_game_cancel(
+        cls,
         payload: str,
         state: State,
     ):
         """
-        Local player closed trade window or pressed Esc in game:
+        Local player closed the trade window or pressed Esc in game:
         Payload: session_id/reason
         """
-        fields = payload.split("/")
+        fields = payload.strip().split("/")
         reason = fields[1] if len(fields) > 1 else "window_closed"
-        TradeUseCase.cancel_active_trade(reason=reason)
+        cls.cancel_active_trade(reason=reason)
