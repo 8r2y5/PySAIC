@@ -49,7 +49,6 @@ function TradeWindow:InitControls()
 
     self.lbl_my_status = self.xml:InitStatic("lbl_my_status", self)
     self.lbl_partner_status = self.xml:InitStatic("lbl_partner_status", self)
-    self:UpdateStatusLabels()
 
     -- Scroll Views
     self.scroll_backpack = self.xml:InitScrollView("scroll_backpack", self)
@@ -82,27 +81,33 @@ function TradeWindow:InitControls()
     self:AddCallback("btn_finalize", ui_events.BUTTON_CLICKED, self.OnFinalizeClicked, self)
     self:AddCallback("btn_cancel", ui_events.BUTTON_CLICKED, self.Cancel, self)
 
-    self.btn_finalize:Enable(false)
+    self:UpdateStatusLabels()
 end
 
 function TradeWindow:UpdateStatusLabels()
-    if self.my_accepted then
-        self.lbl_my_status:TextControl():SetText("Your Status: READY (Accepted)")
-    else
-        self.lbl_my_status:TextControl():SetText("Your Status: NOT READY")
+    if self.lbl_my_status then
+        if self.my_accepted then
+            self.lbl_my_status:TextControl():SetText("Your Status: READY (Accepted)")
+        else
+            self.lbl_my_status:TextControl():SetText("Your Status: NOT READY")
+        end
     end
 
-    if self.partner_accepted then
-        self.lbl_partner_status:TextControl():SetText("Partner Status: READY (Accepted)")
-    else
-        self.lbl_partner_status:TextControl():SetText("Partner Status: WAITING")
+    if self.lbl_partner_status then
+        if self.partner_accepted then
+            self.lbl_partner_status:TextControl():SetText("Partner Status: READY (Accepted)")
+        else
+            self.lbl_partner_status:TextControl():SetText("Partner Status: WAITING")
+        end
     end
 
     -- Finalize button is only enabled when both players have accepted
-    if self.my_accepted and self.partner_accepted then
-        self.btn_finalize:Enable(true)
-    else
-        self.btn_finalize:Enable(false)
+    if self.btn_finalize then
+        if self.my_accepted and self.partner_accepted then
+            self.btn_finalize:Enable(true)
+        else
+            self.btn_finalize:Enable(false)
+        end
     end
 end
 
