@@ -96,7 +96,7 @@
 	</btn_cancel>
 
 	<lbl_trade_hint x="675" y="660" width="294" height="25">
-		<text font="letterica14" color="ui_6" align="c">Both players must Accept before Finalizing.</text>
+		<text font="letterica16" color="ui_6" align="c">Both players must Accept before Finalizing.</text>
 	</lbl_trade_hint>
 
 	<!-- Item row template for scroll views -->
@@ -106,17 +106,17 @@
 			<text font="letterica16" color="ui_1" vert_align="t"/>
 		</name>
 		<details x="4" y="20" width="260" height="18">
-			<text font="letterica14" color="ui_6" vert_align="b"/>
+			<text font="letterica16" color="ui_6" vert_align="b"/>
 		</details>
 	</item_entry>
 
 	<!-- Chat message template -->
 	<chat_entry x="0" y="0" width="295" height="32" stretch="1">
 		<author x="2" y="1" width="290" height="15">
-			<text font="letterica14" color="ui_5"/>
+			<text font="letterica16" color="ui_5"/>
 		</author>
 		<text x="2" y="15" width="290" height="16" complex_mode="1">
-			<text font="letterica14" color="ui_1"/>
+			<text font="letterica16" color="ui_1"/>
 		</text>
 	</chat_entry>
 </window>
