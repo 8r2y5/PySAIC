@@ -115,8 +115,8 @@
 		<author x="2" y="1" width="290" height="15">
 			<text font="letterica16" color="ui_5"/>
 		</author>
-		<text x="2" y="15" width="290" height="16" complex_mode="1">
+		<msg_text x="2" y="15" width="290" height="16" complex_mode="1">
 			<text font="letterica16" color="ui_1"/>
-		</text>
+		</msg_text>
 	</chat_entry>
 </window>

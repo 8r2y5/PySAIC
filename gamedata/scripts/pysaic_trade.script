@@ -425,7 +425,7 @@ end
 function TradeWindow:AddChatMessage(author, text)
     local entry = self.xml:InitStatic("chat_entry", nil)
     self.xml:InitStatic("chat_entry:author", entry):TextControl():SetText(author .. ":")
-    self.xml:InitStatic("chat_entry:text", entry):TextControl():SetText(text)
+    self.xml:InitStatic("chat_entry:msg_text", entry):TextControl():SetText(text)
     self.scroll_chat:AddWindow(entry, true)
     entry:SetAutoDelete(true)
     self.scroll_chat:ScrollToEnd()
