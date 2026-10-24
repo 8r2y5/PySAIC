@@ -528,15 +528,21 @@ class TradeUseCase:
                 if ":" in part_entry:
                     p_sec, p_cond = part_entry.split(":", 1)
                     item.parts[p_sec] = float(p_cond)
+                else:
+                    logger.warning(f"Invalid part entry: {part_entry}")
         elif mod_type == "upgrades":
             for upg_sec in data.split(","):
                 if upg_sec:
                     item.upgrades.append(upg_sec)
+                else:
+                    logger.warning(f"Invalid upgrade entry: {upg_sec}")
         elif mod_type == "attach":
             for att_entry in data.split(","):
                 if ":" in att_entry:
                     att_sec, att_type = att_entry.split(":", 1)
                     item.attachments[att_type] = att_sec
+                else:
+                    logger.warning(f"Invalid attachment entry: {att_entry}")
 
     @classmethod
     def _handle_complex_item_done(cls, ref_id: str, state: State):
