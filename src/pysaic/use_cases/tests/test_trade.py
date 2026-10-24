@@ -335,3 +335,63 @@ def test_handle_incoming_ctcp_commit_swaps_items(
     )
     mock_success.assert_called_once_with("A7F2")
     assert trade_state.trade is None
+
+
+@patch("pysaic.use_cases.trade.send_trade_open_to_game")
+def test_initiate_trade_mutual_match_with_bot_not_in_game_accepts(
+    mock_open_game, trade_state, mock_incoming_queue, mock_outgoing_queue
+):
+    from pysaic.enums import IrcEvents
+
+    trade_state.chat_users["Bot"] = ChatUser("Bot", in_game=False)
+    trade_state.pending_incoming_trades["Bot"] = (
+        "B001",
+        datetime.now() + timedelta(seconds=20),
+    )
+
+    result = TradeUseCase.initiate_trade(
+        "Bot",
+        state=trade_state,
+        incoming_queue=mock_incoming_queue,
+        outgoing_queue=mock_outgoing_queue,
+    )
+
+    assert result is True
+    assert trade_state.trade is not None
+    assert trade_state.trade.session_id == "B001"
+    assert trade_state.trade.partner_nick == "Bot"
+    assert "Bot" not in trade_state.pending_incoming_trades
+
+    mock_open_game.assert_called_once_with("B001", "Bot")
+    ctcp = mock_outgoing_queue.put_nowait.call_args[0][0]
+    assert ctcp.target == "Bot"
+    assert "SAICTRADE.ACCEPT_REQ 1/B001" in ctcp.content
+    assert ctcp.send_as == IrcEvents.PRIVMSG
+
+
+@patch("pysaic.use_cases.trade.send_trade_open_to_game")
+def test_initiate_trade_case_insensitive_mutual_match(
+    mock_open_game, trade_state, mock_incoming_queue, mock_outgoing_queue
+):
+    from pysaic.enums import IrcEvents
+
+    trade_state.pending_incoming_trades["BotUser"] = (
+        "C002",
+        datetime.now() + timedelta(seconds=20),
+    )
+
+    result = TradeUseCase.initiate_trade(
+        "botuser",
+        state=trade_state,
+        incoming_queue=mock_incoming_queue,
+        outgoing_queue=mock_outgoing_queue,
+    )
+
+    assert result is True
+    assert trade_state.trade is not None
+    assert trade_state.trade.session_id == "C002"
+    assert "BotUser" not in trade_state.pending_incoming_trades
+    ctcp = mock_outgoing_queue.put_nowait.call_args[0][0]
+    assert ctcp.target == "BotUser"
+    assert "SAICTRADE.ACCEPT_REQ 1/C002" in ctcp.content
+    assert ctcp.send_as == IrcEvents.PRIVMSG

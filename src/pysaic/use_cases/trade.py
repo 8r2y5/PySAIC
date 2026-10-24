@@ -25,7 +25,7 @@ from pysaic.entities import (
     OutgoingCTCP,
     OutgoingQueue,
 )
-from pysaic.enums import SAICCTCPEnum, SAICTrade
+from pysaic.enums import IrcEvents, SAICCTCPEnum, SAICTrade
 from pysaic.state import State, TradeItem, TradeSession, TradeStatus
 
 logger = logging.getLogger(__name__)
@@ -51,8 +51,9 @@ class TradeUseCase:
         action: SAICTrade,
         session_id: str,
         *payload_parts: object,
+        send_as: IrcEvents = IrcEvents.PRIVMSG,
     ):
-        """Constructs and queues a standardized SAICTRADE CTCP NOTICE."""
+        """Constructs and queues a standardized SAICTRADE CTCP message."""
         suffix = (
             ("/" + "/".join(str(p) for p in payload_parts))
             if payload_parts
@@ -62,10 +63,18 @@ class TradeUseCase:
             action.name if isinstance(action, SAICTrade) else str(action)
         )
         action_str = getattr(SAICCTCPEnum.SAICTrade, action_name, action_name)
+        content = f"{action_str} {PROTOCOL_VERSION}/{session_id}{suffix}"
+        logger.info(
+            "Sending trade CTCP to %s (%s): %s",
+            target,
+            send_as.value if hasattr(send_as, "value") else send_as,
+            content,
+        )
         outgoing_queue.put_nowait(
             OutgoingCTCP(
                 target=target,
-                content=f"{action_str} {PROTOCOL_VERSION}/{session_id}{suffix}",
+                content=content,
+                send_as=send_as,
             )
         )
 
@@ -198,27 +207,33 @@ class TradeUseCase:
         Handles user executing /trade <target>.
         Validates readiness, matches mutual requests, or registers an outgoing request.
         """
+        logger.info(
+            "initiate_trade called: target=%r, state.nick=%r, is_game_running=%s",
+            target,
+            state.nick,
+            state.is_game_running,
+        )
+
         if not state.is_game_running:
+            logger.warning("initiate_trade: game is not running")
             cls._send_info(incoming_queue, "You need to be in game to trade.")
             return False
 
         if target.startswith("@"):
             target = target[1:]
 
-        if target == state.nick:
+        if target.lower() == state.nick.lower():
+            logger.warning(
+                "initiate_trade: cannot trade with self (%r)", target
+            )
             cls._send_info(incoming_queue, "You cannot trade with yourself.")
             return False
 
-        target_user = state.chat_users.get(target)
-        if not target_user:
-            cls._send_info(incoming_queue, f"{target!r} is not in the chat.")
-            return False
-
-        if not target_user.in_game:
-            cls._send_info(incoming_queue, f"{target!r} is not in game.")
-            return False
-
         if state.trade is not None:
+            logger.warning(
+                "initiate_trade: already in trade session with %s",
+                state.trade.partner_nick,
+            )
             cls._send_info(
                 incoming_queue,
                 f"You are already in a trade session with {state.trade.partner_nick!r}. "
@@ -228,19 +243,70 @@ class TradeUseCase:
 
         state.clean_expired_trades()
 
-        # Mutual handshake match: partner already sent us a silent request
-        if target in state.pending_incoming_trades:
-            session_id, _ = state.pending_incoming_trades.pop(target)
+        # Check if partner already sent us a request (case-insensitive lookup)
+        matching_partner = next(
+            (
+                k
+                for k in state.pending_incoming_trades
+                if k.lower() == target.lower()
+            ),
+            None,
+        )
+        if matching_partner:
+            session_id, _ = state.pending_incoming_trades.pop(matching_partner)
+            logger.info(
+                "Matched pending incoming trade request from %s (session %s). Accepting handshake!",
+                matching_partner,
+                session_id,
+            )
             cls._start_active_session(
-                state, session_id, target, False, incoming_queue
+                state, session_id, matching_partner, False, incoming_queue
             )
             cls._send_trade_ctcp(
-                outgoing_queue, target, SAICTrade.ACCEPT_REQ, session_id
+                outgoing_queue,
+                matching_partner,
+                SAICTrade.ACCEPT_REQ,
+                session_id,
+                send_as=IrcEvents.PRIVMSG,
             )
             return True
 
-        # Check if we already have an active outgoing request to target
-        if target in state.pending_outgoing_trades:
+        # Player is initiating a new trade: validate target in chat_users (case-insensitive)
+        target_user = state.chat_users.get(target)
+        if not target_user:
+            matching_nick = next(
+                (k for k in state.chat_users if k.lower() == target.lower()),
+                None,
+            )
+            if matching_nick:
+                target = matching_nick
+                target_user = state.chat_users[target]
+
+        if not target_user:
+            logger.warning(
+                "initiate_trade: target %r not in chat_users (available: %s)",
+                target,
+                list(state.chat_users.keys())[:10],
+            )
+            cls._send_info(incoming_queue, f"{target!r} is not in the chat.")
+            return False
+
+        if not target_user.in_game:
+            logger.warning("initiate_trade: target %r is not in game", target)
+            cls._send_info(incoming_queue, f"{target!r} is not in game.")
+            return False
+
+        # Check if we already have an active outgoing request to target (case-insensitive)
+        matching_outgoing = next(
+            (
+                k
+                for k in state.pending_outgoing_trades
+                if k.lower() == target.lower()
+            ),
+            None,
+        )
+        if matching_outgoing:
+            logger.info("Trade request to %s is already pending.", target)
             cls._send_info(
                 incoming_queue,
                 f"Trade request to {target} is already pending. Waiting for response...",
@@ -253,8 +319,19 @@ class TradeUseCase:
             seconds=HANDSHAKE_TIMEOUT_SECONDS
         )
         state.pending_outgoing_trades[target] = (session_id, expires_at)
+        logger.info(
+            "Registered outgoing trade request to %s (session %s)",
+            target,
+            session_id,
+        )
 
-        cls._send_trade_ctcp(outgoing_queue, target, SAICTrade.REQ, session_id)
+        cls._send_trade_ctcp(
+            outgoing_queue,
+            target,
+            SAICTrade.REQ,
+            session_id,
+            send_as=IrcEvents.PRIVMSG,
+        )
         cls._send_info(
             incoming_queue,
             f"Trade request sent to {target}. Waiting for {target} to type /trade {state.nick} ({HANDSHAKE_TIMEOUT_SECONDS}s timeout)...",
@@ -369,10 +446,18 @@ class TradeUseCase:
             if not cls._is_valid_session(state, author, session_id):
                 return
 
+        logger.info(
+            "handle_incoming_ctcp: action=%s, author=%s, session_id=%s, payload=%s",
+            action,
+            author,
+            session_id,
+            payload,
+        )
+
         match action:
             case SAICTrade.REQ:
                 logger.info(
-                    "Received silent trade request from %s (session %s)",
+                    "Received silent trade request (REQ) from %s (session %s)",
                     author,
                     session_id,
                 )
@@ -381,16 +466,58 @@ class TradeUseCase:
                     datetime.now()
                     + timedelta(seconds=HANDSHAKE_TIMEOUT_SECONDS),
                 )
+                logger.info(
+                    "Recorded pending incoming trade from %s (session %s). Total pending incoming: %s",
+                    author,
+                    session_id,
+                    list(state.pending_incoming_trades.keys()),
+                )
 
             case SAICTrade.ACCEPT_REQ:
-                if author in state.pending_outgoing_trades:
+                logger.info(
+                    "Received ACCEPT_REQ from %s (session %s). Pending outgoing: %s",
+                    author,
+                    session_id,
+                    list(state.pending_outgoing_trades.keys()),
+                )
+                matching_target = next(
+                    (
+                        k
+                        for k in state.pending_outgoing_trades
+                        if k.lower() == author.lower()
+                    ),
+                    None,
+                )
+                if matching_target:
                     stored_session, _ = state.pending_outgoing_trades.pop(
-                        author
+                        matching_target
                     )
                     if stored_session == session_id:
-                        cls._start_active_session(
-                            state, session_id, author, True, incoming_queue
+                        logger.info(
+                            "ACCEPT_REQ matched session %s for %s! Starting active session.",
+                            session_id,
+                            matching_target,
                         )
+                        cls._start_active_session(
+                            state,
+                            session_id,
+                            matching_target,
+                            True,
+                            incoming_queue,
+                        )
+                    else:
+                        logger.warning(
+                            "ACCEPT_REQ session mismatch for %s: got %s, stored %s",
+                            author,
+                            session_id,
+                            stored_session,
+                        )
+                else:
+                    logger.warning(
+                        "Received ACCEPT_REQ from %s, but no matching pending outgoing trade found (pending: %s)",
+                        author,
+                        list(state.pending_outgoing_trades.keys()),
+                    )
 
             case SAICTrade.CHECK:
                 if len(payload) >= 2:

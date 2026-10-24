@@ -14,12 +14,15 @@ from pysaic.entities import (
 )
 from pysaic.enums import GameEvents
 from pysaic.handlers import put_disconnected
+from pysaic.irc_protocol import PySaicIrcProtocol
 from pysaic.state import State
 
 logger = logging.getLogger(__name__)
 
 
-async def handle_part(event, state, irc):
+async def handle_part(
+    event: OutgoingPart, state: State, irc: PySaicIrcProtocol
+):
     if state.is_in_channel.is_set():
         logger.debug(
             'Parting channel "%s", reason: %r',
@@ -40,12 +43,14 @@ async def handle_part(event, state, irc):
         )
 
 
-async def handle_send_message(event, irc):
+async def handle_send_message(event: OutgoingMessage, irc: PySaicIrcProtocol):
     content = event.content.replace("\n", "")
     await irc.async_send(f"PRIVMSG {event.target} :{content}")
 
 
-async def handle_join(event, state, irc):
+async def handle_join(
+    event: OutgoingJoin, state: State, irc: PySaicIrcProtocol
+):
     logger.info('Joining channel "%s"', event.channel)
     if state.is_in_channel.is_set():
         logger.warning(
@@ -60,15 +65,23 @@ async def handle_join(event, state, irc):
     await irc.async_send(command_str)
 
 
-async def handle_outgoing_command(event, irc):
+async def handle_outgoing_command(
+    event: OutgoingCommand, irc: PySaicIrcProtocol
+):
     logger.debug(
         "Handling outgoing command: %r, %r", event.command, event.args
     )
     await irc.async_send(str(event))
 
 
+async def handle_outgoing_ctcp(event: OutgoingCTCP, irc: PySaicIrcProtocol):
+    line = f"{event.send_as} {event.target} :{event.content}"
+    logger.debug("outgoing_queue: sending CTCP line: %r", line)
+    await irc.async_send(line)
+
+
 async def outgoing_queue_processing(
-    irc,
+    irc: PySaicIrcProtocol,
     outgoing_queue: OutgoingQueue,
     incoming_queue: IncomingQueue,
     state: State,
@@ -98,9 +111,7 @@ async def outgoing_queue_processing(
                 )
             )
         elif isinstance(event, OutgoingCTCP):
-            await irc.async_send(
-                f"{event.send_as} {event.target} :{event.content}"
-            )
+            await handle_outgoing_ctcp(event, irc)
         elif isinstance(event, OutgoingCommand):
             await handle_outgoing_command(event, irc)
         elif isinstance(event, OutgoingPart):

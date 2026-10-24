@@ -310,6 +310,18 @@ class State:
 
     def clean_expired_trades(self):
         now = datetime.now()
+        expired_in = [
+            k for k, v in self.pending_incoming_trades.items() if v[1] <= now
+        ]
+        expired_out = [
+            k for k, v in self.pending_outgoing_trades.items() if v[1] <= now
+        ]
+        if expired_in or expired_out:
+            self.logger.info(
+                "Pruned expired trades: incoming=%s, outgoing=%s",
+                expired_in,
+                expired_out,
+            )
         self.pending_incoming_trades = {
             k: v for k, v in self.pending_incoming_trades.items() if v[1] > now
         }

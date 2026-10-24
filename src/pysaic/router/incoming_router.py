@@ -159,7 +159,12 @@ class IncomingRouter(Router):
 
         if event.content.startswith("/"):
             command, *params = event.content[1:].split(" ")
-            logger.debug("Handling command: %r, args: %r", command, params)
+            logger.debug(
+                "Handling command: %r, args: %r from %s",
+                command,
+                params,
+                event.author.nick,
+            )
             CommandUseCase.handle(
                 self.state,
                 self.config,
@@ -249,6 +254,11 @@ class IncomingRouter(Router):
                 self._parse_saicstate(event.author.nick, message)
             case _:
                 if ctcp.startswith(f"{SAICCTCPEnum.SAICTrade.value}."):
+                    logger.info(
+                        "Routing trade CTCP from %s: %s",
+                        event.author.nick,
+                        message,
+                    )
                     TradeUseCase.handle_incoming_ctcp(
                         event.author.nick, message
                     )
