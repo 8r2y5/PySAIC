@@ -16,6 +16,8 @@
   - Improves logic to player won't be mared as AFK during game loading.
 - **Reduced CPU usage when calculating Avatars**:
   - Previously, calculating avatars would consume a significant amount of CPU resources. This has been optimized to reduce the load.
+- **Trading System**:
+  - Added new trading system that allows players to trade items with each other in-game. You can now trade ANY item with ANY other player in-game, it does not matter what modpack you are using or version of mods. If the game knows about an item, it is possible to trade it.
 
 ### Bug fixes:
 - **_Fixed issue with chat messages not displaying correctly_** in certain scenarios.
