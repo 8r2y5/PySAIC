@@ -8,7 +8,6 @@ import inject
 from irclib.parser import Message
 
 from pysaic.config import Config
-from pysaic.controllers.game import add_item_to_inventory, ask_about_inventory
 from pysaic.entities import (
     IncomingEvent,
     IncomingMessage,
@@ -162,18 +161,8 @@ class CommandUseCase:
             "smite": self.handle_kick,
             "reply": self.handle_reply,
             "r": self.handle_reply,
-            "i": self.handle_inventory,
-            "b": self.handle_beer,
             "trade": self.handle_trade,
         }
-
-    def handle_inventory(self, params):
-        ask_about_inventory()
-
-    def handle_beer(self, params):
-        add_item_to_inventory(
-            item_id="beer", amount="3", amount_type="single", condition="1"
-        )
 
     def handle_trade(self, params):
         """
