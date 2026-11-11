@@ -1,6 +1,6 @@
 # Changelog
 
-## `0.3.0b15` - 2026
+## `0.3.0b15` - 2026.11.11
 ### What's New:
 - **User tooltips**:
   - You will be able to hover over user and see information, their reputation and in-game location name.
@@ -18,6 +18,9 @@
   - Previously, calculating avatars would consume a significant amount of CPU resources. This has been optimized to reduce the load.
 - **Trading System**:
   - Added new trading system that allows players to trade items with each other in-game. You can now trade ANY item with ANY other player in-game, it does not matter what modpack you are using or version of mods. If the game knows about an item, it is possible to trade it.
+- **Synced Emissions**:
+  - Optional feature you need to turn on in `Options` -> `Client`.
+    - In short, it allows you to sync emission events with other players in the game but it also has cooldown (default $60$ minutes and it is configurable in `Options`), so it only will be triggered after cooldown time passes to avoid spaming events in your game.
 
 ### Bug fixes:
 - **_Fixed issue with chat messages not displaying correctly_** in certain scenarios.

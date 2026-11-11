@@ -40,6 +40,11 @@ Compatible with any Stalker Anomaly version and modpack that uses Stalker Anomal
   - Send private messages to other players in-game.
 - **Money Transfer**
   - Send money to other players in-game.
+- **Trade**
+  - Trade with other players in-game who also use PySAIC.
+- **Synced Emissions**:
+  - Optional feature you need to turn on in `Options` -> `Client`.
+  - In short, it allows you to sync emission events with other players in the game but it also has cooldown (default $60$ minutes and it is configurable in `Options`), so it only will be triggered after cooldown time passes to avoid spaming events in your game.
 - **Command Support**
   - Supports various commands for managing your chat experience.
 - **Easy Installation**
