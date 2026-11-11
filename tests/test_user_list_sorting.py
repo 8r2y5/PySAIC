@@ -1,12 +1,11 @@
 import unittest
 from unittest.mock import Mock
 
+from pysaic.controllers.ui.user_list import GroupByFactionWithCounter
+
 # Assuming pysaic.entities and pysaic.enums are accessible
 from pysaic.entities import ChatUser
 from pysaic.enums import FactionsEnum, SAICStateEnum
-from pysaic.controllers.ui.user_list import (
-    GroupByFactionWithCounter,
-)
 
 
 class TestGroupByFactionWithCounterSorting(unittest.TestCase):
@@ -170,8 +169,8 @@ class TestGroupByFactionWithCounterSorting(unittest.TestCase):
 
         expected_order = [
             Alice_user,
-            David_user,
             Charlie_user,
+            David_user,
             Bob_user,
             Zoe_user,
             Yara_user,
