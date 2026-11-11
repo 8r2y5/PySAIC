@@ -6,6 +6,7 @@ import sys
 import traceback
 from dataclasses import asdict
 from functools import partial
+from pprint import pprint
 
 import inject
 import yaml
@@ -218,7 +219,7 @@ def initialize_logging():
             print("Loading logging configuration from logging_conf.json")
             with open(WORKDIR / "logging_conf.json") as f:
                 data = json.load(f)
-                print(data)
+                pprint(data)
                 logging.config.dictConfig(data)
         except Exception as e:
             print(

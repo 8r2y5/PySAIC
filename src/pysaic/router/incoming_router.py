@@ -36,6 +36,7 @@ from pysaic.settings import APP_IDENTITY, START_OF_ACTOR_CHARACTER
 from pysaic.state import State
 from pysaic.ui.app import App
 from pysaic.use_cases.command import CommandUseCase
+from pysaic.use_cases.hazard import handle_synced_hazards
 from pysaic.use_cases.irc_mode_to_user_type import parsed_mode_to_name
 from pysaic.use_cases.money_transfer import IncomingMoneyTransferUseCase
 from pysaic.use_cases.text import make_content_malformed
@@ -435,6 +436,8 @@ class IncomingRouter(Router):
         if user.state != state:
             should_update = True
             user.state = state
+            logger.debug("Triggering hazard state validation")
+            handle_synced_hazards(str(state.name), user.name)
 
         if not should_update:
             return
@@ -609,6 +612,13 @@ class IncomingRouter(Router):
 
     def _parse_saicstate(self, nick, message):
         _, state = message.split("/")
+        user = self.chat_users.get(nick)
+        prev_state = user.state if user else SAICStateEnum.ok
         self._parse_saic_generic_update(
             nick, self._parse_state, "state", state
         )
+        user = self.chat_users.get(nick)
+        current_state = user.state if user else SAICStateEnum.ok
+        logger.debug("Validating %r previous state", nick)
+        if prev_state != current_state:
+            handle_synced_hazards(str(current_state.name), nick)
