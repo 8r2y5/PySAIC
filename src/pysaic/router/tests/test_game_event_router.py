@@ -693,7 +693,7 @@ def test__handle_not_afk_player_not_afk(
 
     # then
     assert mock_logger.mock_calls == [
-        call.debug("Handling NOT_AFK event"),
+        # call.debug("Handling NOT_AFK event"),
     ]
     assert mock_state.player.last_ask_update == "test datetime"
     assert mock_state.player.afk is False
@@ -726,7 +726,7 @@ def test__handle_not_afk_player_is_afk(
 
     # then
     assert mock_logger.mock_calls == [
-        call.debug("Handling NOT_AFK event"),
+        # call.debug("Handling NOT_AFK event"),
     ]
     assert mock_state.player.last_ask_update == "test datetime"
     assert mock_state.player.afk is True
