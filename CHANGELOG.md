@@ -1,6 +1,6 @@
 # Changelog
 
-## `0.3.0b15` - 2026.11.11
+## `0.3.0b15` - 2026-11-11
 ### What's New:
 - **User tooltips**:
   - You will be able to hover over user and see information, their reputation and in-game location name.
