@@ -119,6 +119,12 @@ def add_signal_state(content: str):
 
 
 @ensure_game_is_running
+def trigger_hazard_in_game(hazard_type: str):
+    logger.debug("Triggering hazard in game: %s", hazard_type)
+    add_to_crc_input_file(f"Hazard/{hazard_type}")
+
+
+@ensure_game_is_running
 def ask_about_inventory():
     logger.debug("Asking about inventory")
     add_to_crc_input_file("InventoryList/")

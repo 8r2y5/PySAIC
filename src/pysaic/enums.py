@@ -271,7 +271,7 @@ class SAICStateEnum(StrEnum):
 
 
 class NetworkDestroyReasonEnum(StrEnum):
-    psy_storm = auto()
+    psystorm = auto()
     none = auto()
     surge = auto()
     underground = auto()

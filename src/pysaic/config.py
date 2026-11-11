@@ -4,8 +4,8 @@ from enum import Enum, StrEnum, auto
 from typing import Any, Callable, Optional, Self, Type
 
 import yaml
-from pysaic.constants import PYSAIC_ICON_PLAYER
 
+from pysaic.constants import PYSAIC_ICON_PLAYER
 from pysaic.crc_strings.use_case import random_name
 from pysaic.enums import (
     AvatarEnum,
@@ -14,11 +14,11 @@ from pysaic.enums import (
     FactionsEnum,
     UserListDisplayModeEnum,
 )
+from pysaic.settings import PROJECT_PATH, THEMES_PATH, WORKDIR
 from pysaic.use_cases.avatar import (
     calculate_icon_based_on_faction_and_name,
     is_icon_valid,
 )
-from pysaic.settings import THEMES_PATH, PROJECT_PATH, WORKDIR
 from pysaic.use_cases.themes import create_default_themes
 
 CONFIG_FILE = PROJECT_PATH / "config.yml"
@@ -417,6 +417,8 @@ class Config:
     enable_irc_user_display: bool = BoolField(default=True)
     show_less_information: bool = BoolField(default=False)
     use_static_nick_color: bool = BoolField(default=False)
+    sync_hazards: bool = BoolField(default=False)
+    sync_hazards_cooldown: int = ConfigField(default=60)
 
     @classmethod
     def load_config(cls):

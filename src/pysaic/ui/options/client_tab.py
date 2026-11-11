@@ -1,12 +1,5 @@
 import logging
-from tkinter import (
-    Frame,
-    StringVar,
-    BooleanVar,
-    Label,
-    Button,
-    Checkbutton,
-)
+from tkinter import BooleanVar, Button, Checkbutton, Frame, Label, StringVar
 from tkinter.ttk import Spinbox
 
 from pysaic.config import Config
@@ -189,16 +182,67 @@ class ClientTab(Frame):
                     0, str(self.config.news_duration)
                 )
 
+        self.sync_hazards_var = BooleanVar(value=self.config.sync_hazards)
+
+        Checkbutton(
+            frame,
+            text="Sync emissions and psy-storms from other players",
+            variable=self.sync_hazards_var,
+            **self.options.default_style_kwargs,
+        ).grid(row=5, column=0, sticky="w", pady=(2, 0))
+
+        sync_cooldown_frame = Frame(
+            frame, background=self.options.background_color
+        )
+        sync_cooldown_frame.grid(row=6, column=0, sticky="w", pady=(2, 0))
+
+        Label(
+            sync_cooldown_frame,
+            text="Sync hazard cooldown (in minutes):",
+            background=self.options.background_color,
+            foreground=self.options.text_color,
+            font=self.options.font_normal_size,
+        ).grid(row=0, column=0, sticky="w")
+        self.sync_hazards_cooldown_spinbox = Spinbox(
+            sync_cooldown_frame,
+            from_=1,
+            to=1440,
+            increment=5,
+            width=10,
+            font=self.options.font_normal_size,
+        )
+        self.sync_hazards_cooldown_spinbox.delete(0, "end")
+        self.sync_hazards_cooldown_spinbox.insert(
+            0, str(self.config.sync_hazards_cooldown)
+        )
+        self.sync_hazards_cooldown_spinbox.grid(row=0, column=1, sticky="w")
+
+        @self.options.add_save_callback
+        def save_sync_hazards_settings():
+            logger.debug("sync_hazards: %r", self.sync_hazards_var.get())
+            self.config.sync_hazards = self.sync_hazards_var.get()
+
+            try:
+                self.config.sync_hazards_cooldown = int(
+                    self.sync_hazards_cooldown_spinbox.get()
+                )
+            except ValueError:
+                logger.error("Invalid sync hazard cooldown format.")
+                self.sync_hazards_cooldown_spinbox.delete(0, "end")
+                self.sync_hazards_cooldown_spinbox.insert(
+                    0, str(self.config.sync_hazards_cooldown)
+                )
+
         Label(
             frame,
             text="Theme Colors",
             background=self.options.background_color,
             foreground=self.options.text_color,
             font=self.options.font_normal_size,
-        ).grid(row=5, column=0, sticky="w", pady=(5, 0))
+        ).grid(row=7, column=0, sticky="w", pady=(5, 0))
 
         theme_frame = Frame(frame, background=self.options.background_color)
-        theme_frame.grid(row=5, column=1, sticky="e", pady=(5, 0))
+        theme_frame.grid(row=7, column=1, sticky="e", pady=(5, 0))
 
         self.options._theme_button = Button(
             theme_frame,
@@ -226,7 +270,7 @@ class ClientTab(Frame):
             background=self.options.background_color,
             foreground=self.options.text_color,
             font=self.options.font_normal_size,
-        ).grid(row=6, column=0, sticky="nw", pady=(7, 0))
+        ).grid(row=8, column=0, sticky="nw", pady=(7, 0))
 
         self.turn_off_bold_font_chat_var = BooleanVar(
             value=self.config.font.turn_off_bold_font_username_in_chat
@@ -303,4 +347,4 @@ class ClientTab(Frame):
         self.options._font_button.grid(
             row=0, column=2, sticky="e", pady=(5, 0)
         )
-        font_frame.grid(row=6, column=1, sticky="e", pady=(5, 0))
+        font_frame.grid(row=8, column=1, sticky="e", pady=(5, 0))

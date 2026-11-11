@@ -519,6 +519,55 @@ function parseTrade(body)
 	end
 end
 
+function trigger_surge()
+	printf("[PySAIC] Triggering surge")
+	if surge_manager then
+		if surge_manager.get_surge_manager then
+			local sm = surge_manager.get_surge_manager()
+			if sm and sm.start then
+				sm:start(true)
+				return
+			end
+		end
+		if surge_manager.start_surge then
+			surge_manager.start_surge()
+			return
+		end
+	end
+	if xr_effects and xr_effects.start_surge then
+		xr_effects.start_surge(db.actor, nil)
+	end
+end
+
+function trigger_psi_storm()
+	printf("[PySAIC] Triggering psi storm")
+	if psi_storm_manager then
+		if psi_storm_manager.get_psi_storm_manager then
+			local pm = psi_storm_manager.get_psi_storm_manager()
+			if pm and pm.start then
+				pm:start(true)
+				return
+			end
+		end
+		if psi_storm_manager.start_psi_storm then
+			psi_storm_manager.start_psi_storm()
+			return
+		end
+	end
+	if xr_effects and xr_effects.start_psi_storm then
+		xr_effects.start_psi_storm(db.actor, nil)
+	end
+end
+
+function parseHazard(body)
+	printf("[PySAIC] parseHazard: %s", body)
+	if body == "Surge" then
+		trigger_surge()
+	elseif body == "PsyStorm" then
+		trigger_psi_storm()
+	end
+end
+
 local inputActions = {
 	Information = addInformationMessage,
 	Error = addErrorMessage,
@@ -535,7 +584,9 @@ local inputActions = {
     SignalState = parseSignalState,
 	InventoryList = parseInventoryList,
 	Item = parseItem,
-	Trade = parseTrade
+	Trade = parseTrade,
+	Hazard = parseHazard,
+	Trigger = parseHazard
 }
 
 
@@ -642,14 +693,35 @@ function update_money(force_send)
 	pysaic_io.send("Money/%s", cur_money)
 end
 
+local function is_psi_storm_started()
+	if psi_storm_manager then
+		if psi_storm_manager.is_started and psi_storm_manager.is_started() then
+			return true
+		end
+		if psi_storm_manager.get_psi_storm_manager then
+			local pm = psi_storm_manager.get_psi_storm_manager()
+			if pm and pm.started then
+				return true
+			end
+		end
+	end
+	if GetEvent and GetEvent("psi_storm", "state") then
+		return true
+	end
+	return false
+end
+
 function get_disconnect_reason()
+	local reason
 	if (level_weathers.bLevelUnderground) then
-        reason = "Underground"
-    elseif (xr_conditions.surge_started()) then
-        reason = "Surge"
-    else
-        reason = "None"
-    end
+		reason = "Underground"
+	elseif is_psi_storm_started() then
+		reason = "Psystorm"
+	elseif (xr_conditions.surge_started()) then
+		reason = "Surge"
+	else
+		reason = "None"
+	end
 	return reason
 end
 
@@ -664,7 +736,7 @@ function fake_conn_lost_update_client(force_send)
 end
 
 function fake_conn_lost()
-	if (level_weathers.bLevelUnderground or xr_conditions.surge_started()) then
+	if (level_weathers.bLevelUnderground or xr_conditions.surge_started() or is_psi_storm_started()) then
 	    if pysaic_config.option.disconnectWhenBlowoutOrUnderground then
             if IS_SIGNAL_LOST and chatBox then
                 pysaic_chatbox.ChatBox:Cancel()

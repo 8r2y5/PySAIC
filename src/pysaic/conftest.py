@@ -6,7 +6,7 @@ from unittest.mock import Mock, patch
 import inject
 import pytest
 
-from pysaic.config import Config, Server, Channel
+from pysaic.config import Channel, Config, Server
 from pysaic.entities import ChatUser, ChatUsers, IncomingQueue, OutgoingQueue
 from pysaic.state import State
 from pysaic.ui.app import App
@@ -48,6 +48,7 @@ def mock_state(chat_users):
     mock_state.sent_achievements = set()
     mock_state.game_location = None
     mock_state.player_update_task = None
+    mock_state.last_synced_hazard = None
     mock_state.state_lock = threading.Lock()
     return mock_state
 
@@ -95,6 +96,9 @@ def setup_injector(
         binder.bind(IncomingQueue, mock_incoming_queue)
         binder.bind(OutgoingQueue, mock_outgoing_queue)
         binder.bind(Config, mock_config)
+        binder.bind_to_provider(
+            asyncio.AbstractEventLoop, asyncio.get_event_loop
+        )
 
     if inject.is_configured():
         inject.clear()

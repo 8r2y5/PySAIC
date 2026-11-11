@@ -259,7 +259,10 @@ class State:
         self, value: NetworkDestroyReasonEnum
     ):
         self._is_currently_under_network_destruction = value
-        if value == NetworkDestroyReasonEnum.surge:
+        if value in (
+            NetworkDestroyReasonEnum.surge,
+            NetworkDestroyReasonEnum.psystorm,
+        ):
             config_value = self.config.disconnect_when_emission
         elif value == NetworkDestroyReasonEnum.underground:
             config_value = self.config.disconnect_when_underground
@@ -290,6 +293,7 @@ class State:
         self.chat_users: ChatUsers = ChatUsers({})
         self.player: Player = Player.create_from_config(config)
         self.last_death: Optional[datetime] = None
+        self.last_synced_hazard: Optional[datetime] = None
         self.last_messages: deque[
             tuple[str, HistoryMessageEnum, ChatUser, ChatUser, str]
         ] = deque(maxlen=50)
@@ -378,6 +382,8 @@ class State:
         match self.is_currently_under_network_destruction:
             case NetworkDestroyReasonEnum.surge:
                 return SAICStateEnum.emission
+            case NetworkDestroyReasonEnum.psystorm:
+                return SAICStateEnum.psy_storm
             case NetworkDestroyReasonEnum.underground:
                 return SAICStateEnum.underground
             case _:

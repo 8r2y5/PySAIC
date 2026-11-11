@@ -297,6 +297,7 @@ async def handle_notice_from_NickServ(
 async def handle_part_event(conn, message, incoming_queue):
     reasons = {
         "Surge": "caught in emission.",
+        "PsyStorm": "caught in psy storm.",
         "Underground": "went underground.",
     }
     try:
@@ -312,6 +313,7 @@ async def handle_part_event(conn, message, incoming_queue):
                 payload={
                     "reason": reasons.get(left_type, "has left the channel."),
                     "target": message.parameters[0],
+                    "raw_reason": left_type,
                 },
             ),
         )

@@ -1,6 +1,9 @@
+import asyncio
 import logging
 import re
 from contextlib import suppress
+from datetime import datetime
+from random import randint
 from tkinter import END
 
 import inject
@@ -9,6 +12,7 @@ from pysaic.config import Config
 from pysaic.controllers.game import (
     add_user_update_to_game,
     remove_user_from_game,
+    trigger_hazard_in_game,
 )
 from pysaic.crc_strings.use_case import random_name
 from pysaic.entities import (
@@ -103,6 +107,60 @@ class IrcEventRouter(Router):
                 )
         else:
             self._add_information_text(f"{self.event.author.nick} has quit.")
+
+        if (
+            self.event.event.type == IrcEvents.PART
+            and self.event.event.payload
+        ):
+            self._handle_synced_hazards()
+
+    @inject.autoparams()
+    def _handle_synced_hazards(self, loop: asyncio.AbstractEventLoop):
+        if not self.config.sync_hazards:
+            return
+
+        raw_reason = self.event.event.payload.get("raw_reason")
+        if not raw_reason:
+            return
+
+        normalized = raw_reason.strip()
+        if normalized.lower() in ("surge", "emission", "blowout"):
+            hazard_name = "Blowout"
+            hazard_type = "Surge"
+        elif normalized.lower() in ("psystorm"):
+            hazard_name = "Psy Storm"
+            hazard_type = "PsyStorm"
+        else:
+            return
+
+        now = datetime.now()
+        cooldown_seconds = self.config.sync_hazards_cooldown * 60
+        if (
+            self.state.last_synced_hazard is not None
+            and (now - self.state.last_synced_hazard).total_seconds()
+            < cooldown_seconds
+        ):
+            logger.info(
+                "Ignoring %s from %s due to cooldown (%.1fs remaining)",
+                hazard_name,
+                self.event.author.nick,
+                cooldown_seconds
+                - (now - self.state.last_synced_hazard).total_seconds(),
+            )
+            return
+
+        self.state.last_synced_hazard = now
+        warning_msg = (
+            f"{hazard_name} is coming from {self.event.author.nick}, "
+            "it will arrive in approximately 10 sec"
+        )
+        self._add_information_text(warning_msg)
+
+        async def _task():
+            await asyncio.sleep(randint(6, 14))
+            trigger_hazard_in_game(hazard_type)
+
+        loop.create_task(_task(), name="trigger_hazard_in_game")
 
     def _user_nick_change(self):
         remove_user_from_game(self.event.author.nick)

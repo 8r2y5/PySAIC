@@ -346,7 +346,10 @@ class ConnectionLostUseCase:
             return
 
         async def _task(reason):
-            if reason == NetworkDestroyReasonEnum.surge:
+            if reason in (
+                NetworkDestroyReasonEnum.surge,
+                NetworkDestroyReasonEnum.psystorm,
+            ):
                 logger.debug(
                     "Waiting for %d seconds before disconnecting",
                     SLEEP_TIME_BEFORE_DISCONNECT,
@@ -377,8 +380,10 @@ class ConnectionLostUseCase:
         logger.debug("Only malforming messages on connection lost")
 
         async def _task(reason):
-            if reason == "Surge":
+            if reason in (NetworkDestroyReasonEnum.surge, "Surge"):
                 content = "[PySAIC SYSTEM] // Regional communications grid disrupted. Seek shelter immediately."
+            elif reason in (NetworkDestroyReasonEnum.psy_storm, "PsyStorm"):
+                content = "[PySAIC SYSTEM] // Regional psy-field disrupted. Seek shelter immediately."
             else:
                 content = "[PySAIC SYSTEM] // Signal reception detected. Communications may be unreliable."
 
