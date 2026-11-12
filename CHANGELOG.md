@@ -1,5 +1,14 @@
 # Changelog
 
+## `1.0.0` - 2026-12
+### What's new:
+### What changed:
+### What fixed:
+- **Synced Emissions:**
+  - Improved logic to reduce false signals about emissions from other players and making it more smooth experience.
+
+---
+
 ## `0.3.0b15` - 2026-11-11
 ### What's New:
 - **User tooltips**:
