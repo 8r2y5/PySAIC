@@ -2,12 +2,14 @@ import asyncio
 import logging
 from datetime import datetime
 from random import randint
+from typing import cast
 
 import inject
 
 from pysaic.config import Config
 from pysaic.controllers.game import trigger_hazard_in_game
-from pysaic.entities import IncomingQueue
+from pysaic.entities import ChatUser, IncomingQueue
+from pysaic.enums import NetworkDestroyReasonEnum
 from pysaic.state import State
 
 logger = logging.getLogger(__name__)
@@ -26,19 +28,40 @@ def handle_synced_hazards(
         logger.debug("Synced hazards are disabled")
         return
 
+    if (
+        state.is_currently_under_network_destruction
+        != NetworkDestroyReasonEnum.none
+    ):
+        logger.debug("Currently under network destruction, skipping")
+        return
+
+    if user := state.chat_users.get(nick):
+        user = cast(ChatUser, user)
+        if not user.in_game:
+            logger.debug("User %s is not in game, skipping", nick)
+            return
+
+        if user.afk:
+            logger.debug("User %s is AFK", nick)
+            return
+
+    if not state.player.in_game:
+        logger.debug("We are not in game, skipping")
+        return
+
+    if state.player.afk:
+        logger.debug("We are AFK, skipping")
+        return
+
     if not raw_reason:
         logger.debug("Reason is empty")
         return
 
-    if user := state.chat_users.get(nick):
-        if not user.in_game:
-            return
-
     normalized = raw_reason.strip()
-    if normalized.lower() in ("surge", "emission", "blowout"):
+    if normalized.lower() == "emission":
         hazard_name = "Blowout"
         hazard_type = "Surge"
-    elif normalized.lower() in ("psystorm"):
+    elif normalized.lower() == "psystorm":
         hazard_name = "Psy Storm"
         hazard_type = "PsyStorm"
     else:

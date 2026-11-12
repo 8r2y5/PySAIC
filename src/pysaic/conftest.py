@@ -50,6 +50,8 @@ def mock_state(chat_users):
     mock_state.player_update_task = None
     mock_state.last_synced_hazard = None
     mock_state.state_lock = threading.Lock()
+    mock_state.player.in_game = True
+    mock_state.player.afk = False
     return mock_state
 
 
@@ -83,6 +85,8 @@ def mock_config():
     mock_config = Mock()
     mock_config.nick = "test nick"
     mock_config.current_faction = "test faction"
+    mock_config.sync_hazards = True
+    mock_config.sync_hazards_cooldown = 5
     return mock_config
 
 
