@@ -61,7 +61,7 @@ def handle_synced_hazards(
     if normalized.lower() == "emission":
         hazard_name = "Blowout"
         hazard_type = "Surge"
-    elif normalized.lower() == "psystorm":
+    elif normalized.lower() == "psy_storm":
         hazard_name = "Psy Storm"
         hazard_type = "PsyStorm"
     else:

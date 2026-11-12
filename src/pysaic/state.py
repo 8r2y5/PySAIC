@@ -261,7 +261,7 @@ class State:
         self._is_currently_under_network_destruction = value
         if value in (
             NetworkDestroyReasonEnum.surge,
-            NetworkDestroyReasonEnum.psystorm,
+            NetworkDestroyReasonEnum.psy_storm,
         ):
             config_value = self.config.disconnect_when_emission
         elif value == NetworkDestroyReasonEnum.underground:
@@ -382,7 +382,7 @@ class State:
         match self.is_currently_under_network_destruction:
             case NetworkDestroyReasonEnum.surge:
                 return SAICStateEnum.emission
-            case NetworkDestroyReasonEnum.psystorm:
+            case NetworkDestroyReasonEnum.psy_storm:
                 return SAICStateEnum.psy_storm
             case NetworkDestroyReasonEnum.underground:
                 return SAICStateEnum.underground

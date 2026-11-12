@@ -4,6 +4,7 @@ from unittest.mock import MagicMock, Mock, patch
 
 import pytest
 
+from pysaic.enums import NetworkDestroyReasonEnum
 from pysaic.use_cases.hazard import handle_synced_hazards
 
 
@@ -137,8 +138,8 @@ def test_returns_early_when_cooldown_is_active(
 @pytest.mark.parametrize(
     "raw_reason, expected_name",
     [
-        (" Surge ", "Blowout"),
-        ("psystorm", "Psy Storm"),
+        ("emission", "Blowout"),
+        ("psy_storm", "Psy Storm"),
     ],
 )
 @patch("pysaic.use_cases.hazard.datetime")
@@ -153,7 +154,9 @@ def test_processes_hazards_successfully(
 ):
     now = datetime.now()
     mock_datetime.now.return_value = now
-    mock_state.is_currently_under_network_destruction = False
+    mock_state.is_currently_under_network_destruction = (
+        NetworkDestroyReasonEnum.none
+    )
 
     handle_synced_hazards(
         raw_reason=raw_reason,
@@ -192,10 +195,13 @@ async def test_async_task_execution(
     mock_incoming_queue,
     mock_loop,
 ):
-    mock_state.is_currently_under_network_destruction = False
+    mock_state.is_currently_under_network_destruction = (
+        NetworkDestroyReasonEnum.none
+    )
     mock_config.sync_hazards = True
+
     handle_synced_hazards(
-        raw_reason="surge",
+        raw_reason="emission",
         nick="TestUser",
         loop=mock_loop,
         config=mock_config,
@@ -203,7 +209,6 @@ async def test_async_task_execution(
         incoming_queue=mock_incoming_queue,
     )
 
-    print("x" * 16, mock_loop.create_task.call_args)
     task_coro = mock_loop.create_task.call_args[0][0]
     await task_coro
 

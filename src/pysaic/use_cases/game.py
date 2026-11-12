@@ -348,7 +348,7 @@ class ConnectionLostUseCase:
         async def _task(reason):
             if reason in (
                 NetworkDestroyReasonEnum.surge,
-                NetworkDestroyReasonEnum.psystorm,
+                NetworkDestroyReasonEnum.psy_storm,
             ):
                 logger.debug(
                     "Waiting for %d seconds before disconnecting",
