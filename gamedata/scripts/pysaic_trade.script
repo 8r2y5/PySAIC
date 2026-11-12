@@ -440,9 +440,7 @@ function TradeWindow:SendChat()
     self:AddChatMessage("You", text)
 
     -- Send private message via PySAIC socket
-    local my_faction = db.actor and db.actor:character_community() or "actor_stalker"
-    local my_name = db.actor and db.actor:character_name() or "Player"
-    pysaic_io.send(string.format("Query/%s/%s/%s/%s", my_faction, my_name, self.partner_nick, text))
+    pysaic_io.send(string.format("Query/%s %s", self.partner_nick, text))
 end
 
 function TradeWindow:OnKeyboard(dik, keyboard_action)

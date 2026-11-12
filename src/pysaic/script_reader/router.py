@@ -40,6 +40,7 @@ from pysaic.script_reader.handlers import (
     _handle_item,
     _handle_location,
     _handle_money,
+    _handle_query,
     _handle_rank,
     _handle_reputation,
     _handle_trade_accept,
@@ -129,6 +130,7 @@ router.register_handler("TradeCheckResult", _handle_trade_check_result)
 router.register_handler("TradeAccept", _handle_trade_accept)
 router.register_handler("TradeVerifyResult", _handle_trade_verify_result)
 router.register_handler("TradeCancel", _handle_trade_cancel)
+router.register_handler("Query", _handle_query)
 
 
 async def parse_line(line, incoming_queue: IncomingQueue):

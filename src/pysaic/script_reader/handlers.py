@@ -338,3 +338,15 @@ async def _handle_trade_cancel(
     from pysaic.use_cases.trade import TradeUseCase
 
     TradeUseCase.handle_game_cancel(rest)
+
+
+async def _handle_query(
+    rest: str,
+    config: Config,
+    incoming_queue: IncomingQueue,
+    outgoing_queue: OutgoingQueue,
+    state: State,
+):
+    await _handle_channel_message(
+        f"/msg {rest}", config, incoming_queue, outgoing_queue, state
+    )
