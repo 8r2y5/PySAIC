@@ -360,7 +360,7 @@ class ConnectionLostUseCase:
             await self.outgoing_queue.put(
                 OutgoingPart(
                     channel=self.config.server.previous_channel,
-                    content=reason.title(),
+                    content=reason.title().replace("_", ""),
                 )
             )
 

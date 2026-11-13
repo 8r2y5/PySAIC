@@ -563,7 +563,7 @@ function parseHazard(body)
 	printf("[PySAIC] parseHazard: %s", body)
 	if body == "Surge" then
 		trigger_surge()
-	elseif body == "PsyStorm" then
+	elseif body == "Psy_Storm" then
 		trigger_psi_storm()
 	end
 end
