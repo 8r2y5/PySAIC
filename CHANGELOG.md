@@ -3,6 +3,9 @@
 ## `1.0.0` - 2026-12
 ### What's new:
 ### What changed:
+- **Synced Emissions:**
+  - Reduced default time from $60$ to $30$ minutes.
+    - This affects only new installation and won't change existing configuration
 ### What fixed:
 - **Synced Emissions:**
   - Improved logic to reduce false signals about emissions from other players and making it more smooth experience.
