@@ -167,11 +167,11 @@ class RandomNetworkDestructionStrategy(NetworkDestructionStrategy):
         return self.setting_instance.should_malform()
 
 
-class RealisticNetworkDestructionStrategy(RandomNetworkDestructionStrategy):
+class WeightsNetworkDestructionStrategy(RandomNetworkDestructionStrategy):
     STRATEGY_WEIGHTS = {
         NeverNetworkDestructionStrategy: 1,
         AlwaysNetworkDestructionStrategy: 10,
-        MalformOnlyNetworkDestructionStrategy: 3,
+        MalformOnlyNetworkDestructionStrategy: 4,
     }
 
     def __init__(self):
@@ -184,10 +184,10 @@ class RealisticNetworkDestructionStrategy(RandomNetworkDestructionStrategy):
 
 NETWORK_DESTRUCTION_MAP = {
     DisconnectOnNetworkDestructionSetting.Always: AlwaysNetworkDestructionStrategy,
-    DisconnectOnNetworkDestructionSetting.Never: NetworkDestructionStrategy,
+    DisconnectOnNetworkDestructionSetting.Never: NeverNetworkDestructionStrategy,
     DisconnectOnNetworkDestructionSetting.MalformSignalOnly: MalformOnlyNetworkDestructionStrategy,
     DisconnectOnNetworkDestructionSetting.Random: RandomNetworkDestructionStrategy,
-    DisconnectOnNetworkDestructionSetting.Realistic: RealisticNetworkDestructionStrategy,
+    DisconnectOnNetworkDestructionSetting.Weights: WeightsNetworkDestructionStrategy,
 }
 
 
