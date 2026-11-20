@@ -4,7 +4,7 @@ from datetime import datetime
 from decimal import Decimal
 from enum import StrEnum
 from functools import partial, wraps
-from typing import List, NamedTuple, Optional, Self
+from typing import List, NamedTuple, Self
 
 from pysaic.enums import FactionsEnum, LocationEnum, NetworkDestroyReasonEnum
 
@@ -157,7 +157,7 @@ class Death(NamedTuple):
 
 class ConnectionLost(NamedTuple):
     lost: bool
-    reason: Optional[str]
+    reason: NetworkDestroyReasonEnum
     in_file_id = "ConnLost"
 
     @classmethod

@@ -326,17 +326,19 @@ class ConnectionLostUseCase:
             "Connection lost: %r",
             self.entity,
         )
-        if self.entity.reason is None:
+        if self.entity.reason == NetworkDestroyReasonEnum.none:
             logger.info("No reason for reconnect, ignoring")
             add_signal_state(str(state.fake_disconnect))
             state.is_currently_under_network_destruction = None
             return
 
         if state.is_currently_under_network_destruction == self.entity.reason:
+            # noinspection argument-list
             self._check_if_already_in_desired_state()
             return
 
         state.is_currently_under_network_destruction = self.entity.reason
+        # noinspection argument-list
         self._handle_network_destruction()
 
     @inject.autoparams()
@@ -372,7 +374,9 @@ class ConnectionLostUseCase:
         logger.debug("Connection lost is False, not faking disconnect")
 
         add_signal_state(str(state.fake_disconnect))
+        # noinspection argument-list
         send_saic_state()
+        # noinspection argument-list
         join_previous_channel()
 
     @inject.autoparams()
@@ -391,6 +395,7 @@ class ConnectionLostUseCase:
             self.incoming_queue.create_error_event(content)
 
         add_signal_state(str(state.fake_disconnect))
+        # noinspection argument-list
         send_saic_state()
         logger.debug("Set fake disconnect to False for malforming messages")
         loop.create_task(
@@ -401,16 +406,20 @@ class ConnectionLostUseCase:
     def _check_if_already_in_desired_state(self, state: State):
         logger.info("Already in the desired state.")
         if state.is_in_channel:
+            # noinspection argument-list
             self._handle_network_destruction()
 
     @inject.autoparams()
     def _handle_network_destruction(self, state: State):
         if self.entity.lost is True:
             if state.fake_disconnect:
+                # noinspection argument-list
                 self._do_full_disconnect()
             elif state.should_malform_messages:
+                # noinspection argument-list
                 self._do_only_malform_messages()
         elif self.entity.lost is False:
+            # noinspection argument-list
             self._dont_disconnect()
 
 

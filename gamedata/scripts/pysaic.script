@@ -716,7 +716,7 @@ function get_disconnect_reason()
 	if (level_weathers.bLevelUnderground) then
 		reason = "Underground"
 	elseif is_psi_storm_started() then
-		reason = "Psystorm"
+		reason = "Psy_Storm"
 	elseif (xr_conditions.surge_started()) then
 		reason = "Surge"
 	else
