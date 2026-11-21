@@ -375,8 +375,6 @@ class ConnectionLostUseCase:
 
         add_signal_state(str(state.fake_disconnect))
         # noinspection argument-list
-        send_saic_state()
-        # noinspection argument-list
         join_previous_channel()
 
     @inject.autoparams()
