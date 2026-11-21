@@ -28,6 +28,10 @@ def handle_synced_hazards(
         logger.debug("Synced hazards are disabled")
         return
 
+    if state.got_first_handshake.is_set() is False:
+        logger.debug("First handshake not received, skipping")
+        return
+
     if (
         state.is_currently_under_network_destruction
         != NetworkDestroyReasonEnum.none
