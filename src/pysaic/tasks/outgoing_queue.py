@@ -92,7 +92,7 @@ async def outgoing_queue_processing(
     while True:
         event = await outgoing_queue.get()
         logger.debug("Processing event: %r", event)
-        await state.got_welcome_message.wait()
+        await state.got_server_welcome_message.wait()
         if event is None:
             break
 

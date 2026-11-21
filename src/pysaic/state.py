@@ -284,7 +284,7 @@ class State:
             self.id
         )
         self.config: Config = config
-        self.got_welcome_message: asyncio.Event = asyncio.Event()
+        self.got_server_welcome_message: asyncio.Event = asyncio.Event()
         self._game_location: Optional[Path] = None
         self.crc_input_path: Optional[Path] = None
         self._is_game_running: bool = False

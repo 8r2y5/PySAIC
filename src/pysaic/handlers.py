@@ -45,7 +45,7 @@ async def handle_welcome_message(
     conn, _message, config, state, outgoing_queue
 ):
     fogger = logger.getChild("handle_welcome_message")
-    state.got_welcome_message.set()
+    state.got_server_welcome_message.set()
 
     if not state.fake_disconnect:
         fogger.info(
@@ -81,13 +81,13 @@ async def handle_nickname_in_use(
     if not password:
         return
 
-    if not state.got_welcome_message.is_set():
+    if not state.got_server_welcome_message.is_set():
         await incoming_queue.put(
             IncomingEvent.create_information_event(
                 content=f"Nick {config.nick!r} is already in use. Trying to recover it after initialization."
             )
         )
-    await state.got_welcome_message.wait()
+    await state.got_server_welcome_message.wait()
     await incoming_queue.put(
         IncomingEvent.create_information_event(
             content=f"Starting to recover nick {config.nick!r}."

@@ -279,7 +279,7 @@ class AppEventRouter(Router):
         self._add_information_text(
             f"Connection problem: {self.event.event.payload}"
         )
-        self.state.got_welcome_message.clear()
+        self.state.got_server_welcome_message.clear()
         self.ui.disable_input()
         self.state.set_not_in_channel()
         self.state.is_author_authorized.clear()
@@ -342,7 +342,7 @@ class AppEventRouter(Router):
             ensure_afk_tasks_are_running()
 
             if (
-                self.state.got_welcome_message.is_set()
+                self.state.got_server_welcome_message.is_set()
                 and not self.state.is_in_channel.is_set()
                 and not self.state.fake_disconnect
             ):
