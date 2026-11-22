@@ -7,9 +7,9 @@ from packaging.version import Version
 
 START_OF_ACTOR_CHARACTER = "☻"
 END_OF_ACTOR_CHARACTER = "☺"
-VERSION = "0.3.0b15"
+VERSION = "0.3.0b16"
 CURRENT_VERSION = Version(VERSION)
-SUPPORTED_SCRIPT_VERSION = (18,)
+SUPPORTED_SCRIPT_VERSION = (19,)
 APP_IDENTITY = f"PySAIC {VERSION}"
 AFK_GAME_PING_TASK = "afk_game_ping_task"
 AFK_SET_TASK = "afk_set_task"
