@@ -8,7 +8,7 @@
   - Reduced default time from $60$ to $45$ minutes.
     - This affects only new installation and won't change existing configuration.
       - If you already used `0.3.0b15` then you would need to change in maunaly in `PySAIC` -> `Options` -> `Client`.
-  - Added randomness to time when it acutally hits between $6$ - $14$.
+  - Added randomness to time when it actually hits between $6$ - $14$.
 - **Renamed setting for Weighted disconnects:**
   - Previously name was `Realistic`, now it called `Weights` which represents how it works.
 - **Links:**
@@ -19,7 +19,7 @@
 - **Trade:**
   - Ammo trade works now correctly.
     - Previously it was counting stacks of ammo boxes, trading $10$ x 5.45x39 previously created $300$ ammo, now it will trade exactly that number.
-  - Multiple use items trade e.g. ciggaretes also will be exchanged correclty.
+  - Multiple use items trade e.g. cigarettes also will be exchanged correctly.
   - Removed double text layer over your items in backpack.
 
 ---
