@@ -161,114 +161,149 @@ end
 
 local function handle_add_item(item_id, game_id, amount, amount_type, condition, parts_string, upgrades_string, attachments_string)
     -- Cast primary values
-	printf("item_id:%s, game_id:%s, amount:%s, amount_type:%s, condition:%s, parts_string:%s, upgrades_string:%s, attachments_string:%s", item_id, game_id, amount, amount_type, condition, parts_string, upgrades_string, attachments_string)
+    printf("handle_add_item: item_id:%s, game_id:%s, amount:%s, amount_type:%s, condition:%s, parts_string:%s, upgrades_string:%s, attachments_string:%s", item_id, game_id, amount, amount_type, condition, parts_string, upgrades_string, attachments_string)
     amount = tonumber(amount) or 1
+    if amount <= 0 then amount = 1 end
     condition = tonumber(condition) or 1.0
 
+    if not ini_sys:section_exist(item_id) then
+        printf("handle_add_item: section %s does not exist", item_id)
+        return
+    end
+
+    -- Auto-detect actual item characteristics from engine configuration
+    local cls_id = ini_sys:r_clsid(item_id, "class")
+    local is_ammo = (cls_id and IsAmmo(nil, cls_id)) or (amount_type == "ammo")
+    local max_uses = ini_sys:r_float_ex(item_id, "max_uses")
+
+    if is_ammo then
+        amount_type = "ammo"
+    elseif max_uses and max_uses > 0 then
+        amount_type = "uses"
+    else
+        amount_type = "single"
+    end
+
     ---------------------------------------------------------
-    -- 1. AMMO HANDLING
+    -- 1. AMMO HANDLING (amount is exact count of rounds)
     ---------------------------------------------------------
     if amount_type == "ammo" then
-		printf('adding ammo %s:%s', item_id, amount)
+        printf("adding ammo %s:%s rounds", item_id, amount)
         -- Anomaly's native create_ammo safely handles spawning across multiple boxes
         -- if the amount exceeds a single box's max capacity.
         create_ammo(item_id, db.actor:position(), db.actor:level_vertex_id(), db.actor:game_vertex_id(), db.actor:id(), amount)
-        return -- Ammo doesn't have parts, upgrades, or attachments, so we skip the rest
-    end
 
     ---------------------------------------------------------
-    -- 2. ITEM SPAWNING (Single or Multi-use)
+    -- 2. MULTI-USE ITEM HANDLING (e.g. cigarettes, medkits, repair kits)
     ---------------------------------------------------------
-    -- If "single", we might need to spawn multiple distinct items. If "uses", we spawn exactly 1 item and set its charges.
-    local loops = (amount_type == "single") and amount or 1
+    elseif amount_type == "uses" and max_uses and max_uses > 0 then
+        printf("adding multi-use item %s with %s uses (max_uses=%s)", item_id, amount, max_uses)
+        local full_packs = math.floor(amount / max_uses)
+        local remainder = amount % max_uses
 
-    for i = 1, loops do
-        local se_obj = alife_create_item(item_id, db.actor)
-		printf('spawning item %s:%s', item_id, amount)
-        if not se_obj then
-			printf('no se_obj')
-			return
-		end
+        local function spawn_pack_with_uses(uses)
+            local se_obj = alife_create_item(item_id, db.actor)
+            if not se_obj then return end
+            local se_id = se_obj.id
+            CreateTimeEvent("pysaic_trade", "setup_item_" .. se_id, 0, function()
+                local obj = level.object_by_id(se_id)
+                if not obj then return false end
+                obj:set_condition(condition)
+                obj:set_remaining_uses(uses)
+                return true
+            end)
+        end
 
-        local se_id = se_obj.id
+        for i = 1, full_packs do
+            spawn_pack_with_uses(max_uses)
+        end
+        if remainder > 0 then
+            spawn_pack_with_uses(remainder)
+        elseif full_packs == 0 then
+            spawn_pack_with_uses(1)
+        end
 
-        -- Wait for the client object to come online before applying properties
-        CreateTimeEvent("pysaic_trade", "setup_item_" .. se_id, 0, function()
-            local obj = level.object_by_id(se_id)
-            if not obj then
-				printf('no obj')
-                return false -- Returns false to tell the engine to wait and run this again next frame
+    ---------------------------------------------------------
+    -- 3. STANDARD SINGLE ITEM SPAWNING
+    ---------------------------------------------------------
+    else
+        local loops = amount
+
+        for i = 1, loops do
+            local se_obj = alife_create_item(item_id, db.actor)
+            printf("spawning item %s:%s", item_id, amount)
+            if not se_obj then
+                return
             end
 
-            -- Apply base condition
-            obj:set_condition(condition)
+            local se_id = se_obj.id
 
-            -- Apply uses (e.g. medkits, water, grease)
-            if amount_type == "uses" then
-                obj:set_remaining_uses(amount)
-            end
+            -- Wait for the client object to come online before applying properties
+            CreateTimeEvent("pysaic_trade", "setup_item_" .. se_id, 0, function()
+                local obj = level.object_by_id(se_id)
+                if not obj then
+                    return false
+                end
 
-            ---------------------------------------------------------
-            -- 3. INTERNAL PARTS
-            ---------------------------------------------------------
-            if parts_string and parts_string ~= "none" then
-                local parts_data = {}
-                -- Split by '|' for each part, then by ':' for section/condition
-                for part_str in string.gmatch(parts_string, "([^|]+)") do
-                    local p_sec, p_cond = part_str:match("([^:]+):([^:]+)")
-                    if p_sec and p_cond then
-                        parts_data[p_sec] = tonumber(p_cond)
+                -- Apply base condition
+                obj:set_condition(condition)
+
+                ---------------------------------------------------------
+                -- 4. INTERNAL PARTS
+                ---------------------------------------------------------
+                if parts_string and parts_string ~= "none" then
+                    local parts_data = {}
+                    for part_str in string.gmatch(parts_string, "([^|]+)") do
+                        local p_sec, p_cond = part_str:match("([^:]+):([^:]+)")
+                        if p_sec and p_cond then
+                            parts_data[p_sec] = tonumber(p_cond)
+                        end
+                    end
+
+                    if item_parts and item_parts.set_parts_con then
+                        item_parts.set_parts_con(se_id, parts_data)
                     end
                 end
 
-                -- item_parts.set_parts_con acts on the ID, not the object directly
-                if item_parts and item_parts.set_parts_con then
-                    item_parts.set_parts_con(se_id, parts_data)
+                ---------------------------------------------------------
+                -- 5. UPGRADES
+                ---------------------------------------------------------
+                if upgrades_string and upgrades_string ~= "none" then
+                    for upg_sec in string.gmatch(upgrades_string, "([^|]+)") do
+                        obj:install_upgrade(upg_sec)
+                    end
                 end
-            end
 
-            ---------------------------------------------------------
-            -- 4. UPGRADES
-            ---------------------------------------------------------
-            if upgrades_string and upgrades_string ~= "none" then
-                -- Split by '|' to get each upgrade section
-                for upg_sec in string.gmatch(upgrades_string, "([^|]+)") do
-                    obj:install_upgrade(upg_sec)
+                return true
+            end)
+        end
+
+        ---------------------------------------------------------
+        -- 6. ATTACHMENTS
+        ---------------------------------------------------------
+        if attachments_string and attachments_string ~= "none" then
+            for att_str in string.gmatch(attachments_string, "([^|]+)") do
+                local att_type, att_sec = att_str:match("([^:]+):([^:]+)")
+                if att_sec then
+                    alife_create_item(att_sec, db.actor)
                 end
-            end
-
-            return true -- Everything is applied, safely end the time event
-        end)
-    end
-
-    ---------------------------------------------------------
-    -- 5. ATTACHMENTS
-    ---------------------------------------------------------
-    if attachments_string and attachments_string ~= "none" then
-        -- Split by '|' for each attachment, then by ':' for type/section
-        for att_str in string.gmatch(attachments_string, "([^|]+)") do
-            local att_type, att_sec = att_str:match("([^:]+):([^:]+)")
-
-            if att_sec then
-                -- Safest approach: Spawn the attachment directly into the receiver's inventory
-                alife_create_item(att_sec, db.actor)
             end
         end
     end
-	local inv_name_id = ini_sys:r_string_ex(item_id, "inv_name") or item_id
-	local item_name = game.translate_string(inv_name_id)
 
-	-- 2. Format the string based on the amount type
-	local summary_text = ""
-	if amount_type == "uses" then
-		summary_text = string.format("%s : %s", item_name, amount)
-	else
-		summary_text = string.format("%s x%s", item_name, amount)
-	end
+    local inv_name_id = ini_sys:r_string_ex(item_id, "inv_name") or item_id
+    local item_name = game.translate_string(inv_name_id)
 
-	-- 3. Send a PDA notification to the player
-	-- args: (actor, text, sender_id, icon, duration_ms)
-	news_manager.send_tip(db.actor, "Popov gives you:\n\n" .. summary_text, nil, "ui_inGame2_Log_Trade", 5000)
+    local summary_text = ""
+    if amount_type == "ammo" then
+        summary_text = string.format("%s (%s rounds)", item_name, amount)
+    elseif amount_type == "uses" then
+        summary_text = string.format("%s (%s uses)", item_name, amount)
+    else
+        summary_text = string.format("%s x%s", item_name, amount)
+    end
+
+    news_manager.send_tip(db.actor, "Received trade item:\n\n" .. summary_text, nil, "ui_inGame2_Log_Trade", 5000)
 end
 
 itemActions = {

@@ -123,14 +123,23 @@ function TradeWindow:InitInventory()
         local clsid = item:clsid()
 
         -- Exclude quest items or equipped items if on belt/slot
+        if db.actor:is_on_belt(item) then return end
+        for i = 1, 13 do
+            local slot_item = db.actor:item_in_slot(i)
+            if slot_item and slot_item:id() == id then return end
+        end
+        if ini_sys:r_bool_ex(sec, "quest_item", false) then return end
+
         local amount = 1
         local amount_type = "single"
         if IsAmmo(nil, clsid) then
             amount = item:ammo_get_count()
             amount_type = "ammo"
+            if amount <= 0 then return end
         elseif ini_sys:r_float_ex(sec, "max_uses") then
             amount = item:get_remaining_uses()
             amount_type = "uses"
+            if amount <= 0 then return end
         end
 
         local inv_name_id = ini_sys:r_string_ex(sec, "inv_name") or sec
@@ -168,8 +177,14 @@ function TradeWindow:RenderBackpack()
             local entry = self.xml:InitStatic("item_entry", nil)
             entry:TextControl():SetText(itm.name)
 
-            local detail_text = string.format("Cond: %d%% | Amount: %s", itm.cond_pct, itm.amount)
-            self.xml:InitStatic("item_entry:name", entry):TextControl():SetText(itm.name)
+            local detail_text
+            if itm.amount_type == "ammo" then
+                detail_text = string.format("Cond: %d%% | Rounds: %s", itm.cond_pct, itm.amount)
+            elseif itm.amount_type == "uses" then
+                detail_text = string.format("Cond: %d%% | Uses: %s", itm.cond_pct, itm.amount)
+            else
+                detail_text = string.format("Cond: %d%% | Qty: %s", itm.cond_pct, itm.amount)
+            end
             self.xml:InitStatic("item_entry:details", entry):TextControl():SetText(detail_text)
 
             -- Selection highlight button overlay
@@ -274,7 +289,14 @@ function TradeWindow:RenderMyOffer()
     for ref_id, itm in pairs(self.my_offered_items) do
         local entry = self.xml:InitStatic("item_entry", nil)
         self.xml:InitStatic("item_entry:name", entry):TextControl():SetText(itm.name)
-        local detail_text = string.format("Cond: %d%% | Qty: %s", itm.cond_pct, itm.amount)
+        local detail_text
+        if itm.amount_type == "ammo" then
+            detail_text = string.format("Cond: %d%% | Rounds: %s", itm.cond_pct, itm.amount)
+        elseif itm.amount_type == "uses" then
+            detail_text = string.format("Cond: %d%% | Uses: %s", itm.cond_pct, itm.amount)
+        else
+            detail_text = string.format("Cond: %d%% | Qty: %s", itm.cond_pct, itm.amount)
+        end
         self.xml:InitStatic("item_entry:details", entry):TextControl():SetText(detail_text)
 
         local btn = CUIButton()
@@ -314,11 +336,20 @@ function TradeWindow:OnPartnerAdd(ref_id, item_id, amount, condition, parts_stri
     local display_name = game.translate_string(inv_name_id)
     local cond_num = tonumber(condition) or 1.0
 
+    local cls_id = ini_sys:section_exist(item_id) and ini_sys:r_clsid(item_id, "class")
+    local amount_type = "single"
+    if cls_id and IsAmmo(nil, cls_id) then
+        amount_type = "ammo"
+    elseif ini_sys:r_float_ex(item_id, "max_uses") then
+        amount_type = "uses"
+    end
+
     self.partner_offered_items[ref_id] = {
         ref_id = ref_id,
         item_id = item_id,
         name = display_name,
         amount = amount,
+        amount_type = amount_type,
         condition = cond_num,
         cond_pct = math.floor(cond_num * 100),
         parts_string = parts_string,
@@ -346,7 +377,14 @@ function TradeWindow:RenderPartnerOffer()
         local entry = self.xml:InitStatic("item_entry", nil)
         self.xml:InitStatic("item_entry:name", entry):TextControl():SetText(itm.name)
 
-        local detail_text = string.format("Cond: %d%% | Qty: %s", itm.cond_pct, itm.amount)
+        local detail_text
+        if itm.amount_type == "ammo" then
+            detail_text = string.format("Cond: %d%% | Rounds: %s", itm.cond_pct, itm.amount)
+        elseif itm.amount_type == "uses" then
+            detail_text = string.format("Cond: %d%% | Uses: %s", itm.cond_pct, itm.amount)
+        else
+            detail_text = string.format("Cond: %d%% | Qty: %s", itm.cond_pct, itm.amount)
+        end
         if itm.upgrades_string and itm.upgrades_string ~= "none" then
             detail_text = detail_text .. " [Upgraded]"
         end
