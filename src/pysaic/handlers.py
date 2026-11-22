@@ -297,7 +297,7 @@ async def handle_notice_from_NickServ(
 async def handle_part_event(conn, message, incoming_queue):
     reasons = {
         "Surge": "caught in emission.",
-        "Psystorm": "caught in psy storm.",
+        "Psy_Storm": "caught in psy storm.",
         "Underground": "went underground.",
     }
     try:

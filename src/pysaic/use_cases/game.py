@@ -239,7 +239,7 @@ class GameChannelMessageUseCase:
             IncomingEvent.create_game_event(GameEvents.AFK, "game message")
         )
 
-        if state.is_in_channel is False:
+        if state.is_in_channel.is_set() is False:
             self.logger.debug("Not in channel, ignoring message")
             await self.incoming_queue.put(
                 IncomingEvent.create_error_event(
@@ -326,7 +326,10 @@ class ConnectionLostUseCase:
             "Connection lost: %r",
             self.entity,
         )
-        if self.entity.reason == NetworkDestroyReasonEnum.none:
+        if (
+            self.entity.reason == NetworkDestroyReasonEnum.none
+            and state.is_in_channel.is_set()
+        ):
             logger.info("No reason for reconnect, ignoring")
             add_signal_state(str(state.fake_disconnect))
             state.is_currently_under_network_destruction = None
@@ -384,7 +387,7 @@ class ConnectionLostUseCase:
         async def _task(reason):
             if reason in (NetworkDestroyReasonEnum.surge, "Surge"):
                 content = "[PySAIC SYSTEM] // Regional communications grid disrupted. Seek shelter immediately."
-            elif reason in (NetworkDestroyReasonEnum.psy_storm, "PsyStorm"):
+            elif reason in (NetworkDestroyReasonEnum.psy_storm, "Psy_Storm"):
                 content = "[PySAIC SYSTEM] // Regional psy-field disrupted. Seek shelter immediately."
             else:
                 content = "[PySAIC SYSTEM] // Signal reception detected. Communications may be unreliable."
@@ -403,7 +406,7 @@ class ConnectionLostUseCase:
     @inject.autoparams()
     def _check_if_already_in_desired_state(self, state: State):
         logger.info("Already in the desired state.")
-        if state.is_in_channel:
+        if state.is_in_channel.is_set():
             # noinspection argument-list
             self._handle_network_destruction()
 
