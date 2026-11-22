@@ -10,6 +10,8 @@
       - If you already used `0.3.0b15` then you would need to change in maunaly in `PySAIC` -> `Options` -> `Client`.
 - **Renamed setting for Weighted disconnects:**
   - Previously name was `Realistic`, now it called `Weights` which represents how it works.
+- **Links:**
+  - Changed from double mouse click to single click.
 ### What fixed:
 - **Synced Emissions:**
   - Improved logic to reduce false signals about emissions from other players and making it more smooth experience.

@@ -16,7 +16,7 @@ class HyperlinkManager:
         self.links = {}
         self.text.tag_bind("hyper", "<Enter>", self._enter)
         self.text.tag_bind("hyper", "<Leave>", self._leave)
-        self.text.tag_bind("hyper", "<Double-Button-1>", self._click)
+        self.text.tag_bind("hyper", "<Button-1>", self._click)
 
     def prepare_tags(self, url: str) -> list[str]:
         tag = f"hyper-{len(self.links)}"
