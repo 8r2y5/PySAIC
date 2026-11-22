@@ -67,7 +67,7 @@ def handle_synced_hazards(
         hazard_type = "Surge"
     elif normalized.lower() == "psy_storm":
         hazard_name = "Psy Storm"
-        hazard_type = "PsyStorm"
+        hazard_type = "Psy_Storm"
     else:
         logger.debug("Unhandled hazard reason: %r", normalized)
         return
@@ -89,9 +89,11 @@ def handle_synced_hazards(
 
     logger.debug("Processing synced hazard: %s from %s", hazard_name, nick)
     state.last_synced_hazard = now
+
+    # randomness here is on purpose
     warning_msg = (
         f"{hazard_name} is coming from {nick}, "
-        "it will arrive in approximately 10 sec"
+        f"it will arrive in approximately {randint(6, 14)} sec"
     )
     incoming_queue.create_information_event(warning_msg)
 
