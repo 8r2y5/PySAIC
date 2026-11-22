@@ -418,7 +418,7 @@ class Config:
     show_less_information: bool = BoolField(default=False)
     use_static_nick_color: bool = BoolField(default=False)
     sync_hazards: bool = BoolField(default=False)
-    sync_hazards_cooldown: int = ConfigField(default=30)
+    sync_hazards_cooldown: int = ConfigField(default=45)
 
     @classmethod
     def load_config(cls):
