@@ -1,6 +1,6 @@
 import asyncio
 from datetime import datetime, timedelta
-from unittest.mock import MagicMock, Mock, patch
+from unittest.mock import MagicMock, Mock, call, patch
 
 import pytest
 
@@ -142,9 +142,11 @@ def test_returns_early_when_cooldown_is_active(
         ("psy_storm", "Psy Storm"),
     ],
 )
+@patch("pysaic.use_cases.hazard.randint")
 @patch("pysaic.use_cases.hazard.datetime")
 def test_processes_hazards_successfully(
     mock_datetime,
+    mock_randint,
     raw_reason,
     expected_name,
     mock_config,
@@ -157,6 +159,7 @@ def test_processes_hazards_successfully(
     mock_state.is_currently_under_network_destruction = (
         NetworkDestroyReasonEnum.none
     )
+    mock_randint.return_value = 10
 
     handle_synced_hazards(
         raw_reason=raw_reason,
@@ -212,6 +215,6 @@ async def test_async_task_execution(
     task_coro = mock_loop.create_task.call_args[0][0]
     await task_coro
 
-    mock_randint.assert_called_once_with(6, 14)
+    assert mock_randint.mock_calls == [call(6, 14), call(6, 14)]
     mock_sleep.assert_called_once_with(8)
     mock_trigger.assert_called_once_with("Surge")
