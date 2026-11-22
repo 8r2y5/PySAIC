@@ -1,14 +1,23 @@
 # Changelog
 
-## `1.0.0` - 2026-12
+## `0.3.0b16` - 2026-11
 ### What's new:
+ -
 ### What changed:
 - **Synced Emissions:**
   - Reduced default time from $60$ to $30$ minutes.
-    - This affects only new installation and won't change existing configuration
+    - This affects only new installation and won't change existing configuration.
+      - If you already used `0.3.0b15` then you would need to change in maunaly in `PySAIC` -> `Options` -> `Client`.
+- **Renamed setting for Weighted disconnects:**
+  - Previously name was `Realistic`, now it called `Weights` which represents how it works.
 ### What fixed:
 - **Synced Emissions:**
   - Improved logic to reduce false signals about emissions from other players and making it more smooth experience.
+- **Trade:**
+  - Ammo trade works now correctly.
+    - Previously it was counting stacks of ammo boxes, trading $10$ x 5.45x39 previously created $300$ ammo, now it will trade exactly that number.
+  - Multiple use items trade e.g. ciggaretes also will be exchanged correclty.
+  - Removed double text layer over your items in backpack.
 
 ---
 
