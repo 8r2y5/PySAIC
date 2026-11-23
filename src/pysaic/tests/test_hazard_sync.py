@@ -135,6 +135,7 @@ def test_returns_early_when_cooldown_is_active(
     mock_incoming_queue.create_information_event.assert_not_called()
 
 
+@pytest.mark.asyncio
 @pytest.mark.parametrize(
     "raw_reason, expected_name",
     [
@@ -144,7 +145,7 @@ def test_returns_early_when_cooldown_is_active(
 )
 @patch("pysaic.use_cases.hazard.randint")
 @patch("pysaic.use_cases.hazard.datetime")
-def test_processes_hazards_successfully(
+async def test_processes_hazards_successfully(
     mock_datetime,
     mock_randint,
     raw_reason,
@@ -159,7 +160,7 @@ def test_processes_hazards_successfully(
     mock_state.is_currently_under_network_destruction = (
         NetworkDestroyReasonEnum.none
     )
-    mock_randint.return_value = 10
+    mock_randint.return_value = 0
 
     handle_synced_hazards(
         raw_reason=raw_reason,
@@ -169,12 +170,14 @@ def test_processes_hazards_successfully(
         state=mock_state,
         incoming_queue=mock_incoming_queue,
     )
+    task_coro = mock_loop.create_task.call_args[0][0]
+    await task_coro
 
     assert mock_state.last_synced_hazard == now
 
     expected_msg = (
         f"{expected_name} is coming from TestUser, "
-        "it will arrive in approximately 10 sec"
+        "it will arrive in approximately 0 sec"
     )
     mock_incoming_queue.create_information_event.assert_called_once_with(
         expected_msg

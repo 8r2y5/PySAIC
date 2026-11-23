@@ -15,9 +15,9 @@ from pysaic.controllers.game import (
     send_trade_partner_accept_to_game,
     send_trade_partner_add_to_game,
     send_trade_partner_del_to_game,
+    send_trade_partner_finalize_to_game,
     send_trade_reset_accept_to_game,
     send_trade_success_to_game,
-    send_trade_verify_request_to_game,
 )
 from pysaic.entities import (
     IncomingEvent,
@@ -32,6 +32,39 @@ logger = logging.getLogger(__name__)
 
 PROTOCOL_VERSION = "1"
 HANDSHAKE_TIMEOUT_SECONDS = 30
+
+ALLOWED_TRADE_ERROR_CODES = {
+    "user_cancelled",
+    "timeout",
+    "handshake_timeout",
+    "incompatible_item",
+    "item_check_failed",
+    "inventory_verification_failed",
+    "internal_error",
+    "trade_aborted",
+    "window_closed",
+    "connection_lost",
+}
+
+SAFE_TRADE_ERROR_MESSAGES = {
+    "user_cancelled": "Trade was cancelled by user.",
+    "timeout": "Trade timed out.",
+    "handshake_timeout": "Handshake timed out.",
+    "incompatible_item": "Incompatible item in trade.",
+    "item_check_failed": "Item check failed.",
+    "inventory_verification_failed": "Inventory verification failed.",
+    "internal_error": "Internal trade error occurred.",
+    "trade_aborted": "Trade was aborted.",
+    "window_closed": "Trade window was closed.",
+    "connection_lost": "Connection lost.",
+}
+
+
+def sanitize_trade_error_code(code: str) -> str:
+    cleaned = code.strip().lower() if code else ""
+    if cleaned in ALLOWED_TRADE_ERROR_CODES:
+        return cleaned
+    return "trade_aborted"
 
 
 class TradeUseCase:
@@ -109,6 +142,9 @@ class TradeUseCase:
         """Resets offer acceptance flags for both parties when offer contents change."""
         session.my_accepted = False
         session.partner_accepted = False
+        session.my_finalized = False
+        session.partner_finalized = False
+        session.status = TradeStatus.ACTIVE
         if notify_game:
             send_trade_reset_accept_to_game(session.session_id)
 
@@ -360,6 +396,7 @@ class TradeUseCase:
             stored_session, _ = state.pending_outgoing_trades[target]
             if stored_session == session_id:
                 state.pending_outgoing_trades.pop(target, None)
+                logger.debug("Trade request with %s expired.", target)
                 cls._send_info(
                     incoming_queue, f"Trade request with {target} expired."
                 )
@@ -368,10 +405,10 @@ class TradeUseCase:
     @inject.autoparams()
     def cancel_active_trade(
         cls,
-        reason: str = "cancelled",
-        state: State = None,
-        incoming_queue: IncomingQueue = None,
-        outgoing_queue: OutgoingQueue = None,
+        reason: str,
+        state: State,
+        incoming_queue: IncomingQueue,
+        outgoing_queue: OutgoingQueue,
     ):
         """Cancels active trade session or clears pending requests."""
         state.pending_incoming_trades.clear()
@@ -380,12 +417,20 @@ class TradeUseCase:
         if state.trade:
             session_id = state.trade.session_id
             partner = state.trade.partner_nick
+            clean_reason = sanitize_trade_error_code(reason)
             cls._send_trade_ctcp(
-                outgoing_queue, partner, SAICTrade.CANCEL, session_id, reason
+                outgoing_queue,
+                partner,
+                SAICTrade.CANCEL,
+                session_id,
+                clean_reason,
             )
-            send_trade_abort_to_game(session_id, reason)
+            send_trade_abort_to_game(session_id, clean_reason)
+            display_msg = SAFE_TRADE_ERROR_MESSAGES.get(
+                clean_reason, "Trade aborted."
+            )
             cls._send_info(
-                incoming_queue, f"Trade with {partner} aborted: {reason}."
+                incoming_queue, f"Trade with {partner} aborted: {display_msg}"
             )
             state.trade = None
         else:
@@ -579,17 +624,34 @@ class TradeUseCase:
             case SAICTrade.ACCEPT:
                 state.trade.partner_accepted = True
                 send_trade_partner_accept_to_game(session_id)
-                cls._check_both_accepted(state, outgoing_queue)
+                cls._check_both_accepted(state)
 
             case SAICTrade.COMMIT:
-                cls._execute_trade_swap(state, incoming_queue)
+                if state.trade and state.trade.session_id == session_id:
+                    state.trade.partner_finalized = True
+                    logger.info(
+                        "Partner finalized trade session %s", session_id
+                    )
+                    send_trade_partner_finalize_to_game(session_id)
+                    if state.trade.my_finalized:
+                        cls._execute_trade_swap(state, incoming_queue)
+                    else:
+                        logger.info(
+                            "Partner finalized trade session %s; waiting for local finalization.",
+                            session_id,
+                        )
 
             case SAICTrade.CANCEL:
-                reason = payload[0] if payload else "Partner cancelled trade."
+                raw_reason = payload[0] if payload else "user_cancelled"
+                clean_reason = sanitize_trade_error_code(raw_reason)
                 if state.trade and state.trade.session_id == session_id:
-                    send_trade_abort_to_game(session_id, reason)
+                    send_trade_abort_to_game(session_id, clean_reason)
+                    display_msg = SAFE_TRADE_ERROR_MESSAGES.get(
+                        clean_reason, "Trade aborted."
+                    )
                     cls._send_info(
-                        incoming_queue, f"Trade aborted by {author}: {reason}."
+                        incoming_queue,
+                        f"Trade aborted by {author}: {display_msg}",
                     )
                     state.trade = None
 
@@ -696,15 +758,14 @@ class TradeUseCase:
         )
 
     @staticmethod
-    def _check_both_accepted(state: State, outgoing_queue: OutgoingQueue):
+    def _check_both_accepted(state: State):
         session = state.trade
         if session and session.my_accepted and session.partner_accepted:
             logger.info(
-                "Both players accepted trade session %s. Requesting inventory verification.",
+                "Both players accepted trade session %s. Both players must now click Finalize.",
                 session.session_id,
             )
-            session.status = TradeStatus.COMMITTING
-            send_trade_verify_request_to_game(session.session_id)
+            session.status = TradeStatus.ACCEPTED
 
     @classmethod
     def _execute_trade_swap(cls, state: State, incoming_queue: IncomingQueue):
@@ -936,7 +997,7 @@ class TradeUseCase:
             SAICTrade.ACCEPT,
             session.session_id,
         )
-        cls._check_both_accepted(state, outgoing_queue)
+        cls._check_both_accepted(state)
 
     @classmethod
     @inject.autoparams()
@@ -959,13 +1020,20 @@ class TradeUseCase:
 
         status = fields[1] if len(fields) > 1 else "0"
         if status == "1":
+            session.my_finalized = True
             cls._send_trade_ctcp(
                 outgoing_queue,
                 session.partner_nick,
                 SAICTrade.COMMIT,
                 session.session_id,
             )
-            cls._execute_trade_swap(state, incoming_queue)
+            if session.partner_finalized:
+                cls._execute_trade_swap(state, incoming_queue)
+            else:
+                logger.info(
+                    "Local player finalized trade session %s. Waiting for partner.",
+                    session.session_id,
+                )
         else:
             logger.warning(
                 "Inventory verification failed for trade session %s",
@@ -974,11 +1042,9 @@ class TradeUseCase:
             cls.cancel_active_trade(reason="inventory_verification_failed")
 
     @classmethod
-    @inject.autoparams()
     def handle_game_cancel(
         cls,
         payload: str,
-        state: State,
     ):
         """
         Local player closed the trade window or pressed Esc in game:

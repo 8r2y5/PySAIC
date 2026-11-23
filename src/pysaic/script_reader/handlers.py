@@ -347,6 +347,38 @@ async def _handle_query(
     outgoing_queue: OutgoingQueue,
     state: State,
 ):
-    await _handle_channel_message(
-        f"/msg {rest}", config, incoming_queue, outgoing_queue, state
+    from pysaic.entities import OutgoingMessage
+    from pysaic.enums import HistoryMessageEnum
+
+    target = ""
+    message = ""
+    if "/" in rest:
+        parts = rest.split("/")
+        if len(parts) >= 4:
+            target = parts[2]
+            message = "/".join(parts[3:])
+        elif len(parts) >= 2:
+            target = parts[0]
+            message = "/".join(parts[1:])
+    elif " " in rest:
+        target, message = rest.split(" ", 1)
+
+    target = target.strip().lstrip("@")
+    message = message.strip()
+
+    if not target or not message:
+        logger.warning("Invalid Query line received: %r", rest)
+        return
+
+    logger.info(
+        "Handling private message from game to %s: %s", target, message
     )
+    state.last_private_message_from = target
+    history_user = (
+        state.chat_users.get(target) or state.player.create_chat_user()
+    )
+    history_user.name = target
+    state.add_message(HistoryMessageEnum.dm_to, history_user, message)
+
+    outgoing_message = OutgoingMessage(target, message)
+    outgoing_queue.put_nowait(outgoing_message)

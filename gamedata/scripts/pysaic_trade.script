@@ -19,6 +19,10 @@ function TradeWindow:__init(session_id, partner_nick) super()
 
     self.my_accepted = false
     self.partner_accepted = false
+    self.my_finalized = false
+    self.partner_finalized = false
+    self.backpack_item_entries = {}
+    self.my_offer_item_entries = {}
     self.next_ref_id = 1
 
     self:InitControls()
@@ -86,7 +90,9 @@ end
 
 function TradeWindow:UpdateStatusLabels()
     if self.lbl_my_status then
-        if self.my_accepted then
+        if self.my_finalized then
+            self.lbl_my_status:TextControl():SetText("Your Status: FINALIZED")
+        elseif self.my_accepted then
             self.lbl_my_status:TextControl():SetText("Your Status: READY (Accepted)")
         else
             self.lbl_my_status:TextControl():SetText("Your Status: NOT READY")
@@ -94,16 +100,18 @@ function TradeWindow:UpdateStatusLabels()
     end
 
     if self.lbl_partner_status then
-        if self.partner_accepted then
+        if self.partner_finalized then
+            self.lbl_partner_status:TextControl():SetText("Partner Status: FINALIZED")
+        elseif self.partner_accepted then
             self.lbl_partner_status:TextControl():SetText("Partner Status: READY (Accepted)")
         else
             self.lbl_partner_status:TextControl():SetText("Partner Status: WAITING")
         end
     end
 
-    -- Finalize button is only enabled when both players have accepted
+    -- Finalize button is only enabled when both players have accepted and local user has not yet finalized
     if self.btn_finalize then
-        if self.my_accepted and self.partner_accepted then
+        if self.my_accepted and self.partner_accepted and not self.my_finalized then
             self.btn_finalize:Enable(true)
         else
             self.btn_finalize:Enable(false)
@@ -163,6 +171,7 @@ end
 
 function TradeWindow:RenderBackpack()
     self.scroll_backpack:Clear()
+    self.backpack_item_entries = {}
     for idx, itm in ipairs(self.backpack_items) do
         -- Only show if not already moved to our offer
         local already_offered = false
@@ -175,7 +184,7 @@ function TradeWindow:RenderBackpack()
 
         if not already_offered then
             local entry = self.xml:InitStatic("item_entry", nil)
-            entry:TextControl():SetText(itm.name)
+            self.xml:InitStatic("item_entry:name", entry):TextControl():SetText(itm.name)
 
             local detail_text
             if itm.amount_type == "ammo" then
@@ -187,6 +196,13 @@ function TradeWindow:RenderBackpack()
             end
             self.xml:InitStatic("item_entry:details", entry):TextControl():SetText(detail_text)
 
+            self.backpack_item_entries[idx] = entry
+            if self.selected_backpack_idx == idx then
+                entry:SetTextureColor(GetARGB(220, 80, 80, 80))
+            else
+                entry:SetTextureColor(GetARGB(180, 20, 20, 20))
+            end
+
             -- Selection highlight button overlay
             local btn = CUIButton()
             btn:SetWndRect(Frect():set(0, 0, 270, 42))
@@ -195,7 +211,7 @@ function TradeWindow:RenderBackpack()
             self:Register(btn, "bp_item_" .. idx)
             self:AddCallback("bp_item_" .. idx, ui_events.BUTTON_CLICKED, function()
                 self.selected_backpack_idx = idx
-                self:HighlightBackpackItem(entry)
+                self:HighlightBackpackItem(idx)
             end, self)
 
             self.scroll_backpack:AddWindow(entry, true)
@@ -204,8 +220,15 @@ function TradeWindow:RenderBackpack()
     end
 end
 
-function TradeWindow:HighlightBackpackItem(entry)
-    printf("[PySAIC Trade] Selected backpack item index: %s", self.selected_backpack_idx)
+function TradeWindow:HighlightBackpackItem(selected_idx)
+    if not self.backpack_item_entries then return end
+    for idx, entry in pairs(self.backpack_item_entries) do
+        if idx == selected_idx then
+            entry:SetTextureColor(GetARGB(220, 80, 80, 80))
+        else
+            entry:SetTextureColor(GetARGB(180, 20, 20, 20))
+        end
+    end
 end
 
 function TradeWindow:AddSelectedToOffer()
@@ -286,6 +309,7 @@ end
 
 function TradeWindow:RenderMyOffer()
     self.scroll_my_offer:Clear()
+    self.my_offer_item_entries = {}
     for ref_id, itm in pairs(self.my_offered_items) do
         local entry = self.xml:InitStatic("item_entry", nil)
         self.xml:InitStatic("item_entry:name", entry):TextControl():SetText(itm.name)
@@ -299,6 +323,13 @@ function TradeWindow:RenderMyOffer()
         end
         self.xml:InitStatic("item_entry:details", entry):TextControl():SetText(detail_text)
 
+        self.my_offer_item_entries[ref_id] = entry
+        if self.selected_my_offer_ref == ref_id then
+            entry:SetTextureColor(GetARGB(220, 80, 80, 80))
+        else
+            entry:SetTextureColor(GetARGB(180, 20, 20, 20))
+        end
+
         local btn = CUIButton()
         btn:SetWndRect(Frect():set(0, 0, 270, 42))
         btn:SetAutoDelete(true)
@@ -306,10 +337,22 @@ function TradeWindow:RenderMyOffer()
         self:Register(btn, "my_off_" .. ref_id)
         self:AddCallback("my_off_" .. ref_id, ui_events.BUTTON_CLICKED, function()
             self.selected_my_offer_ref = ref_id
+            self:HighlightMyOfferItem(ref_id)
         end, self)
 
         self.scroll_my_offer:AddWindow(entry, true)
         entry:SetAutoDelete(true)
+    end
+end
+
+function TradeWindow:HighlightMyOfferItem(selected_ref)
+    if not self.my_offer_item_entries then return end
+    for ref_id, entry in pairs(self.my_offer_item_entries) do
+        if ref_id == selected_ref then
+            entry:SetTextureColor(GetARGB(220, 80, 80, 80))
+        else
+            entry:SetTextureColor(GetARGB(180, 20, 20, 20))
+        end
     end
 end
 
@@ -410,11 +453,24 @@ end
 function TradeWindow:OnResetAccept()
     self.my_accepted = false
     self.partner_accepted = false
+    self.my_finalized = false
+    self.partner_finalized = false
+    self:UpdateStatusLabels()
+end
+
+function TradeWindow:OnPartnerFinalize()
+    self.partner_finalized = true
     self:UpdateStatusLabels()
 end
 
 function TradeWindow:OnFinalizeClicked()
     if not (self.my_accepted and self.partner_accepted) then return end
+    if self.my_finalized then return end
+    self.my_finalized = true
+    if self.btn_finalize then
+        self.btn_finalize:Enable(false)
+    end
+    self:UpdateStatusLabels()
     self:VerifyAndCommit()
 end
 
@@ -540,6 +596,9 @@ function handle_trade_command(body)
     elseif action == "PartnerAccept" and trade_window then
         trade_window:OnPartnerAccept()
 
+    elseif action == "PartnerFinalize" and trade_window then
+        trade_window:OnPartnerFinalize()
+
     elseif action == "ResetAccept" and trade_window then
         trade_window:OnResetAccept()
 
@@ -551,14 +610,27 @@ function handle_trade_command(body)
 
     elseif action == "Abort" and trade_window then
         trade_window:Cancel(true)
-        local _, reason = rest:match("([^/]+)/(.+)")
-        news_manager.send_tip(db.actor, "Trade Aborted: " .. (reason or "cancelled"), nil, "ui_inGame2_Log_Trade", 5000)
+        local _, reason_code = rest:match("([^/]+)/(.+)")
+        local safe_reasons = {
+            user_cancelled = "Cancelled by user",
+            timeout = "Trade timed out",
+            handshake_timeout = "Handshake timed out",
+            incompatible_item = "Incompatible item",
+            item_check_failed = "Item check failed",
+            inventory_verification_failed = "Inventory verification failed",
+            internal_error = "Internal error",
+            trade_aborted = "Trade aborted",
+            window_closed = "Trade window closed",
+            connection_lost = "Connection lost",
+        }
+        local display_text = (reason_code and safe_reasons[reason_code]) or "Trade aborted"
+        news_manager.send_tip(db.actor, "Trade Aborted: " .. display_text, nil, "ui_inGame2_Log_Trade", 5000)
     end
 end
 
 -- Hook incoming private message into trade chat window if open
 function on_incoming_private_message(from, text)
-    if trade_window and (trade_window.partner_nick == from) then
+    if trade_window and from and (trade_window.partner_nick:lower() == from:lower()) then
         trade_window:AddChatMessage(from, text)
     end
 end

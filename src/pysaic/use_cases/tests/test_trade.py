@@ -314,6 +314,7 @@ def test_handle_incoming_ctcp_commit_swaps_items(
         partner_items={
             "1": TradeItem(ref_id="1", item_id="beer", amount=3, condition=1.0)
         },
+        my_finalized=True,
     )
 
     TradeUseCase.handle_incoming_ctcp(
@@ -334,6 +335,90 @@ def test_handle_incoming_ctcp_commit_swaps_items(
         attachments_string="none",
     )
     mock_success.assert_called_once_with("A7F2")
+    assert trade_state.trade is None
+
+
+@patch("pysaic.use_cases.trade.add_item_to_inventory")
+@patch("pysaic.use_cases.trade.send_trade_success_to_game")
+def test_commit_requires_both_finalized(
+    mock_success,
+    mock_add_item,
+    trade_state,
+    mock_incoming_queue,
+    mock_outgoing_queue,
+):
+    trade_state.trade = TradeSession(
+        session_id="A7F2",
+        partner_nick="Actor_B",
+        is_initiator=True,
+        status=TradeStatus.ACCEPTED,
+        created_at=datetime.now(),
+        partner_items={
+            "1": TradeItem(ref_id="1", item_id="beer", amount=3, condition=1.0)
+        },
+        my_accepted=True,
+        partner_accepted=True,
+        my_finalized=False,
+    )
+
+    # Partner commits first
+    TradeUseCase.handle_incoming_ctcp(
+        author="Actor_B",
+        content="SAICTRADE.COMMIT 1/A7F2",
+        state=trade_state,
+        incoming_queue=mock_incoming_queue,
+        outgoing_queue=mock_outgoing_queue,
+    )
+
+    # Should NOT swap yet because local user hasn't finalized
+    mock_add_item.assert_not_called()
+    mock_success.assert_not_called()
+    assert trade_state.trade.partner_finalized is True
+    assert trade_state.trade.my_finalized is False
+
+    # Now local user finalizes (game verifies inventory)
+    TradeUseCase.handle_game_verify_result(
+        payload="A7F2/1",
+        state=trade_state,
+        outgoing_queue=mock_outgoing_queue,
+        incoming_queue=mock_incoming_queue,
+    )
+
+    # Now both finalized, swap must execute
+    mock_add_item.assert_called_once()
+    mock_success.assert_called_once_with("A7F2")
+    assert trade_state.trade is None
+
+
+@patch("pysaic.use_cases.trade.send_trade_abort_to_game")
+def test_cancel_code_sanitization(
+    mock_abort_game,
+    trade_state,
+    mock_incoming_queue,
+    mock_outgoing_queue,
+):
+    trade_state.trade = TradeSession(
+        session_id="A7F2",
+        partner_nick="Actor_B",
+        is_initiator=True,
+        status=TradeStatus.ACTIVE,
+        created_at=datetime.now(),
+    )
+
+    # Partner sends offensive string/slur
+    TradeUseCase.handle_incoming_ctcp(
+        author="Actor_B",
+        content="SAICTRADE.CANCEL 1/A7F2/malicious_slur_or_bad_words",
+        state=trade_state,
+        incoming_queue=mock_incoming_queue,
+        outgoing_queue=mock_outgoing_queue,
+    )
+
+    # Must be sanitized to trade_aborted
+    mock_abort_game.assert_called_once_with("A7F2", "trade_aborted")
+    info_event = mock_incoming_queue.put_nowait.call_args[0][0]
+    assert "malicious" not in info_event.event.content
+    assert "Trade was aborted" in info_event.event.content
     assert trade_state.trade is None
 
 
@@ -395,3 +480,30 @@ def test_initiate_trade_case_insensitive_mutual_match(
     assert ctcp.target == "BotUser"
     assert "SAICTRADE.ACCEPT_REQ 1/C002" in ctcp.content
     assert ctcp.send_as == IrcEvents.PRIVMSG
+
+
+@pytest.mark.asyncio
+async def test_handle_query_from_game(
+    trade_state, mock_incoming_queue, mock_outgoing_queue
+):
+    from pysaic.script_reader.handlers import _handle_query
+
+    config = Mock()
+    config.nick = "Actor_A"
+    trade_state.player = Mock()
+    trade_state.player.create_chat_user.return_value = ChatUser("Actor_A")
+    trade_state.add_message = Mock()
+
+    # Query from game trade chat: "Query/BotUser hello from trade window"
+    await _handle_query(
+        "BotUser hello from trade window",
+        config=config,
+        incoming_queue=mock_incoming_queue,
+        outgoing_queue=mock_outgoing_queue,
+        state=trade_state,
+    )
+
+    mock_outgoing_queue.put_nowait.assert_called_once()
+    msg = mock_outgoing_queue.put_nowait.call_args[0][0]
+    assert msg.target == "BotUser"
+    assert msg.content == "hello from trade window"

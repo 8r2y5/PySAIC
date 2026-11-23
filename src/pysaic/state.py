@@ -64,6 +64,8 @@ class TradeSession:
     partner_locked: bool = False
     my_accepted: bool = False
     partner_accepted: bool = False
+    my_finalized: bool = False
+    partner_finalized: bool = False
 
 
 @dataclass()

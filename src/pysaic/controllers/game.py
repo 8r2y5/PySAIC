@@ -345,6 +345,12 @@ def send_trade_partner_accept_to_game(session_id: str):
 
 
 @ensure_game_is_running
+def send_trade_partner_finalize_to_game(session_id: str):
+    logger.debug("Sending partner finalize to game")
+    add_to_crc_input_file(f"Trade/PartnerFinalize/{session_id}")
+
+
+@ensure_game_is_running
 def send_trade_reset_accept_to_game(session_id: str):
     logger.debug("Sending reset accept to game")
     add_to_crc_input_file(f"Trade/ResetAccept/{session_id}")
